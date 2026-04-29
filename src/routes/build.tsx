@@ -1,31 +1,47 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
+import { useState } from "react";
+import { CVProvider } from "@/context/CVContext";
+import { Step1Language } from "@/components/build/Step1Language";
+import { Step2JobType } from "@/components/build/Step2JobType";
+import { Step3PersonalDetails } from "@/components/build/Step3PersonalDetails";
+import { Step4Experience } from "@/components/build/Step4Experience";
+import { Step5Skills } from "@/components/build/Step5Skills";
+import { Step6Review } from "@/components/build/Step6Review";
 
 export const Route = createFileRoute("/build")({
   head: () => ({
     meta: [
       { title: "Build Your CV — CVBridge" },
-      { name: "description", content: "Start building your professional UK CV in your own language." },
+      { name: "description", content: "Build your professional UK CV in your own language, one simple question at a time." },
       { property: "og:title", content: "Build Your CV — CVBridge" },
-      { property: "og:description", content: "Start building your professional UK CV in your own language." },
+      { property: "og:description", content: "Build your professional UK CV in your own language, one simple question at a time." },
     ],
   }),
   component: BuildPage,
 });
 
 function BuildPage() {
+  const [step, setStep] = useState(1);
+  const next = () => setStep((s) => Math.min(6, s + 1));
+  const back = () => setStep((s) => Math.max(1, s - 1));
+
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navbar />
-      <main className="flex flex-1 items-center justify-center px-5 py-24">
-        <div className="text-center">
-          <span className="text-xs font-semibold uppercase tracking-widest text-accent">Coming soon</span>
-          <h1 className="mt-3 font-serif text-4xl text-foreground md:text-6xl">CV Builder coming soon</h1>
-          <p className="mt-4 text-muted-foreground">We're putting the finishing touches on your CV journey.</p>
-        </div>
-      </main>
-      <Footer />
-    </div>
+    <CVProvider>
+      {step === 1 && <Step1Language onNext={next} />}
+      {step === 2 && <Step2JobType onNext={next} onBack={back} />}
+      {step === 3 && <Step3PersonalDetails onNext={next} onBack={back} />}
+      {step === 4 && <Step4Experience onNext={next} onBack={back} />}
+      {step === 5 && <Step5Skills onNext={next} onBack={back} />}
+      {step === 6 && (
+        <Step6Review
+          onBack={back}
+          onEdit={(s) => setStep(s)}
+          onGenerate={() => {
+            // Placeholder: generation handled later
+            alert("Your CV is being generated!");
+          }}
+        />
+      )}
+    </CVProvider>
   );
 }
