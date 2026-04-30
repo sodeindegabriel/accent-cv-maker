@@ -218,6 +218,7 @@ function Step1Language({ data, update, onNext }: StepProps) {
               onClick={() => {
                 update("languageCode", language.code);
                 update("language", language.name);
+                setTimeout(() => onNext(), 500);
               }}
               className={`rounded-xl border p-4 text-left transition ${
                 selected ? "border-primary bg-primary/10 ring-2 ring-primary/30" : "border-border bg-background hover:bg-muted"
