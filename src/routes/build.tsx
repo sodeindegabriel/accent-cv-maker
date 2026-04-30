@@ -463,6 +463,13 @@ function Step5Skills({ data, update, onBack, onNext }: StepProps) {
                 {skill}
               </Chip>
             ))}
+            {data.skills
+              .filter((skill) => !suggestedSkills.includes(skill))
+              .map((skill) => (
+                <Chip key={skill} selected onClick={() => toggleValue("skills", skill)}>
+                  {skill}
+                </Chip>
+              ))}
           </div>
           <div className="mt-4 flex gap-2">
             <input
