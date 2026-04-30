@@ -5,9 +5,9 @@ import { Footer } from "@/components/Footer";
 export const Route = createFileRoute("/employer")({
   head: () => ({
     meta: [
-      { title: "For Employers — CVBridge" },
+      { title: "For Employers — CVLingo" },
       { name: "description", content: "Hire pre-vetted, motivated candidates ready to work in the UK." },
-      { property: "og:title", content: "For Employers — CVBridge" },
+      { property: "og:title", content: "For Employers — CVLingo" },
       { property: "og:description", content: "Hire pre-vetted, motivated candidates ready to work in the UK." },
     ],
   }),
