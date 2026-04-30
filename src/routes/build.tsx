@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { generateCV } from "@/utils/generateCV";
 import { GeneratingOverlay } from "@/components/GeneratingOverlay";
@@ -120,6 +120,23 @@ function BuildPage() {
 
   return (
     <main className="min-h-screen bg-background text-foreground">
+      <header className="border-b border-border">
+        <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+          <Link
+            to="/"
+            className="text-lg font-semibold tracking-tight text-foreground transition hover:opacity-80"
+            aria-label="CVLingo — back to home"
+          >
+            CVLingo
+          </Link>
+          <Link
+            to="/"
+            className="text-sm font-medium text-muted-foreground transition hover:text-foreground"
+          >
+            ← Back to home
+          </Link>
+        </div>
+      </header>
       {step === 1 && <Step1Language data={data} update={update} onNext={next} />}
       {step === 2 && <Step2JobType data={data} update={update} onBack={back} onNext={next} />}
       {step === 3 && <Step3PersonalDetails data={data} update={update} onBack={back} onNext={next} />}
