@@ -83,6 +83,23 @@ export const generateCVServer = createServerFn({ method: "POST" })
 
     const prompt = buildPrompt(cvData);
 
+    const requestBody = {
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 2000,
+      messages: [{ role: "user", content: prompt }],
+    };
+
+    console.log("[generateCVServer] Anthropic request:", {
+      url: "https://api.anthropic.com/v1/messages",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": `${apiKey.slice(0, 8)}...${apiKey.slice(-4)} (len=${apiKey.length})`,
+        "anthropic-version": "2023-06-01",
+      },
+      body: requestBody,
+    });
+
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -90,19 +107,22 @@ export const generateCVServer = createServerFn({ method: "POST" })
         "x-api-key": apiKey,
         "anthropic-version": "2023-06-01",
       },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 2000,
-        messages: [{ role: "user", content: prompt }],
-      }),
+      body: JSON.stringify(requestBody),
+    });
+
+    const responseText = await response.text();
+    console.log("[generateCVServer] Anthropic response:", {
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries()),
+      body: responseText,
     });
 
     if (!response.ok) {
-      const text = await response.text().catch(() => "");
-      throw new Error(`Anthropic API error ${response.status}: ${text || response.statusText}`);
+      throw new Error(`Anthropic API error ${response.status}: ${responseText || response.statusText}`);
     }
 
-    const result = await response.json();
+    const result = JSON.parse(responseText);
     const raw: string = result?.content?.[0]?.text ?? "";
 
     const language = cvData.language || "Native";
