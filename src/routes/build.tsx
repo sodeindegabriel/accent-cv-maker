@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { BuildPage } from "../components/build/BuildPage.tsx";
 
 export const Route = createFileRoute("/build")({
+  codeSplitGroupings: [],
   head: () => ({
     meta: [
       { title: "Build Your CV — CVLingo" },
