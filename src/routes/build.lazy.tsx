@@ -1,12 +1,12 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { CVProvider } from "../context/CVContext";
-import { Step1Language } from "../components/build/Step1Language";
-import { Step2JobType } from "../components/build/Step2JobType";
-import { Step3PersonalDetails } from "../components/build/Step3PersonalDetails";
-import { Step4Experience } from "../components/build/Step4Experience";
-import { Step5Skills } from "../components/build/Step5Skills";
-import { Step6Review } from "../components/build/Step6Review";
+import { CVProvider } from "../context/CVContext.tsx";
+import { Step1Language } from "../components/build/Step1Language.tsx";
+import { Step2JobType } from "../components/build/Step2JobType.tsx";
+import { Step3PersonalDetails } from "../components/build/Step3PersonalDetails.tsx";
+import { Step4Experience } from "../components/build/Step4Experience.tsx";
+import { Step5Skills } from "../components/build/Step5Skills.tsx";
+import { Step6Review } from "../components/build/Step6Review.tsx";
 
 export const Route = createLazyFileRoute("/build")({
   component: BuildPage,
