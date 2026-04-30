@@ -46,7 +46,9 @@ export function Footer() {
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-5 py-6 text-xs text-white/50 md:flex-row md:items-center md:justify-between">
           <span>© 2026 CVLingo. Built for UK immigrants.</span>
-          <span>Powered by AI. Reviewed by humans.</span>
+          <a href="https://jebacoglobal.com/" target="_blank" rel="noreferrer" className="text-accent transition-colors hover:text-accent/80">
+            Built by Jebaco Global
+          </a>
         </div>
       </div>
     </footer>
