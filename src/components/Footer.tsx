@@ -17,7 +17,7 @@ export function Footer() {
         <div>
           <div className="flex items-center gap-2 text-white">
             <BridgeIcon className="h-7 w-7" />
-            <span className="font-serif text-2xl">CVBridge</span>
+            <span className="font-serif text-2xl">CVLingo</span>
           </div>
           <p className="mt-4 text-sm text-white/70">Bridging talent with opportunity.</p>
           <p className="mt-3 text-sm font-semibold text-accent">Free for jobseekers. Always.</p>
@@ -45,7 +45,7 @@ export function Footer() {
 
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-5 py-6 text-xs text-white/50 md:flex-row md:items-center md:justify-between">
-          <span>© 2026 CVBridge. Built for UK immigrants.</span>
+          <span>© 2026 CVLingo. Built for UK immigrants.</span>
           <span>Powered by AI. Reviewed by humans.</span>
         </div>
       </div>

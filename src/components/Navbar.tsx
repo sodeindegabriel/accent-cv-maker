@@ -43,7 +43,7 @@ export function Navbar() {
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
         <Link to="/" className="flex items-center gap-2 text-primary">
           <BridgeIcon className="h-7 w-7" />
-          <span className="font-serif text-2xl">CVBridge</span>
+          <span className="font-serif text-2xl">CVLingo</span>
         </Link>
 
         <div className="hidden items-center gap-8 md:flex">

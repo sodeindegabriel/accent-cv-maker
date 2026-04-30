@@ -246,7 +246,7 @@ function Index() {
                   </h2>
                   <p className="mt-4 text-foreground/80">
                     Many of the UK's hardest working people can't write a CV in English — but they can do the job.
-                    CVBridge gives you access to a pre-vetted pool of motivated candidates ready to work.
+                    CVLingo gives you access to a pre-vetted pool of motivated candidates ready to work.
                   </p>
                   <ul className="mt-6 space-y-3">
                     {[

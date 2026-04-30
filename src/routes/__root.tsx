@@ -29,14 +29,14 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "CVBridge — Build Your CV in Your Language" },
+      { title: "CVLingo — Build Your CV in Your Language" },
       {
         name: "description",
         content:
-          "CVBridge helps non-English speaking immigrants in the UK create professional CVs by answering simple questions in their own language. Free, AI-powered, UK-format.",
+          "CVLingo helps non-English speaking immigrants in the UK create professional CVs by answering simple questions in their own language. Free, AI-powered, UK-format.",
       },
-      { name: "author", content: "CVBridge" },
-      { property: "og:title", content: "CVBridge — Build Your CV in Your Language" },
+      { name: "author", content: "CVLingo" },
+      { property: "og:title", content: "CVLingo — Build Your CV in Your Language" },
       {
         property: "og:description",
         content:
@@ -44,11 +44,11 @@ export const Route = createRootRoute({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@CVBridge" },
-      { name: "twitter:title", content: "CVBridge — Build Your CV in Your Language" },
-      { name: "description", content: "CVBridge is an AI-powered web app that helps non-English speaking immigrants in the UK build professional CVs." },
-      { property: "og:description", content: "CVBridge is an AI-powered web app that helps non-English speaking immigrants in the UK build professional CVs." },
-      { name: "twitter:description", content: "CVBridge is an AI-powered web app that helps non-English speaking immigrants in the UK build professional CVs." },
+      { name: "twitter:site", content: "@CVLingo" },
+      { name: "twitter:title", content: "CVLingo — Build Your CV in Your Language" },
+      { name: "description", content: "CVLingo is an AI-powered web app that helps non-English speaking immigrants in the UK build professional CVs." },
+      { property: "og:description", content: "CVLingo is an AI-powered web app that helps non-English speaking immigrants in the UK build professional CVs." },
+      { name: "twitter:description", content: "CVLingo is an AI-powered web app that helps non-English speaking immigrants in the UK build professional CVs." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/3307bccf-ba6d-40f9-aaed-c652371f10d1/id-preview-a066dbf5--0541e4a6-ece3-4c39-93b4-ee543be54aca.lovable.app-1777476165883.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/3307bccf-ba6d-40f9-aaed-c652371f10d1/id-preview-a066dbf5--0541e4a6-ece3-4c39-93b4-ee543be54aca.lovable.app-1777476165883.png" },
     ],

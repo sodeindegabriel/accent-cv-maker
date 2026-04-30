@@ -11,9 +11,9 @@ import { Step6Review } from "@/components/build/Step6Review";
 export const Route = createFileRoute("/build")({
   head: () => ({
     meta: [
-      { title: "Build Your CV — CVBridge" },
+      { title: "Build Your CV — CVLingo" },
       { name: "description", content: "Build your professional UK CV in your own language, one simple question at a time." },
-      { property: "og:title", content: "Build Your CV — CVBridge" },
+      { property: "og:title", content: "Build Your CV — CVLingo" },
       { property: "og:description", content: "Build your professional UK CV in your own language, one simple question at a time." },
     ],
   }),
