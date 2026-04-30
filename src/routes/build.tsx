@@ -1,5 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { generateCV } from "@/utils/generateCV";
+import { GeneratingOverlay } from "@/components/GeneratingOverlay";
 
 type Experience = {
   title: string;
@@ -468,6 +470,25 @@ function Step5Skills({ data, update, onBack, onNext }: StepProps) {
 }
 
 function Step6Review({ data, onBack, onEdit }: { data: CVData; onBack: () => void; onEdit: (step: number) => void }) {
+  const navigate = useNavigate();
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    setError(null);
+    try {
+      const result = await generateCV(data);
+      sessionStorage.setItem("cvlingo:result", JSON.stringify(result));
+      sessionStorage.setItem("cvlingo:input", JSON.stringify(data));
+      navigate({ to: "/result" });
+    } catch (e) {
+      console.error(e);
+      setError(e instanceof Error ? e.message : "Something went wrong. Please try again.");
+      setGenerating(false);
+    }
+  };
+
   const jobLabels = useMemo(
     () =>
       data.jobTypes
@@ -518,19 +539,30 @@ function Step6Review({ data, onBack, onEdit }: { data: CVData; onBack: () => voi
             <p>{data.availability.join(", ") || "No availability selected"}</p>
           </ReviewSection>
         </div>
+        {error && (
+          <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+            <p className="font-medium">Something went wrong. Please try again.</p>
+            <p className="mt-1 opacity-80">{error}</p>
+            <button type="button" onClick={handleGenerate} className="mt-3 rounded-lg bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground hover:opacity-90">
+              Retry
+            </button>
+          </div>
+        )}
         <div className="mt-6 flex items-center justify-between gap-3">
           <button type="button" onClick={onBack} className="rounded-xl border border-border bg-background px-5 py-3 font-medium text-foreground transition hover:bg-muted">
             Back
           </button>
           <button
             type="button"
-            onClick={() => window.alert("Your CV is being generated!")}
-            className="rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90"
+            onClick={handleGenerate}
+            disabled={generating}
+            className="rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
           >
-            Generate CV
+            {generating ? "Generating…" : "Generate My CV"}
           </button>
         </div>
       </div>
+      {generating && <GeneratingOverlay />}
     </section>
   );
 }
