@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BuildPage } from "../components/build/BuildPage.tsx";
+import { BuildPage } from "@/components/build/BuildPage";
 
 export const Route = createFileRoute("/build")({
   codeSplitGroupings: [],
