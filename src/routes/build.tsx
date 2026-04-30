@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { generateCV } from "@/utils/generateCV";
 import { GeneratingOverlay } from "@/components/GeneratingOverlay";
+import { BridgeIcon } from "@/components/BridgeIcon";
 
 type Experience = {
   title: string;
@@ -124,10 +125,11 @@ function BuildPage() {
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link
             to="/"
-            className="text-lg font-semibold tracking-tight text-foreground transition hover:opacity-80"
+            className="flex items-center gap-2 text-primary transition hover:opacity-80"
             aria-label="CVLingo — back to home"
           >
-            CVLingo
+            <BridgeIcon className="h-7 w-7" />
+            <span className="font-serif text-2xl">CVLingo</span>
           </Link>
           <Link
             to="/"
