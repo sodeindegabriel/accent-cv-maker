@@ -22,7 +22,7 @@ const BuildRoute = BuildRouteImport.update({
   id: '/build',
   path: '/build',
   getParentRoute: () => rootRouteImport,
-} as any).lazy(() => import('./routes/build.lazy').then((d) => d.Route))
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
