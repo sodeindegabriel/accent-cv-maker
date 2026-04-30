@@ -289,7 +289,15 @@ function Step3PersonalDetails({ data, update, onBack, onNext }: StepProps) {
   const setPersonal = (key: keyof PersonalDetails, value: string) => {
     update("personalDetails", { ...personal, [key]: value });
   };
-  const valid = Boolean(personal.name && personal.phone && personal.city && personal.rightToWork);
+  const isOther = personal.rightToWork.startsWith("Other:") || personal.rightToWork === "Other / not sure";
+  const otherDetail = personal.rightToWork.startsWith("Other:") ? personal.rightToWork.slice(6).trim() : "";
+  const valid = Boolean(
+    personal.name &&
+      personal.phone &&
+      personal.city &&
+      personal.rightToWork &&
+      (!isOther || otherDetail.length > 0),
+  );
 
   return (
     <StepShell
@@ -308,21 +316,40 @@ function Step3PersonalDetails({ data, update, onBack, onNext }: StepProps) {
         <div>
           <label className="mb-2 block text-sm font-medium text-foreground">Right to work</label>
           <div className="grid gap-2 sm:grid-cols-2">
-            {rightToWorkOptions.map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => setPersonal("rightToWork", option)}
-                className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
-                  personal.rightToWork === option
-                    ? "border-primary bg-primary/10 ring-2 ring-primary/30"
-                    : "border-border bg-background hover:bg-muted"
-                }`}
-              >
-                {option}
-              </button>
-            ))}
+            {rightToWorkOptions.map((option) => {
+              const selected =
+                option === "Other / not sure" ? isOther : personal.rightToWork === option;
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() =>
+                    setPersonal(
+                      "rightToWork",
+                      option === "Other / not sure" ? "Other:" : option,
+                    )
+                  }
+                  className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
+                    selected
+                      ? "border-primary bg-primary/10 ring-2 ring-primary/30"
+                      : "border-border bg-background hover:bg-muted"
+                  }`}
+                >
+                  {option}
+                </button>
+              );
+            })}
           </div>
+          {isOther && (
+            <div className="mt-3">
+              <TextField
+                label="Please describe your status"
+                value={otherDetail}
+                onChange={(value) => setPersonal("rightToWork", `Other: ${value}`)}
+                placeholder="e.g. Pre-settled status, applying for visa…"
+              />
+            </div>
+          )}
         </div>
       </div>
     </StepShell>
