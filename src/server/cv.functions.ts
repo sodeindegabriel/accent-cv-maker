@@ -84,7 +84,7 @@ export const generateCVServer = createServerFn({ method: "POST" })
     const prompt = buildPrompt(cvData);
 
     const requestBody = {
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-5",
       max_tokens: 2000,
       messages: [{ role: "user", content: prompt }],
     };
