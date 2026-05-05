@@ -72,9 +72,7 @@ function ResultPage() {
         <div className="mx-auto max-w-3xl">
           <div className="no-print mb-6 flex items-center justify-between gap-3">
             <h1 className="text-2xl font-semibold sm:text-3xl">Your CV is ready</h1>
-            <Link to="/build" className="text-sm font-medium text-primary hover:opacity-80">
-              Edit answers
-            </Link>
+            <EditAnswersMenu />
           </div>
 
           <div className="no-print mb-4 inline-flex rounded-xl border border-border bg-card p-1">
