@@ -111,7 +111,17 @@ function ResultPage() {
           <div className="no-print mt-6 flex flex-wrap gap-3">
             <button
               type="button"
-              onClick={() => window.print()}
+              onClick={() => {
+                const langForFile = tab === "english" ? "English" : result.language || "Native";
+                const safeName = (name || "CV").trim();
+                const filename = `${safeName} - CVLingo - ${langForFile}`;
+                const previousTitle = document.title;
+                document.title = filename;
+                window.print();
+                setTimeout(() => {
+                  document.title = previousTitle;
+                }, 1000);
+              }}
               className="rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground transition hover:opacity-90"
             >
               Download PDF
