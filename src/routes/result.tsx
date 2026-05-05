@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import type { GeneratedCV } from "@/utils/generateCV";
 
 function ResultPage() {
@@ -92,7 +93,9 @@ function ResultPage() {
             className="rounded-2xl border border-border bg-white p-6 text-slate-900 shadow-sm sm:p-10"
             style={{ minHeight: "60vh" }}
           >
-            <pre className="whitespace-pre-wrap font-sans text-sm leading-6 sm:text-base">{activeText}</pre>
+            <div className="prose prose-slate max-w-none prose-headings:font-semibold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:my-2 prose-ul:my-2 prose-li:my-0.5 text-sm leading-6 sm:text-base">
+              <ReactMarkdown>{activeText}</ReactMarkdown>
+            </div>
           </article>
 
           <div className="no-print mt-6 flex flex-wrap gap-3">
