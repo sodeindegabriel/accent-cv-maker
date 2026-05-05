@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { generateCV } from "@/utils/generateCV";
 import { GeneratingOverlay } from "@/components/GeneratingOverlay";
 import { BridgeIcon } from "@/components/BridgeIcon";
