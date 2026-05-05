@@ -6,6 +6,7 @@ import type { GeneratedCV } from "@/utils/generateCV";
 function ResultPage() {
   const navigate = useNavigate();
   const [result, setResult] = useState<GeneratedCV | null>(null);
+  const [name, setName] = useState<string>("");
   const [tab, setTab] = useState<"native" | "english">("native");
   const [copied, setCopied] = useState(false);
 
@@ -19,6 +20,15 @@ function ResultPage() {
       setResult(JSON.parse(raw) as GeneratedCV);
     } catch {
       navigate({ to: "/build" });
+    }
+    try {
+      const inputRaw = sessionStorage.getItem("cvlingo:input");
+      if (inputRaw) {
+        const parsed = JSON.parse(inputRaw);
+        setName(parsed?.personalDetails?.name ?? "");
+      }
+    } catch {
+      /* ignore */
     }
   }, [navigate]);
 
