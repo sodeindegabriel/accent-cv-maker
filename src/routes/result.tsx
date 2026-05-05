@@ -161,6 +161,67 @@ function ResultPage() {
   );
 }
 
+const editSections: { step: number; label: string }[] = [
+  { step: 1, label: "Language" },
+  { step: 2, label: "Job Type" },
+  { step: 3, label: "Personal Details" },
+  { step: 4, label: "Experience" },
+  { step: 5, label: "Skills" },
+];
+
+function EditAnswersMenu() {
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClick = () => setOpen(false);
+    window.addEventListener("click", onClick);
+    return () => window.removeEventListener("click", onClick);
+  }, [open]);
+
+  const goTo = (step: number) => {
+    try {
+      sessionStorage.setItem("cvlingo:editStep", String(step));
+    } catch {
+      /* ignore */
+    }
+    navigate({ to: "/build" });
+  };
+
+  return (
+    <div className="relative" onClick={(e) => e.stopPropagation()}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="text-sm font-medium text-primary hover:opacity-80"
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        Edit answers ▾
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 z-10 mt-2 w-56 overflow-hidden rounded-xl border border-border bg-card shadow-lg"
+        >
+          {editSections.map((s) => (
+            <button
+              key={s.step}
+              type="button"
+              role="menuitem"
+              onClick={() => goTo(s.step)}
+              className="block w-full px-4 py-2 text-left text-sm text-foreground transition hover:bg-muted"
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export const Route = createFileRoute("/result")({
   component: ResultPage,
   head: () => ({
