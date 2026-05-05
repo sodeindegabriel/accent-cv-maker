@@ -6,6 +6,7 @@ import type { GeneratedCV } from "@/utils/generateCV";
 function ResultPage() {
   const navigate = useNavigate();
   const [result, setResult] = useState<GeneratedCV | null>(null);
+  const [name, setName] = useState<string>("");
   const [tab, setTab] = useState<"native" | "english">("native");
   const [copied, setCopied] = useState(false);
 
@@ -19,6 +20,15 @@ function ResultPage() {
       setResult(JSON.parse(raw) as GeneratedCV);
     } catch {
       navigate({ to: "/build" });
+    }
+    try {
+      const inputRaw = sessionStorage.getItem("cvlingo:input");
+      if (inputRaw) {
+        const parsed = JSON.parse(inputRaw);
+        setName(parsed?.personalDetails?.name ?? "");
+      }
+    } catch {
+      /* ignore */
     }
   }, [navigate]);
 
@@ -101,7 +111,17 @@ function ResultPage() {
           <div className="no-print mt-6 flex flex-wrap gap-3">
             <button
               type="button"
-              onClick={() => window.print()}
+              onClick={() => {
+                const langForFile = tab === "english" ? "English" : result.language || "Native";
+                const safeName = (name || "CV").trim();
+                const filename = `${safeName} - CVLingo - ${langForFile}`;
+                const previousTitle = document.title;
+                document.title = filename;
+                window.print();
+                setTimeout(() => {
+                  document.title = previousTitle;
+                }, 1000);
+              }}
               className="rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground transition hover:opacity-90"
             >
               Download PDF
