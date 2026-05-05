@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { generateCV } from "@/utils/generateCV";
 import { GeneratingOverlay } from "@/components/GeneratingOverlay";
 import { BridgeIcon } from "@/components/BridgeIcon";
@@ -111,6 +111,25 @@ const availabilityOptions = ["Weekdays", "Weekends", "Evenings", "Early mornings
 function BuildPage() {
   const [step, setStep] = useState(1);
   const [data, setData] = useState<CVData>(initialData);
+
+  useEffect(() => {
+    try {
+      const inputRaw = sessionStorage.getItem("cvlingo:input");
+      if (inputRaw) setData(JSON.parse(inputRaw));
+    } catch {
+      /* ignore */
+    }
+    try {
+      const editStep = sessionStorage.getItem("cvlingo:editStep");
+      if (editStep) {
+        const n = parseInt(editStep, 10);
+        if (n >= 1 && n <= 6) setStep(n);
+        sessionStorage.removeItem("cvlingo:editStep");
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const update = <K extends keyof CVData>(key: K, value: CVData[K]) => {
     setData((current) => ({ ...current, [key]: value }));
