@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Reveal } from "@/components/Reveal";
@@ -9,25 +9,39 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const heroFlags = ["🇸🇦", "🇵🇰", "🇸🇴", "🇵🇱", "🇷🇴", "🇧🇩", "🇮🇳", "🇪🇷", "🇪🇹", "🇦🇫", "🇫🇷", "🇪🇸"];
+// Flags map to language codes supported in /build
+const heroFlags: { flag: string; code: string; name: string }[] = [
+  { flag: "🇸🇦", code: "ar", name: "Arabic" },
+  { flag: "🇵🇰", code: "ur", name: "Urdu" },
+  { flag: "🇸🇴", code: "so", name: "Somali" },
+  { flag: "🇵🇱", code: "pl", name: "Polish" },
+  { flag: "🇷🇴", code: "ro", name: "Romanian" },
+  { flag: "🇧🇩", code: "bn", name: "Bengali" },
+  { flag: "🇮🇳", code: "hi", name: "Hindi" },
+  { flag: "🇫🇷", code: "fr", name: "French" },
+  { flag: "🇪🇸", code: "es", name: "Spanish" },
+  { flag: "🇹🇷", code: "tr", name: "Turkish" },
+  { flag: "🇨🇳", code: "zh", name: "Chinese" },
+  { flag: "🇰🇪", code: "sw", name: "Swahili" },
+];
 
-const languages = [
-  { flag: "🇸🇦", en: "Arabic", native: "عربي" },
-  { flag: "🇵🇰", en: "Urdu", native: "اردو" },
-  { flag: "🇸🇴", en: "Somali", native: "Soomaali" },
-  { flag: "🇵🇱", en: "Polish", native: "Polski" },
-  { flag: "🇷🇴", en: "Romanian", native: "Română" },
-  { flag: "🇧🇩", en: "Bengali", native: "বাংলা" },
-  { flag: "🇮🇳", en: "Punjabi", native: "ਪੰਜਾਬੀ" },
-  { flag: "🇪🇷", en: "Tigrinya", native: "ትግርኛ" },
-  { flag: "🇪🇹", en: "Amharic", native: "አማርኛ" },
-  { flag: "🇦🇫", en: "Dari", native: "دری" },
-  { flag: "🇫🇷", en: "French", native: "Français" },
-  { flag: "🇪🇸", en: "Spanish", native: "Español" },
-  { flag: "🇹🇷", en: "Turkish", native: "Türkçe" },
-  { flag: "🇨🇳", en: "Mandarin", native: "普通话" },
-  { flag: "🇮🇳", en: "Hindi", native: "हिंदी" },
-  { flag: "🇰🇪", en: "Swahili", native: "Kiswahili" },
+const languages: { flag: string; en: string; native: string; code: string }[] = [
+  { flag: "🇸🇦", en: "Arabic", native: "عربي", code: "ar" },
+  { flag: "🇵🇰", en: "Urdu", native: "اردو", code: "ur" },
+  { flag: "🇸🇴", en: "Somali", native: "Soomaali", code: "so" },
+  { flag: "🇵🇱", en: "Polish", native: "Polski", code: "pl" },
+  { flag: "🇷🇴", en: "Romanian", native: "Română", code: "ro" },
+  { flag: "🇧🇩", en: "Bengali", native: "বাংলা", code: "bn" },
+  { flag: "🇮🇳", en: "Hindi", native: "हिंदी", code: "hi" },
+  { flag: "🇫🇷", en: "French", native: "Français", code: "fr" },
+  { flag: "🇪🇸", en: "Spanish", native: "Español", code: "es" },
+  { flag: "🇹🇷", en: "Turkish", native: "Türkçe", code: "tr" },
+  { flag: "🇨🇳", en: "Mandarin", native: "普通话", code: "zh" },
+  { flag: "🇰🇪", en: "Swahili", native: "Kiswahili", code: "sw" },
+  { flag: "🇺🇦", en: "Ukrainian", native: "Українська", code: "uk" },
+  { flag: "🇵🇹", en: "Portuguese", native: "Português", code: "pt" },
+  { flag: "🇮🇷", en: "Farsi", native: "فارسی", code: "fa" },
+  { flag: "🇬🇧", en: "English", native: "English", code: "en" },
 ];
 
 const steps = [
@@ -49,6 +63,15 @@ const steps = [
 ];
 
 function Index() {
+  const navigate = useNavigate();
+  const pickLanguage = (code: string) => {
+    try {
+      sessionStorage.setItem("cvlingo:preselectLanguage", code);
+    } catch {
+      /* ignore */
+    }
+    navigate({ to: "/build" });
+  };
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -119,14 +142,17 @@ function Index() {
                   Available in 20+ languages
                 </p>
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                  {heroFlags.map((f, i) => (
-                    <span
-                      key={i}
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-xl shadow-sm transition-transform hover:scale-110"
-                      aria-hidden="true"
+                  {heroFlags.map((f) => (
+                    <button
+                      key={f.code}
+                      type="button"
+                      onClick={() => pickLanguage(f.code)}
+                      aria-label={`Start in ${f.name}`}
+                      title={`Start in ${f.name}`}
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-xl shadow-sm transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
-                      {f}
-                    </span>
+                      <span aria-hidden="true">{f.flag}</span>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -205,16 +231,19 @@ function Index() {
 
             <div className="mt-14 grid grid-cols-2 gap-3 md:grid-cols-4">
               {languages.map((l, i) => (
-                <Reveal
-                  key={l.en}
-                  delay={i * 30}
-                  className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
-                >
-                  <span className="text-3xl" aria-hidden="true">{l.flag}</span>
-                  <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">{l.en}</p>
-                    <p className="truncate font-semibold text-foreground">{l.native}</p>
-                  </div>
+                <Reveal key={l.en} delay={i * 30}>
+                  <button
+                    type="button"
+                    onClick={() => pickLanguage(l.code)}
+                    aria-label={`Start in ${l.en}`}
+                    className="flex w-full items-center gap-4 rounded-xl border border-border bg-card p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  >
+                    <span className="text-3xl" aria-hidden="true">{l.flag}</span>
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground">{l.en}</p>
+                      <p className="truncate font-semibold text-foreground">{l.native}</p>
+                    </div>
+                  </button>
                 </Reveal>
               ))}
             </div>

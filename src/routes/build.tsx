@@ -120,6 +120,15 @@ function BuildPage() {
       /* ignore */
     }
     try {
+      const preselect = sessionStorage.getItem("cvlingo:preselectLanguage");
+      if (preselect) {
+        const lang = languages.find((l) => l.code === preselect);
+        if (lang) {
+          setData((current) => ({ ...current, languageCode: lang.code, language: lang.name }));
+          setStep(2);
+        }
+        sessionStorage.removeItem("cvlingo:preselectLanguage");
+      }
       const editStep = sessionStorage.getItem("cvlingo:editStep");
       if (editStep) {
         const n = parseInt(editStep, 10);
