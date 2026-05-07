@@ -835,15 +835,15 @@ function Step6Review({ data, update, displayLang, originalLang, onToggleLang, on
             </button>
           </div>
         )}
-        <div className="mt-6 flex items-center justify-between gap-3">
-          <button type="button" onClick={onBack} className="rounded-xl border border-border bg-background px-5 py-3 font-medium text-foreground transition hover:bg-muted">
+        <div className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 border-t border-border bg-background/95 px-4 py-3 backdrop-blur sm:static sm:mt-6 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
+          <button type="button" onClick={onBack} className="inline-flex min-h-[48px] items-center justify-center rounded-xl border border-border bg-background px-5 py-3 font-medium text-foreground transition hover:bg-muted">
             {t(displayLang, "back")}
           </button>
           <button
             type="button"
             onClick={handleGenerate}
             disabled={generating}
-            className="rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
+            className="inline-flex min-h-[48px] items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
           >
             {generating ? t(displayLang, "generating") : t(displayLang, "generateCv")}
           </button>
