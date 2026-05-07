@@ -259,38 +259,126 @@ function StepShell({
 }
 
 function Step1Language({ data, update, onNext }: StepProps) {
+  const [showModal, setShowModal] = useState(false);
+  const selectedLang = languages.find((l) => l.code === data.languageCode);
+
+  const handleContinue = () => {
+    if (!selectedLang) return;
+    if (selectedLang.code === "en") {
+      update("questionLanguageCode", "en");
+      onNext();
+    } else {
+      setShowModal(true);
+    }
+  };
+
+  const choose = (code: string) => {
+    update("questionLanguageCode", code);
+    setShowModal(false);
+    onNext();
+  };
+
   return (
-    <StepShell
-      step={1}
-      title="What language would you like to use?"
-      subtitle="Answer in the language that feels easiest for you."
-      onNext={onNext}
-      nextDisabled={!data.languageCode}
+    <>
+      <StepShell
+        step={1}
+        title="What language would you like to use?"
+        subtitle="Answer in the language that feels easiest for you."
+        onNext={handleContinue}
+        nextDisabled={!data.languageCode}
+      >
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {languages.map((language) => {
+            const selected = data.languageCode === language.code;
+            return (
+              <button
+                key={language.code}
+                type="button"
+                onClick={() => {
+                  update("languageCode", language.code);
+                  update("language", language.name);
+                }}
+                className={`rounded-xl border p-4 text-left transition ${
+                  selected ? "border-primary bg-primary/10 ring-2 ring-primary/30" : "border-border bg-background hover:bg-muted"
+                }`}
+              >
+                <span className="block text-2xl" aria-hidden="true">{language.flag}</span>
+                <span className="mt-2 block font-medium text-foreground">{language.name}</span>
+                <span className="block text-sm text-muted-foreground">{language.native}</span>
+              </button>
+            );
+          })}
+          <ComingSoonCard />
+        </div>
+      </StepShell>
+      {showModal && selectedLang && (
+        <LanguageChoiceModal
+          lang={selectedLang}
+          onChoose={choose}
+          onClose={() => setShowModal(false)}
+        />
+      )}
+    </>
+  );
+}
+
+function ComingSoonCard() {
+  return (
+    <div
+      aria-disabled="true"
+      className="flex flex-col items-start justify-center rounded-xl border-2 border-dashed border-border bg-muted/40 p-4 text-left opacity-70"
     >
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {languages.map((language) => {
-          const selected = data.languageCode === language.code;
-          return (
-            <button
-              key={language.code}
-              type="button"
-              onClick={() => {
-                update("languageCode", language.code);
-                update("language", language.name);
-                setTimeout(() => onNext(), 500);
-              }}
-              className={`rounded-xl border p-4 text-left transition ${
-                selected ? "border-primary bg-primary/10 ring-2 ring-primary/30" : "border-border bg-background hover:bg-muted"
-              }`}
-            >
-              <span className="block text-2xl" aria-hidden="true">{language.flag}</span>
-              <span className="mt-2 block font-medium text-foreground">{language.name}</span>
-              <span className="block text-sm text-muted-foreground">{language.native}</span>
-            </button>
-          );
-        })}
+      <Clock className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
+      <span className="mt-2 block font-medium text-muted-foreground">More languages</span>
+      <span className="block text-sm text-muted-foreground">coming soon…</span>
+    </div>
+  );
+}
+
+function LanguageChoiceModal({
+  lang,
+  onChoose,
+  onClose,
+}: {
+  lang: { code: string; name: string; native: string };
+  onChoose: (code: string) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl bg-card p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-lg font-semibold text-foreground">
+          {t(lang.code, "modalQuestion").replace("{lang}", lang.native)}
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Your CV will always be generated in both {lang.name} and English.
+        </p>
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+          <button
+            type="button"
+            onClick={() => onChoose(lang.code)}
+            className="flex-1 rounded-xl bg-primary px-4 py-3 font-semibold text-primary-foreground transition hover:opacity-90"
+          >
+            {lang.native}
+          </button>
+          <button
+            type="button"
+            onClick={() => onChoose("en")}
+            className="flex-1 rounded-xl border border-border bg-background px-4 py-3 font-medium text-foreground transition hover:bg-muted"
+          >
+            English
+          </button>
+        </div>
       </div>
-    </StepShell>
+    </div>
   );
 }
 
