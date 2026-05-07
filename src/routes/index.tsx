@@ -23,6 +23,7 @@ export const Route = createFileRoute("/")({
 
 // Flags map to language codes supported in /build
 const heroFlags: { flag: string; code: string; name: string }[] = [
+  { flag: "🇬🇧", code: "en", name: "English" },
   { flag: "🇵🇱", code: "pl", name: "Polish" },
   { flag: "🇷🇴", code: "ro", name: "Romanian" },
   { flag: "🇮🇳", code: "pa", name: "Punjabi" },
