@@ -300,7 +300,7 @@ function StepShell({
   onToggleLang?: () => void;
   children: React.ReactNode;
 }) {
-  const dir = qLang && ["ar", "ur", "fa"].includes(qLang) ? "rtl" : "ltr";
+  const dir = qLang && ["ar", "ur", "fa", "ku"].includes(qLang) ? "rtl" : "ltr";
   return (
     <section className="relative px-4 pb-28 pt-8 sm:px-6 sm:pb-8 lg:px-8" dir={dir}>
       {originalLang && originalLang !== "en" && onToggleLang && (
@@ -802,7 +802,7 @@ function Step6Review({ data, update, displayLang, originalLang, onToggleLang, on
     [data.jobTypes, data.otherJobType, displayLang],
   );
 
-  const dir = ["ar", "ur", "fa"].includes(displayLang) ? "rtl" : "ltr";
+  const dir = ["ar", "ur", "fa", "ku"].includes(displayLang) ? "rtl" : "ltr";
 
   return (
     <section className="relative px-4 pb-28 pt-8 sm:px-6 sm:pb-8 lg:px-8" dir={dir}>
