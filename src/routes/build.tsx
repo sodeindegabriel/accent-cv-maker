@@ -60,6 +60,10 @@ const languages = [
   { code: "tr", name: "Turkish", native: "Türkçe", flag: "🇹🇷" },
   { code: "fa", name: "Farsi", native: "فارسی", flag: "🇮🇷" },
   { code: "zh", name: "Chinese", native: "中文", flag: "🇨🇳" },
+  { code: "yo", name: "Yoruba", native: "Yorùbá", flag: "🇳🇬" },
+  { code: "ig", name: "Igbo", native: "Igbo", flag: "🇳🇬" },
+  { code: "om", name: "Oromo", native: "Afaan Oromoo", flag: "🇪🇹" },
+  { code: "ln", name: "Lingala", native: "Lingála", flag: "🇨🇩" },
 ];
 
 const jobs = [
