@@ -776,14 +776,14 @@ function Step6Review({ data, update, displayLang, originalLang, onToggleLang, on
   const dir = ["ar", "ur", "fa"].includes(displayLang) ? "rtl" : "ltr";
 
   return (
-    <section className="relative px-4 py-8 sm:px-6 lg:px-8" dir={dir}>
+    <section className="relative px-4 pb-28 pt-8 sm:px-6 sm:pb-8 lg:px-8" dir={dir}>
       {originalLang && originalLang !== "en" && (
         <LangToggle displayLang={displayLang} originalLang={originalLang} onToggle={onToggleLang} />
       )}
       <div className="mx-auto max-w-3xl">
         <div className="mb-8">
           <p className="mb-2 text-sm font-medium text-muted-foreground">{t(displayLang, "stepOf", { n: 6 })}</p>
-          <h1 className="text-3xl font-semibold tracking-normal text-foreground sm:text-4xl">{t(displayLang, "step6Title")}</h1>
+          <h1 className="text-2xl font-semibold tracking-normal text-foreground sm:text-4xl">{t(displayLang, "step6Title")}</h1>
           <p className="mt-3 text-base text-muted-foreground sm:text-lg">{t(displayLang, "step6Subtitle")}</p>
         </div>
         <div className="space-y-4">
