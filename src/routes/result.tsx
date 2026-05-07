@@ -233,6 +233,18 @@ function normalizeMarkdown(input: string): string {
   s = s.replace(/^(#{1,6})([^#\s])/gm, "$1 $2");
   // Ensure blank line before headings
   s = s.replace(/([^\n])\n(#{1,6} )/g, "$1\n\n$2");
+  // Split contact details lines (Phone/Email/Location/Right to work) onto their own lines.
+  // The model often emits "Phone: 123 | Email: a@b | Location: London" on a single line.
+  const contactLabels = "(Phone|Tel|Telephone|Mobile|Email|E-mail|Location|City|Address|Right to [Ww]ork|Right-to-[Ww]ork)";
+  s = s.replace(
+    new RegExp(`(\\S)\\s*[•·\\|‧/–—-]\\s+(?=${contactLabels}\\s*:)`, "g"),
+    "$1  \n",
+  );
+  // Also handle ", " separating contact fields when both sides look like labelled values
+  s = s.replace(
+    new RegExp(`(\\S),\\s+(?=${contactLabels}\\s*:)`, "g"),
+    "$1  \n",
+  );
   return s;
 }
 
