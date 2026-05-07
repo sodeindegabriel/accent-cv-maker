@@ -447,7 +447,7 @@ function LanguageChoiceModal({
   );
 }
 
-function Step2JobType({ data, update, onBack, onNext }: StepProps) {
+function Step2JobType({ data, update, displayLang, originalLang, onToggleLang, onBack, onNext }: StepProps) {
   const toggle = (id: string) => {
     const selected = new Set(data.jobTypes);
     if (selected.has(id)) selected.delete(id);
@@ -458,9 +458,11 @@ function Step2JobType({ data, update, onBack, onNext }: StepProps) {
   return (
     <StepShell
       step={2}
-      qLang={data.questionLanguageCode}
-      title={t(data.questionLanguageCode, "step2Title")}
-      subtitle={t(data.questionLanguageCode, "step2Subtitle")}
+      qLang={displayLang}
+      originalLang={originalLang}
+      onToggleLang={onToggleLang}
+      title={t(displayLang, "step2Title")}
+      subtitle={t(displayLang, "step2Subtitle")}
       onBack={onBack}
       onNext={onNext}
       nextDisabled={data.jobTypes.length === 0}
@@ -478,7 +480,7 @@ function Step2JobType({ data, update, onBack, onNext }: StepProps) {
               }`}
             >
               <span className="text-2xl" aria-hidden="true">{job.emoji}</span>
-              <span className="font-medium text-foreground">{job.label}</span>
+              <span className="font-medium text-foreground">{t(displayLang, job.tKey)}</span>
             </button>
           );
         })}
@@ -487,17 +489,17 @@ function Step2JobType({ data, update, onBack, onNext }: StepProps) {
       {data.jobTypes.includes("other") && (
         <TextField
           className="mt-4"
-          label="Other work type"
+          label={t(displayLang, "otherWorkType")}
           value={data.otherJobType}
           onChange={(value) => update("otherJobType", value)}
-          placeholder="Tell us what kind of work"
+          placeholder={t(displayLang, "otherWorkPlaceholder")}
         />
       )}
     </StepShell>
   );
 }
 
-function Step3PersonalDetails({ data, update, onBack, onNext }: StepProps) {
+function Step3PersonalDetails({ data, update, displayLang, originalLang, onToggleLang, onBack, onNext }: StepProps) {
   const personal = data.personalDetails;
   const setPersonal = (key: keyof PersonalDetails, value: string) => {
     update("personalDetails", { ...personal, [key]: value });
@@ -515,32 +517,34 @@ function Step3PersonalDetails({ data, update, onBack, onNext }: StepProps) {
   return (
     <StepShell
       step={3}
-      qLang={data.questionLanguageCode}
-      title={t(data.questionLanguageCode, "step3Title")}
-      subtitle={t(data.questionLanguageCode, "step3Subtitle")}
+      qLang={displayLang}
+      originalLang={originalLang}
+      onToggleLang={onToggleLang}
+      title={t(displayLang, "step3Title")}
+      subtitle={t(displayLang, "step3Subtitle")}
       onBack={onBack}
       onNext={onNext}
       nextDisabled={!valid}
     >
       <div className="space-y-4">
-        <TextField label="Full name" value={personal.name} onChange={(value) => setPersonal("name", value)} placeholder="Maria Kowalska" />
-        <TextField label="Phone number" value={personal.phone} onChange={(value) => setPersonal("phone", value)} placeholder="07…" type="tel" />
-        <TextField label="Email" value={personal.email} onChange={(value) => setPersonal("email", value)} placeholder="you@example.com" type="email" />
-        <TextField label="City in the UK" value={personal.city} onChange={(value) => setPersonal("city", value)} placeholder="London" />
+        <TextField label={t(displayLang, "fullName")} value={personal.name} onChange={(value) => setPersonal("name", value)} placeholder="Maria Kowalska" />
+        <TextField label={t(displayLang, "phoneNumber")} value={personal.phone} onChange={(value) => setPersonal("phone", value)} placeholder="07…" type="tel" />
+        <TextField label={t(displayLang, "email")} value={personal.email} onChange={(value) => setPersonal("email", value)} placeholder="you@example.com" type="email" />
+        <TextField label={t(displayLang, "cityUk")} value={personal.city} onChange={(value) => setPersonal("city", value)} placeholder="London" />
         <div>
-          <label className="mb-2 block text-sm font-medium text-foreground">Right to work</label>
+          <label className="mb-2 block text-sm font-medium text-foreground">{t(displayLang, "rightToWork")}</label>
           <div className="grid gap-2 sm:grid-cols-2">
             {rightToWorkOptions.map((option) => {
               const selected =
-                option === "Other / not sure" ? isOther : personal.rightToWork === option;
+                option.value === "Other / not sure" ? isOther : personal.rightToWork === option.value;
               return (
                 <button
-                  key={option}
+                  key={option.value}
                   type="button"
                   onClick={() =>
                     setPersonal(
                       "rightToWork",
-                      option === "Other / not sure" ? "Other:" : option,
+                      option.value === "Other / not sure" ? "Other:" : option.value,
                     )
                   }
                   className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
@@ -549,7 +553,7 @@ function Step3PersonalDetails({ data, update, onBack, onNext }: StepProps) {
                       : "border-border bg-background hover:bg-muted"
                   }`}
                 >
-                  {option}
+                  {t(displayLang, option.tKey)}
                 </button>
               );
             })}
@@ -557,10 +561,10 @@ function Step3PersonalDetails({ data, update, onBack, onNext }: StepProps) {
           {isOther && (
             <div className="mt-3">
               <TextField
-                label="Please describe your status"
+                label={t(displayLang, "describeStatus")}
                 value={otherDetail}
                 onChange={(value) => setPersonal("rightToWork", `Other: ${value}`)}
-                placeholder="e.g. Pre-settled status, applying for visa…"
+                placeholder={t(displayLang, "describeStatusPlaceholder")}
               />
             </div>
           )}
@@ -570,7 +574,7 @@ function Step3PersonalDetails({ data, update, onBack, onNext }: StepProps) {
   );
 }
 
-function Step4Experience({ data, update, onBack, onNext }: StepProps) {
+function Step4Experience({ data, update, displayLang, originalLang, onToggleLang, onBack, onNext }: StepProps) {
   const addExperience = () => {
     update("experience", [...data.experience, { title: "", place: "", duration: "", description: "" }]);
   };
@@ -588,9 +592,11 @@ function Step4Experience({ data, update, onBack, onNext }: StepProps) {
   return (
     <StepShell
       step={4}
-      qLang={data.questionLanguageCode}
-      title={t(data.questionLanguageCode, "step4Title")}
-      subtitle={t(data.questionLanguageCode, "step4Subtitle")}
+      qLang={displayLang}
+      originalLang={originalLang}
+      onToggleLang={onToggleLang}
+      title={t(displayLang, "step4Title")}
+      subtitle={t(displayLang, "step4Subtitle")}
       onBack={onBack}
       onNext={onNext}
       nextDisabled={!valid}
@@ -611,8 +617,8 @@ function Step4Experience({ data, update, onBack, onNext }: StepProps) {
                   : "border-border bg-background hover:bg-muted"
               }`}
             >
-              <span className="block font-medium text-foreground">{type.label}</span>
-              <span className="mt-1 block text-sm text-muted-foreground">{type.desc}</span>
+              <span className="block font-medium text-foreground">{t(displayLang, type.tKey)}</span>
+              <span className="mt-1 block text-sm text-muted-foreground">{t(displayLang, type.descKey)}</span>
             </button>
           ))}
         </div>
@@ -622,21 +628,21 @@ function Step4Experience({ data, update, onBack, onNext }: StepProps) {
             {data.experience.map((experience, index) => (
               <div key={index} className="rounded-xl border border-border bg-background p-4">
                 <div className="mb-4 flex items-center justify-between gap-3">
-                  <h2 className="font-medium text-foreground">Experience {index + 1}</h2>
+                  <h2 className="font-medium text-foreground">{t(displayLang, "experienceN", { n: index + 1 })}</h2>
                   <button type="button" onClick={() => removeExperience(index)} className="text-sm font-medium text-muted-foreground hover:text-foreground">
-                    Remove
+                    {t(displayLang, "remove")}
                   </button>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <TextField label="Role or activity" value={experience.title} onChange={(value) => updateExperience(index, "title", value)} placeholder="Kitchen assistant" />
-                  <TextField label="Company or place" value={experience.place} onChange={(value) => updateExperience(index, "place", value)} placeholder="Cafe Roma" />
-                  <TextField label="Dates" value={experience.duration} onChange={(value) => updateExperience(index, "duration", value)} placeholder="2022–2024" />
-                  <TextField label="What you did" value={experience.description} onChange={(value) => updateExperience(index, "description", value)} placeholder="Prepared food and served customers" />
+                  <TextField label={t(displayLang, "roleOrActivity")} value={experience.title} onChange={(value) => updateExperience(index, "title", value)} placeholder="Kitchen assistant" />
+                  <TextField label={t(displayLang, "companyOrPlace")} value={experience.place} onChange={(value) => updateExperience(index, "place", value)} placeholder="Cafe Roma" />
+                  <TextField label={t(displayLang, "dates")} value={experience.duration} onChange={(value) => updateExperience(index, "duration", value)} placeholder="2022–2024" />
+                  <TextField label={t(displayLang, "whatYouDid")} value={experience.description} onChange={(value) => updateExperience(index, "description", value)} placeholder="Prepared food and served customers" />
                 </div>
               </div>
             ))}
             <button type="button" onClick={addExperience} className="rounded-xl border border-border bg-background px-4 py-3 font-medium text-foreground transition hover:bg-muted">
-              Add experience
+              {t(displayLang, "addExperience")}
             </button>
           </div>
         )}
@@ -645,7 +651,7 @@ function Step4Experience({ data, update, onBack, onNext }: StepProps) {
   );
 }
 
-function Step5Skills({ data, update, onBack, onNext }: StepProps) {
+function Step5Skills({ data, update, displayLang, originalLang, onToggleLang, onBack, onNext }: StepProps) {
   const [customSkill, setCustomSkill] = useState("");
   const toggleValue = (key: "skills" | "availability", value: string) => {
     const selected = new Set(data[key]);
@@ -660,27 +666,31 @@ function Step5Skills({ data, update, onBack, onNext }: StepProps) {
     setCustomSkill("");
   };
 
+  const suggestedValues = suggestedSkills.map((s) => s.value);
+
   return (
     <StepShell
       step={5}
-      qLang={data.questionLanguageCode}
-      title={t(data.questionLanguageCode, "step5Title")}
-      subtitle={t(data.questionLanguageCode, "step5Subtitle")}
+      qLang={displayLang}
+      originalLang={originalLang}
+      onToggleLang={onToggleLang}
+      title={t(displayLang, "step5Title")}
+      subtitle={t(displayLang, "step5Subtitle")}
       onBack={onBack}
       onNext={onNext}
       nextDisabled={data.skills.length === 0 || data.availability.length === 0}
     >
       <div className="space-y-6">
         <div>
-          <h2 className="mb-3 font-medium text-foreground">Skills</h2>
+          <h2 className="mb-3 font-medium text-foreground">{t(displayLang, "skills")}</h2>
           <div className="flex flex-wrap gap-2">
             {suggestedSkills.map((skill) => (
-              <Chip key={skill} selected={data.skills.includes(skill)} onClick={() => toggleValue("skills", skill)}>
-                {skill}
+              <Chip key={skill.value} selected={data.skills.includes(skill.value)} onClick={() => toggleValue("skills", skill.value)}>
+                {t(displayLang, skill.tKey)}
               </Chip>
             ))}
             {data.skills
-              .filter((skill) => !suggestedSkills.includes(skill))
+              .filter((skill) => !suggestedValues.includes(skill))
               .map((skill) => (
                 <Chip key={skill} selected onClick={() => toggleValue("skills", skill)}>
                   {skill}
@@ -697,20 +707,20 @@ function Step5Skills({ data, update, onBack, onNext }: StepProps) {
                   addCustomSkill();
                 }
               }}
-              placeholder="Add another skill"
+              placeholder={t(displayLang, "addAnotherSkill")}
               className="min-w-0 flex-1 rounded-xl border border-border bg-background px-4 py-3 text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
             />
             <button type="button" onClick={addCustomSkill} className="rounded-xl bg-secondary px-4 py-3 font-medium text-secondary-foreground transition hover:opacity-90">
-              Add
+              {t(displayLang, "add")}
             </button>
           </div>
         </div>
         <div>
-          <h2 className="mb-3 font-medium text-foreground">Availability</h2>
+          <h2 className="mb-3 font-medium text-foreground">{t(displayLang, "availability")}</h2>
           <div className="flex flex-wrap gap-2">
             {availabilityOptions.map((option) => (
-              <Chip key={option} selected={data.availability.includes(option)} onClick={() => toggleValue("availability", option)}>
-                {option}
+              <Chip key={option.value} selected={data.availability.includes(option.value)} onClick={() => toggleValue("availability", option.value)}>
+                {t(displayLang, option.tKey)}
               </Chip>
             ))}
           </div>
