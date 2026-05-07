@@ -51,7 +51,8 @@ function ResultPage() {
     }
   };
 
-  const whatsappHref = `https://wa.me/?text=${encodeURIComponent(`Here is my CV:\n\n${activeText}`)}`;
+  const plainText = stripMarkdown(activeText);
+  const whatsappHref = `https://wa.me/?text=${encodeURIComponent(`Here is my CV:\n\n${plainText}`)}`;
   const shareLink = typeof window !== "undefined" ? `${window.location.origin}/build` : "/build";
   const friendShareHref = `https://wa.me/?text=${encodeURIComponent(
     `Know someone who needs a CV? CVLingo helps you build a UK CV in your own language. ${shareLink}`,
