@@ -63,8 +63,53 @@ function ResultPage() {
   return (
     <main className="min-h-screen bg-background text-foreground">
       <style>{`
+        #cv-print h1.cv-name {
+          text-align: center;
+          font-size: 2rem;
+          font-weight: 700;
+          margin: 0 0 0.5rem 0;
+          letter-spacing: -0.01em;
+        }
+        #cv-print .cv-contact {
+          text-align: center;
+          font-size: 0.95rem;
+          color: #334155;
+          margin: 0 0 0.75rem 0;
+          padding-bottom: 1rem;
+          border-bottom: 1px solid #e2e8f0;
+        }
+        #cv-print .cv-contact span + span::before {
+          content: " • ";
+          color: #94a3b8;
+          margin: 0 0.4rem;
+        }
+        #cv-print h2 {
+          margin-top: 1.75rem !important;
+          margin-bottom: 0.75rem !important;
+          padding-bottom: 0.35rem !important;
+          border-bottom: 1px solid #e2e8f0 !important;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          font-size: 1.05rem;
+          font-weight: 700;
+        }
+        #cv-print h2:first-child { margin-top: 0 !important; }
+        #cv-print p { margin: 0.5rem 0; line-height: 1.65; }
+        #cv-print ul, #cv-print ol { margin: 0.5rem 0 0.75rem 0; padding-left: 1.4rem; }
+        #cv-print li { margin: 0.3rem 0; line-height: 1.6; }
+        #cv-print li + li { margin-top: 0.35rem; }
+        #cv-print h3 { margin-top: 1rem; margin-bottom: 0.25rem; }
+        #cv-print .cv-watermark {
+          margin-top: 2.5rem;
+          padding-top: 1rem;
+          border-top: 1px solid #e2e8f0;
+          text-align: center;
+          font-size: 0.8rem;
+          color: #94a3b8;
+          letter-spacing: 0.08em;
+        }
         @media print {
-          @page { size: A4; margin: 12mm; }
+          @page { size: A4; margin: 14mm; }
           html, body { background: #ffffff !important; }
           body * { visibility: hidden !important; }
           #cv-print, #cv-print * {
@@ -82,10 +127,36 @@ function ResultPage() {
             margin: 0;
             border: none !important;
             display: block !important;
+            font-size: 11pt;
+            line-height: 1.55;
           }
-          #cv-print h1, #cv-print h2, #cv-print h3, #cv-print h4,
-          #cv-print p, #cv-print li, #cv-print span, #cv-print strong, #cv-print em, #cv-print a {
-            color: #000000 !important;
+          #cv-print h1.cv-name { font-size: 22pt; margin-bottom: 6pt; }
+          #cv-print .cv-contact {
+            font-size: 10.5pt;
+            border-bottom: 1px solid #cbd5e1 !important;
+            padding-bottom: 8pt;
+            margin-bottom: 14pt;
+          }
+          #cv-print h2 {
+            font-size: 12pt;
+            margin-top: 18pt !important;
+            margin-bottom: 8pt !important;
+            padding-bottom: 4pt !important;
+            border-bottom: 1px solid #cbd5e1 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            page-break-after: avoid;
+          }
+          #cv-print h3 { page-break-after: avoid; }
+          #cv-print p, #cv-print li { page-break-inside: avoid; }
+          #cv-print ul, #cv-print ol { padding-left: 18pt; }
+          #cv-print li { margin: 3pt 0; }
+          #cv-print .cv-watermark {
+            margin-top: 20pt;
+            padding-top: 8pt;
+            border-top: 1px solid #cbd5e1 !important;
+            color: #64748b !important;
+            font-size: 9pt;
           }
           .no-print { display: none !important; }
         }
