@@ -172,7 +172,7 @@ function BuildPage() {
       {step === 3 && <Step3PersonalDetails data={data} update={update} onBack={back} onNext={next} />}
       {step === 4 && <Step4Experience data={data} update={update} onBack={back} onNext={next} />}
       {step === 5 && <Step5Skills data={data} update={update} onBack={back} onNext={next} />}
-      {step === 6 && <Step6Review data={data} onBack={back} onEdit={setStep} />}
+      {step === 6 && <Step6Review data={data} update={update} onBack={back} onEdit={setStep} />}
     </main>
   );
 }
@@ -551,7 +551,7 @@ function Step5Skills({ data, update, onBack, onNext }: StepProps) {
   );
 }
 
-function Step6Review({ data, onBack, onEdit }: { data: CVData; onBack: () => void; onEdit: (step: number) => void }) {
+function Step6Review({ data, update, onBack, onEdit }: { data: CVData; update: <K extends keyof CVData>(key: K, value: CVData[K]) => void; onBack: () => void; onEdit: (step: number) => void }) {
   const navigate = useNavigate();
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -589,7 +589,13 @@ function Step6Review({ data, onBack, onEdit }: { data: CVData; onBack: () => voi
           <p className="mt-3 text-base text-muted-foreground sm:text-lg">Check everything before generating your English CV.</p>
         </div>
         <div className="space-y-4">
-          <ReviewSection title="Language" onEdit={() => onEdit(1)}>{data.language || "Not selected"}</ReviewSection>
+          <LanguageReviewSection
+            currentName={data.language}
+            onSelect={(lang) => {
+              update("languageCode", lang.code);
+              update("language", lang.name);
+            }}
+          />
           <ReviewSection title="Work wanted" onEdit={() => onEdit(2)}>{jobLabels || "Not selected"}</ReviewSection>
           <ReviewSection title="Personal details" onEdit={() => onEdit(3)}>
             <p>{data.personalDetails.name || "Name missing"}</p>
@@ -702,6 +708,54 @@ function ReviewSection({ title, onEdit, children }: { title: string; onEdit: () 
         </button>
       </div>
       <div className="text-sm leading-6 text-muted-foreground">{children}</div>
+    </section>
+  );
+}
+
+type LangOption = (typeof languages)[number];
+
+function LanguageReviewSection({ currentName, onSelect }: { currentName: string; onSelect: (lang: LangOption) => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="font-semibold text-foreground">Language</h2>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          className="text-sm font-medium text-primary hover:opacity-80"
+        >
+          {open ? "Close" : "Edit"}
+        </button>
+      </div>
+      <div className="text-sm leading-6 text-muted-foreground">{currentName || "Not selected"}</div>
+      {open && (
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+          {languages.map((lang) => {
+            const selected = lang.name === currentName;
+            return (
+              <button
+                key={lang.code}
+                type="button"
+                onClick={() => {
+                  onSelect(lang);
+                  setOpen(false);
+                }}
+                className={`flex items-center gap-2 rounded-xl border p-3 text-left transition ${
+                  selected ? "border-primary bg-primary/10" : "border-border bg-background hover:bg-muted"
+                }`}
+              >
+                <span className="text-xl" aria-hidden="true">{lang.flag}</span>
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-medium text-foreground">{lang.name}</span>
+                  <span className="block truncate text-xs text-muted-foreground">{lang.native}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }
