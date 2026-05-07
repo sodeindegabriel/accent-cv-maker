@@ -88,6 +88,7 @@ const steps = [
 
 function Index() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [phraseIndex, setPhraseIndex] = useState(0);
   useEffect(() => {
     const id = setInterval(() => {
@@ -95,6 +96,16 @@ function Index() {
     }, 2000);
     return () => clearInterval(id);
   }, []);
+  useEffect(() => {
+    const hash = location.hash || (typeof window !== "undefined" ? window.location.hash.replace(/^#/, "") : "");
+    if (!hash) return;
+    // Wait a tick for DOM to be ready
+    const t = setTimeout(() => {
+      const el = document.getElementById(hash);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+    return () => clearTimeout(t);
+  }, [location.hash]);
   const pickLanguage = (code: string) => {
     try {
       sessionStorage.setItem("cvlingo:preselectLanguage", code);
