@@ -48,8 +48,8 @@ export function Footer() {
           <h4 className="font-sans text-sm font-semibold uppercase tracking-wider text-white/90">Platform</h4>
           <ul className="mt-4 space-y-3 text-sm text-white/70">
             <li><Link to="/build" className="hover:text-accent transition-colors">Build Your CV</Link></li>
-            <li><a href="/#how" className="hover:text-accent transition-colors">How It Works</a></li>
-            <li><a href="/#languages" className="hover:text-accent transition-colors">Languages</a></li>
+            <li><FooterAnchor hash="how">How It Works</FooterAnchor></li>
+            <li><FooterAnchor hash="languages">Languages</FooterAnchor></li>
             <li><Link to="/employer" className="hover:text-accent transition-colors">For Employers</Link></li>
           </ul>
         </div>
