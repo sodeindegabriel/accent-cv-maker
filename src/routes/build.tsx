@@ -450,8 +450,9 @@ function Step3PersonalDetails({ data, update, onBack, onNext }: StepProps) {
   return (
     <StepShell
       step={3}
-      title="Tell us about yourself"
-      subtitle="These details help employers contact you."
+      qLang={data.questionLanguageCode}
+      title={t(data.questionLanguageCode, "step3Title")}
+      subtitle={t(data.questionLanguageCode, "step3Subtitle")}
       onBack={onBack}
       onNext={onNext}
       nextDisabled={!valid}
