@@ -24,6 +24,8 @@ type PersonalDetails = {
 type CVData = {
   language: string;
   languageCode: string;
+  /** Language code used to display the questions in the build form. */
+  questionLanguageCode: string;
   jobTypes: string[];
   otherJobType: string;
   personalDetails: PersonalDetails;
@@ -36,6 +38,7 @@ type CVData = {
 const initialData: CVData = {
   language: "",
   languageCode: "",
+  questionLanguageCode: "en",
   jobTypes: [],
   otherJobType: "",
   personalDetails: { name: "", phone: "", email: "", city: "", rightToWork: "" },
