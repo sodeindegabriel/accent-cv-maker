@@ -276,6 +276,18 @@ function Index() {
                   </button>
                 </Reveal>
               ))}
+              <Reveal delay={languages.length * 30}>
+                <div
+                  aria-disabled="true"
+                  className="flex w-full items-center gap-4 rounded-xl border-2 border-dashed border-border bg-muted/40 p-4 text-left opacity-70"
+                >
+                  <Clock className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground">More languages</p>
+                    <p className="truncate font-semibold text-muted-foreground">coming soon…</p>
+                  </div>
+                </div>
+              </Reveal>
             </div>
           </div>
         </section>
