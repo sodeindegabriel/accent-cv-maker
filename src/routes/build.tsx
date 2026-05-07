@@ -234,15 +234,17 @@ function LangToggle({
   const otherLang = languages.find((l) => l.code === otherCode);
   const label = otherCode === "en" ? "English" : otherLang?.native ?? otherLang?.name ?? otherCode;
   return (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-label={`Switch to ${label}`}
-      className="fixed right-4 top-4 z-30 inline-flex items-center gap-1.5 rounded-full border border-border bg-background/90 px-3 py-1.5 text-xs font-medium text-foreground shadow-sm backdrop-blur transition hover:bg-muted sm:right-6 sm:top-6"
-    >
-      <span aria-hidden="true">🌐</span>
-      <span>{label}</span>
-    </button>
+    <div className="sticky top-2 z-30 -mt-2 mb-2 flex justify-end px-1 sm:absolute sm:right-4 sm:top-4 sm:mb-0 sm:mt-0 sm:px-0">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={`Switch to ${label}`}
+        className="inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-border bg-background/95 px-3 py-2 text-xs font-medium text-foreground shadow-sm backdrop-blur transition hover:bg-muted"
+      >
+        <span aria-hidden="true">🌐</span>
+        <span>{label}</span>
+      </button>
+    </div>
   );
 }
 
