@@ -589,7 +589,13 @@ function Step6Review({ data, update, onBack, onEdit }: { data: CVData; update: <
           <p className="mt-3 text-base text-muted-foreground sm:text-lg">Check everything before generating your English CV.</p>
         </div>
         <div className="space-y-4">
-          <ReviewSection title="Language" onEdit={() => onEdit(1)}>{data.language || "Not selected"}</ReviewSection>
+          <LanguageReviewSection
+            currentName={data.language}
+            onSelect={(lang) => {
+              update("languageCode", lang.code);
+              update("language", lang.name);
+            }}
+          />
           <ReviewSection title="Work wanted" onEdit={() => onEdit(2)}>{jobLabels || "Not selected"}</ReviewSection>
           <ReviewSection title="Personal details" onEdit={() => onEdit(3)}>
             <p>{data.personalDetails.name || "Name missing"}</p>
