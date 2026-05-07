@@ -47,6 +47,7 @@ const heroFlags: { flag: string; code: string; name: string }[] = [
 ];
 
 const languages: { flag: string; en: string; native: string; code: string }[] = [
+  { flag: "🇬🇧", en: "English", native: "English", code: "en" },
   { flag: "🇵🇱", en: "Polish", native: "Polski", code: "pl" },
   { flag: "🇷🇴", en: "Romanian", native: "Română", code: "ro" },
   { flag: "🇮🇳", en: "Punjabi", native: "ਪੰਜਾਬੀ", code: "pa" },
