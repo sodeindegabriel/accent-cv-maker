@@ -51,7 +51,8 @@ function ResultPage() {
     }
   };
 
-  const whatsappHref = `https://wa.me/?text=${encodeURIComponent(`Here is my CV:\n\n${activeText}`)}`;
+  const plainText = stripMarkdown(activeText);
+  const whatsappHref = `https://wa.me/?text=${encodeURIComponent(`Here is my CV:\n\n${plainText}`)}`;
   const shareLink = typeof window !== "undefined" ? `${window.location.origin}/build` : "/build";
   const friendShareHref = `https://wa.me/?text=${encodeURIComponent(
     `Know someone who needs a CV? CVLingo helps you build a UK CV in your own language. ${shareLink}`,
@@ -246,6 +247,34 @@ function normalizeMarkdown(input: string): string {
     "$1  \n",
   );
   return s;
+}
+
+function stripMarkdown(input: string): string {
+  if (!input) return "";
+  let s = input.replace(/\r\n/g, "\n");
+  // Remove code fences
+  s = s.replace(/```[a-z]*\n?/gi, "").replace(/```/g, "");
+  // Headings: drop leading #'s
+  s = s.replace(/^\s{0,3}#{1,6}\s+/gm, "");
+  // Bold/italic markers
+  s = s.replace(/\*\*\*(.+?)\*\*\*/g, "$1");
+  s = s.replace(/\*\*(.+?)\*\*/g, "$1");
+  s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1$2");
+  s = s.replace(/__(.+?)__/g, "$1");
+  s = s.replace(/(^|[^_])_([^_\n]+)_/g, "$1$2");
+  // Bullet lists -> dashes
+  s = s.replace(/^\s*[-*+]\s+/gm, "- ");
+  // Numbered lists keep as is but trim
+  s = s.replace(/^\s*(\d+)\.\s+/gm, "$1. ");
+  // Horizontal rules
+  s = s.replace(/^\s*([-*_])\1{2,}\s*$/gm, "");
+  // Links [text](url) -> text (url)
+  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1 ($2)");
+  // Inline code
+  s = s.replace(/`([^`]+)`/g, "$1");
+  // Collapse 3+ newlines
+  s = s.replace(/\n{3,}/g, "\n\n");
+  return s.trim();
 }
 
 const editSections: { step: number; label: string }[] = [
