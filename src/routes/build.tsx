@@ -304,7 +304,7 @@ function StepShell({
   );
 }
 
-function Step1Language({ data, update, onNext }: StepProps) {
+function Step1Language({ data, update, onNext }: Step1Props) {
   const [showModal, setShowModal] = useState(false);
   const selectedLang = languages.find((l) => l.code === data.languageCode);
 
