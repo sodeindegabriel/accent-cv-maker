@@ -63,9 +63,29 @@ function ResultPage() {
     <main className="min-h-screen bg-background text-foreground">
       <style>{`
         @media print {
-          body * { visibility: hidden; }
-          #cv-print, #cv-print * { visibility: visible; }
-          #cv-print { position: absolute; left: 0; top: 0; width: 100%; padding: 24px; }
+          @page { size: A4; margin: 12mm; }
+          html, body { background: #ffffff !important; }
+          body * { visibility: hidden !important; }
+          #cv-print, #cv-print * {
+            visibility: visible !important;
+            color: #000000 !important;
+            background: #ffffff !important;
+            box-shadow: none !important;
+          }
+          #cv-print {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            border: none !important;
+            display: block !important;
+          }
+          #cv-print h1, #cv-print h2, #cv-print h3, #cv-print h4,
+          #cv-print p, #cv-print li, #cv-print span, #cv-print strong, #cv-print em, #cv-print a {
+            color: #000000 !important;
+          }
           .no-print { display: none !important; }
         }
       `}</style>
@@ -114,13 +134,16 @@ function ResultPage() {
               onClick={() => {
                 const langForFile = tab === "english" ? "English" : result.language || "Native";
                 const safeName = (name || "CV").trim();
-                const filename = `${safeName} - CVLingo - ${langForFile}`;
+                const filename = `${safeName} - CVLingo - ${langForFile}.pdf`;
                 const previousTitle = document.title;
                 document.title = filename;
-                window.print();
+                // Wait for the CV content to be fully painted before opening the print dialog
                 setTimeout(() => {
-                  document.title = previousTitle;
-                }, 1000);
+                  window.print();
+                  setTimeout(() => {
+                    document.title = previousTitle;
+                  }, 1000);
+                }, 300);
               }}
               className="rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground transition hover:opacity-90"
             >
