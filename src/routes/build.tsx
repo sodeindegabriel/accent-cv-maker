@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { generateCV } from "@/utils/generateCV";
 import { GeneratingOverlay } from "@/components/GeneratingOverlay";
 import { BridgeIcon } from "@/components/BridgeIcon";
+import { Clock } from "lucide-react";
+import { t, type TKey } from "@/lib/buildTranslations";
 
 type Experience = {
   title: string;
