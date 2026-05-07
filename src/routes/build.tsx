@@ -71,55 +71,63 @@ const languages = [
   { code: "ti", name: "Tigrinya", native: "ትግርኛ", flag: "🇪🇷" },
 ];
 
-const jobs = [
-  { id: "hospitality", label: "Hospitality", emoji: "🍽️" },
-  { id: "construction", label: "Construction", emoji: "🏗️" },
-  { id: "care", label: "Care work", emoji: "🤝" },
-  { id: "delivery", label: "Delivery & driving", emoji: "🚗" },
-  { id: "cleaning", label: "Cleaning", emoji: "🧹" },
-  { id: "retail", label: "Retail", emoji: "🛍️" },
-  { id: "warehouse", label: "Warehouse", emoji: "📦" },
-  { id: "office", label: "Office work", emoji: "💼" },
-  { id: "beauty", label: "Beauty & salon", emoji: "💇" },
-  { id: "other", label: "Something else", emoji: "✨" },
+const jobs: { id: string; tKey: TKey; emoji: string }[] = [
+  { id: "hospitality", tKey: "job_hospitality", emoji: "🍽️" },
+  { id: "construction", tKey: "job_construction", emoji: "🏗️" },
+  { id: "care", tKey: "job_care", emoji: "🤝" },
+  { id: "delivery", tKey: "job_delivery", emoji: "🚗" },
+  { id: "cleaning", tKey: "job_cleaning", emoji: "🧹" },
+  { id: "retail", tKey: "job_retail", emoji: "🛍️" },
+  { id: "warehouse", tKey: "job_warehouse", emoji: "📦" },
+  { id: "office", tKey: "job_office", emoji: "💼" },
+  { id: "beauty", tKey: "job_beauty", emoji: "💇" },
+  { id: "other", tKey: "job_other", emoji: "✨" },
 ];
 
-const rightToWorkOptions = [
-  "British citizen",
-  "Settled / pre-settled status",
-  "Skilled worker visa",
-  "Student visa",
-  "Refugee status",
-  "Other / not sure",
+const rightToWorkOptions: { value: string; tKey: TKey }[] = [
+  { value: "British citizen", tKey: "rtw_british" },
+  { value: "Settled / pre-settled status", tKey: "rtw_settled" },
+  { value: "Skilled worker visa", tKey: "rtw_skilled" },
+  { value: "Student visa", tKey: "rtw_student" },
+  { value: "Refugee status", tKey: "rtw_refugee" },
+  { value: "Other / not sure", tKey: "rtw_other" },
 ];
 
-const experienceTypes = [
-  { id: "paid", label: "Paid work", desc: "Jobs in the UK or back home" },
-  { id: "informal", label: "Informal / family work", desc: "Helped family business or neighbours" },
-  { id: "volunteer", label: "Volunteering", desc: "Unpaid work for community or charity" },
-  { id: "none", label: "No experience yet", desc: "I’m just starting out" },
+const experienceTypes: { id: string; tKey: TKey; descKey: TKey }[] = [
+  { id: "paid", tKey: "expType_paid", descKey: "expType_paid_desc" },
+  { id: "informal", tKey: "expType_informal", descKey: "expType_informal_desc" },
+  { id: "volunteer", tKey: "expType_volunteer", descKey: "expType_volunteer_desc" },
+  { id: "none", tKey: "expType_none", descKey: "expType_none_desc" },
 ];
 
-const suggestedSkills = [
-  "Customer service",
-  "Teamwork",
-  "Timekeeping",
-  "Cleaning",
-  "Food preparation",
-  "Stock handling",
-  "Driving",
-  "Cash handling",
-  "Care support",
-  "Microsoft Office",
-  "Problem solving",
-  "English communication",
+const suggestedSkills: { value: string; tKey: TKey }[] = [
+  { value: "Customer service", tKey: "skill_customer" },
+  { value: "Teamwork", tKey: "skill_teamwork" },
+  { value: "Timekeeping", tKey: "skill_timekeeping" },
+  { value: "Cleaning", tKey: "skill_cleaning" },
+  { value: "Food preparation", tKey: "skill_food" },
+  { value: "Stock handling", tKey: "skill_stock" },
+  { value: "Driving", tKey: "skill_driving" },
+  { value: "Cash handling", tKey: "skill_cash" },
+  { value: "Care support", tKey: "skill_care" },
+  { value: "Microsoft Office", tKey: "skill_office" },
+  { value: "Problem solving", tKey: "skill_problem" },
+  { value: "English communication", tKey: "skill_english" },
 ];
 
-const availabilityOptions = ["Weekdays", "Weekends", "Evenings", "Early mornings", "Full-time", "Part-time"];
+const availabilityOptions: { value: string; tKey: TKey }[] = [
+  { value: "Weekdays", tKey: "avail_weekdays" },
+  { value: "Weekends", tKey: "avail_weekends" },
+  { value: "Evenings", tKey: "avail_evenings" },
+  { value: "Early mornings", tKey: "avail_mornings" },
+  { value: "Full-time", tKey: "avail_full" },
+  { value: "Part-time", tKey: "avail_part" },
+];
 
 function BuildPage() {
   const [step, setStep] = useState(1);
   const [data, setData] = useState<CVData>(initialData);
+  const [forceEnglish, setForceEnglish] = useState(false);
 
   useEffect(() => {
     try {
@@ -156,6 +164,16 @@ function BuildPage() {
   const next = () => setStep((current) => Math.min(6, current + 1));
   const back = () => setStep((current) => Math.max(1, current - 1));
 
+  const originalLang = data.questionLanguageCode || "en";
+  const displayLang = forceEnglish ? "en" : originalLang;
+  const stepProps = {
+    data,
+    update,
+    displayLang,
+    originalLang,
+    onToggleLang: () => setForceEnglish((v) => !v),
+  };
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
@@ -177,11 +195,11 @@ function BuildPage() {
         </div>
       </header>
       {step === 1 && <Step1Language data={data} update={update} onNext={next} />}
-      {step === 2 && <Step2JobType data={data} update={update} onBack={back} onNext={next} />}
-      {step === 3 && <Step3PersonalDetails data={data} update={update} onBack={back} onNext={next} />}
-      {step === 4 && <Step4Experience data={data} update={update} onBack={back} onNext={next} />}
-      {step === 5 && <Step5Skills data={data} update={update} onBack={back} onNext={next} />}
-      {step === 6 && <Step6Review data={data} update={update} onBack={back} onEdit={setStep} />}
+      {step === 2 && <Step2JobType {...stepProps} onBack={back} onNext={next} />}
+      {step === 3 && <Step3PersonalDetails {...stepProps} onBack={back} onNext={next} />}
+      {step === 4 && <Step4Experience {...stepProps} onBack={back} onNext={next} />}
+      {step === 5 && <Step5Skills {...stepProps} onBack={back} onNext={next} />}
+      {step === 6 && <Step6Review {...stepProps} onBack={back} onEdit={setStep} />}
     </main>
   );
 }
@@ -189,9 +207,44 @@ function BuildPage() {
 type StepProps = {
   data: CVData;
   update: <K extends keyof CVData>(key: K, value: CVData[K]) => void;
+  displayLang: string;
+  originalLang: string;
+  onToggleLang: () => void;
   onBack?: () => void;
   onNext: () => void;
 };
+
+type Step1Props = {
+  data: CVData;
+  update: <K extends keyof CVData>(key: K, value: CVData[K]) => void;
+  onNext: () => void;
+};
+
+function LangToggle({
+  displayLang,
+  originalLang,
+  onToggle,
+}: {
+  displayLang: string;
+  originalLang: string;
+  onToggle: () => void;
+}) {
+  if (!originalLang || originalLang === "en") return null;
+  const otherCode = displayLang === "en" ? originalLang : "en";
+  const otherLang = languages.find((l) => l.code === otherCode);
+  const label = otherCode === "en" ? "English" : otherLang?.native ?? otherLang?.name ?? otherCode;
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={`Switch to ${label}`}
+      className="fixed right-4 top-4 z-30 inline-flex items-center gap-1.5 rounded-full border border-border bg-background/90 px-3 py-1.5 text-xs font-medium text-foreground shadow-sm backdrop-blur transition hover:bg-muted sm:right-6 sm:top-6"
+    >
+      <span aria-hidden="true">🌐</span>
+      <span>{label}</span>
+    </button>
+  );
+}
 
 function StepShell({
   step,
@@ -201,6 +254,8 @@ function StepShell({
   onBack,
   onNext,
   qLang,
+  originalLang,
+  onToggleLang,
   children,
 }: {
   step: number;
@@ -210,14 +265,19 @@ function StepShell({
   onBack?: () => void;
   onNext: () => void;
   qLang?: string;
+  originalLang?: string;
+  onToggleLang?: () => void;
   children: React.ReactNode;
 }) {
   const dir = qLang && ["ar", "ur", "fa"].includes(qLang) ? "rtl" : "ltr";
   return (
-    <section className="px-4 py-8 sm:px-6 lg:px-8" dir={dir}>
+    <section className="relative px-4 py-8 sm:px-6 lg:px-8" dir={dir}>
+      {originalLang && originalLang !== "en" && onToggleLang && (
+        <LangToggle displayLang={qLang || "en"} originalLang={originalLang} onToggle={onToggleLang} />
+      )}
       <div className="mx-auto max-w-3xl">
         <div className="mb-8">
-          <div className="mb-4 flex items-center gap-2" aria-label={`Step ${step} of 6`}>
+          <div className="mb-4 flex items-center gap-2" aria-label={t(qLang, "stepOf", { n: step })}>
             {Array.from({ length: 6 }, (_, index) => (
               <div
                 key={index}
@@ -225,7 +285,7 @@ function StepShell({
               />
             ))}
           </div>
-          <p className="mb-2 text-sm font-medium text-muted-foreground">Step {step} of 6</p>
+          <p className="mb-2 text-sm font-medium text-muted-foreground">{t(qLang, "stepOf", { n: step })}</p>
           <h1 className="text-3xl font-semibold tracking-normal text-foreground sm:text-4xl">{title}</h1>
           <p className="mt-3 text-base text-muted-foreground sm:text-lg">{subtitle}</p>
         </div>
@@ -258,7 +318,7 @@ function StepShell({
   );
 }
 
-function Step1Language({ data, update, onNext }: StepProps) {
+function Step1Language({ data, update, onNext }: Step1Props) {
   const [showModal, setShowModal] = useState(false);
   const selectedLang = languages.find((l) => l.code === data.languageCode);
 
@@ -387,7 +447,7 @@ function LanguageChoiceModal({
   );
 }
 
-function Step2JobType({ data, update, onBack, onNext }: StepProps) {
+function Step2JobType({ data, update, displayLang, originalLang, onToggleLang, onBack, onNext }: StepProps) {
   const toggle = (id: string) => {
     const selected = new Set(data.jobTypes);
     if (selected.has(id)) selected.delete(id);
@@ -398,9 +458,11 @@ function Step2JobType({ data, update, onBack, onNext }: StepProps) {
   return (
     <StepShell
       step={2}
-      qLang={data.questionLanguageCode}
-      title={t(data.questionLanguageCode, "step2Title")}
-      subtitle={t(data.questionLanguageCode, "step2Subtitle")}
+      qLang={displayLang}
+      originalLang={originalLang}
+      onToggleLang={onToggleLang}
+      title={t(displayLang, "step2Title")}
+      subtitle={t(displayLang, "step2Subtitle")}
       onBack={onBack}
       onNext={onNext}
       nextDisabled={data.jobTypes.length === 0}
@@ -418,7 +480,7 @@ function Step2JobType({ data, update, onBack, onNext }: StepProps) {
               }`}
             >
               <span className="text-2xl" aria-hidden="true">{job.emoji}</span>
-              <span className="font-medium text-foreground">{job.label}</span>
+              <span className="font-medium text-foreground">{t(displayLang, job.tKey)}</span>
             </button>
           );
         })}
@@ -427,17 +489,17 @@ function Step2JobType({ data, update, onBack, onNext }: StepProps) {
       {data.jobTypes.includes("other") && (
         <TextField
           className="mt-4"
-          label="Other work type"
+          label={t(displayLang, "otherWorkType")}
           value={data.otherJobType}
           onChange={(value) => update("otherJobType", value)}
-          placeholder="Tell us what kind of work"
+          placeholder={t(displayLang, "otherWorkPlaceholder")}
         />
       )}
     </StepShell>
   );
 }
 
-function Step3PersonalDetails({ data, update, onBack, onNext }: StepProps) {
+function Step3PersonalDetails({ data, update, displayLang, originalLang, onToggleLang, onBack, onNext }: StepProps) {
   const personal = data.personalDetails;
   const setPersonal = (key: keyof PersonalDetails, value: string) => {
     update("personalDetails", { ...personal, [key]: value });
@@ -455,32 +517,34 @@ function Step3PersonalDetails({ data, update, onBack, onNext }: StepProps) {
   return (
     <StepShell
       step={3}
-      qLang={data.questionLanguageCode}
-      title={t(data.questionLanguageCode, "step3Title")}
-      subtitle={t(data.questionLanguageCode, "step3Subtitle")}
+      qLang={displayLang}
+      originalLang={originalLang}
+      onToggleLang={onToggleLang}
+      title={t(displayLang, "step3Title")}
+      subtitle={t(displayLang, "step3Subtitle")}
       onBack={onBack}
       onNext={onNext}
       nextDisabled={!valid}
     >
       <div className="space-y-4">
-        <TextField label="Full name" value={personal.name} onChange={(value) => setPersonal("name", value)} placeholder="Maria Kowalska" />
-        <TextField label="Phone number" value={personal.phone} onChange={(value) => setPersonal("phone", value)} placeholder="07…" type="tel" />
-        <TextField label="Email" value={personal.email} onChange={(value) => setPersonal("email", value)} placeholder="you@example.com" type="email" />
-        <TextField label="City in the UK" value={personal.city} onChange={(value) => setPersonal("city", value)} placeholder="London" />
+        <TextField label={t(displayLang, "fullName")} value={personal.name} onChange={(value) => setPersonal("name", value)} placeholder="Maria Kowalska" />
+        <TextField label={t(displayLang, "phoneNumber")} value={personal.phone} onChange={(value) => setPersonal("phone", value)} placeholder="07…" type="tel" />
+        <TextField label={t(displayLang, "email")} value={personal.email} onChange={(value) => setPersonal("email", value)} placeholder="you@example.com" type="email" />
+        <TextField label={t(displayLang, "cityUk")} value={personal.city} onChange={(value) => setPersonal("city", value)} placeholder="London" />
         <div>
-          <label className="mb-2 block text-sm font-medium text-foreground">Right to work</label>
+          <label className="mb-2 block text-sm font-medium text-foreground">{t(displayLang, "rightToWork")}</label>
           <div className="grid gap-2 sm:grid-cols-2">
             {rightToWorkOptions.map((option) => {
               const selected =
-                option === "Other / not sure" ? isOther : personal.rightToWork === option;
+                option.value === "Other / not sure" ? isOther : personal.rightToWork === option.value;
               return (
                 <button
-                  key={option}
+                  key={option.value}
                   type="button"
                   onClick={() =>
                     setPersonal(
                       "rightToWork",
-                      option === "Other / not sure" ? "Other:" : option,
+                      option.value === "Other / not sure" ? "Other:" : option.value,
                     )
                   }
                   className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
@@ -489,7 +553,7 @@ function Step3PersonalDetails({ data, update, onBack, onNext }: StepProps) {
                       : "border-border bg-background hover:bg-muted"
                   }`}
                 >
-                  {option}
+                  {t(displayLang, option.tKey)}
                 </button>
               );
             })}
@@ -497,10 +561,10 @@ function Step3PersonalDetails({ data, update, onBack, onNext }: StepProps) {
           {isOther && (
             <div className="mt-3">
               <TextField
-                label="Please describe your status"
+                label={t(displayLang, "describeStatus")}
                 value={otherDetail}
                 onChange={(value) => setPersonal("rightToWork", `Other: ${value}`)}
-                placeholder="e.g. Pre-settled status, applying for visa…"
+                placeholder={t(displayLang, "describeStatusPlaceholder")}
               />
             </div>
           )}
@@ -510,7 +574,7 @@ function Step3PersonalDetails({ data, update, onBack, onNext }: StepProps) {
   );
 }
 
-function Step4Experience({ data, update, onBack, onNext }: StepProps) {
+function Step4Experience({ data, update, displayLang, originalLang, onToggleLang, onBack, onNext }: StepProps) {
   const addExperience = () => {
     update("experience", [...data.experience, { title: "", place: "", duration: "", description: "" }]);
   };
@@ -528,9 +592,11 @@ function Step4Experience({ data, update, onBack, onNext }: StepProps) {
   return (
     <StepShell
       step={4}
-      qLang={data.questionLanguageCode}
-      title={t(data.questionLanguageCode, "step4Title")}
-      subtitle={t(data.questionLanguageCode, "step4Subtitle")}
+      qLang={displayLang}
+      originalLang={originalLang}
+      onToggleLang={onToggleLang}
+      title={t(displayLang, "step4Title")}
+      subtitle={t(displayLang, "step4Subtitle")}
       onBack={onBack}
       onNext={onNext}
       nextDisabled={!valid}
@@ -551,8 +617,8 @@ function Step4Experience({ data, update, onBack, onNext }: StepProps) {
                   : "border-border bg-background hover:bg-muted"
               }`}
             >
-              <span className="block font-medium text-foreground">{type.label}</span>
-              <span className="mt-1 block text-sm text-muted-foreground">{type.desc}</span>
+              <span className="block font-medium text-foreground">{t(displayLang, type.tKey)}</span>
+              <span className="mt-1 block text-sm text-muted-foreground">{t(displayLang, type.descKey)}</span>
             </button>
           ))}
         </div>
@@ -562,21 +628,21 @@ function Step4Experience({ data, update, onBack, onNext }: StepProps) {
             {data.experience.map((experience, index) => (
               <div key={index} className="rounded-xl border border-border bg-background p-4">
                 <div className="mb-4 flex items-center justify-between gap-3">
-                  <h2 className="font-medium text-foreground">Experience {index + 1}</h2>
+                  <h2 className="font-medium text-foreground">{t(displayLang, "experienceN", { n: index + 1 })}</h2>
                   <button type="button" onClick={() => removeExperience(index)} className="text-sm font-medium text-muted-foreground hover:text-foreground">
-                    Remove
+                    {t(displayLang, "remove")}
                   </button>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <TextField label="Role or activity" value={experience.title} onChange={(value) => updateExperience(index, "title", value)} placeholder="Kitchen assistant" />
-                  <TextField label="Company or place" value={experience.place} onChange={(value) => updateExperience(index, "place", value)} placeholder="Cafe Roma" />
-                  <TextField label="Dates" value={experience.duration} onChange={(value) => updateExperience(index, "duration", value)} placeholder="2022–2024" />
-                  <TextField label="What you did" value={experience.description} onChange={(value) => updateExperience(index, "description", value)} placeholder="Prepared food and served customers" />
+                  <TextField label={t(displayLang, "roleOrActivity")} value={experience.title} onChange={(value) => updateExperience(index, "title", value)} placeholder="Kitchen assistant" />
+                  <TextField label={t(displayLang, "companyOrPlace")} value={experience.place} onChange={(value) => updateExperience(index, "place", value)} placeholder="Cafe Roma" />
+                  <TextField label={t(displayLang, "dates")} value={experience.duration} onChange={(value) => updateExperience(index, "duration", value)} placeholder="2022–2024" />
+                  <TextField label={t(displayLang, "whatYouDid")} value={experience.description} onChange={(value) => updateExperience(index, "description", value)} placeholder="Prepared food and served customers" />
                 </div>
               </div>
             ))}
             <button type="button" onClick={addExperience} className="rounded-xl border border-border bg-background px-4 py-3 font-medium text-foreground transition hover:bg-muted">
-              Add experience
+              {t(displayLang, "addExperience")}
             </button>
           </div>
         )}
@@ -585,7 +651,7 @@ function Step4Experience({ data, update, onBack, onNext }: StepProps) {
   );
 }
 
-function Step5Skills({ data, update, onBack, onNext }: StepProps) {
+function Step5Skills({ data, update, displayLang, originalLang, onToggleLang, onBack, onNext }: StepProps) {
   const [customSkill, setCustomSkill] = useState("");
   const toggleValue = (key: "skills" | "availability", value: string) => {
     const selected = new Set(data[key]);
@@ -600,27 +666,31 @@ function Step5Skills({ data, update, onBack, onNext }: StepProps) {
     setCustomSkill("");
   };
 
+  const suggestedValues = suggestedSkills.map((s) => s.value);
+
   return (
     <StepShell
       step={5}
-      qLang={data.questionLanguageCode}
-      title={t(data.questionLanguageCode, "step5Title")}
-      subtitle={t(data.questionLanguageCode, "step5Subtitle")}
+      qLang={displayLang}
+      originalLang={originalLang}
+      onToggleLang={onToggleLang}
+      title={t(displayLang, "step5Title")}
+      subtitle={t(displayLang, "step5Subtitle")}
       onBack={onBack}
       onNext={onNext}
       nextDisabled={data.skills.length === 0 || data.availability.length === 0}
     >
       <div className="space-y-6">
         <div>
-          <h2 className="mb-3 font-medium text-foreground">Skills</h2>
+          <h2 className="mb-3 font-medium text-foreground">{t(displayLang, "skills")}</h2>
           <div className="flex flex-wrap gap-2">
             {suggestedSkills.map((skill) => (
-              <Chip key={skill} selected={data.skills.includes(skill)} onClick={() => toggleValue("skills", skill)}>
-                {skill}
+              <Chip key={skill.value} selected={data.skills.includes(skill.value)} onClick={() => toggleValue("skills", skill.value)}>
+                {t(displayLang, skill.tKey)}
               </Chip>
             ))}
             {data.skills
-              .filter((skill) => !suggestedSkills.includes(skill))
+              .filter((skill) => !suggestedValues.includes(skill))
               .map((skill) => (
                 <Chip key={skill} selected onClick={() => toggleValue("skills", skill)}>
                   {skill}
@@ -637,20 +707,20 @@ function Step5Skills({ data, update, onBack, onNext }: StepProps) {
                   addCustomSkill();
                 }
               }}
-              placeholder="Add another skill"
+              placeholder={t(displayLang, "addAnotherSkill")}
               className="min-w-0 flex-1 rounded-xl border border-border bg-background px-4 py-3 text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
             />
             <button type="button" onClick={addCustomSkill} className="rounded-xl bg-secondary px-4 py-3 font-medium text-secondary-foreground transition hover:opacity-90">
-              Add
+              {t(displayLang, "add")}
             </button>
           </div>
         </div>
         <div>
-          <h2 className="mb-3 font-medium text-foreground">Availability</h2>
+          <h2 className="mb-3 font-medium text-foreground">{t(displayLang, "availability")}</h2>
           <div className="flex flex-wrap gap-2">
             {availabilityOptions.map((option) => (
-              <Chip key={option} selected={data.availability.includes(option)} onClick={() => toggleValue("availability", option)}>
-                {option}
+              <Chip key={option.value} selected={data.availability.includes(option.value)} onClick={() => toggleValue("availability", option.value)}>
+                {t(displayLang, option.tKey)}
               </Chip>
             ))}
           </div>
@@ -660,7 +730,15 @@ function Step5Skills({ data, update, onBack, onNext }: StepProps) {
   );
 }
 
-function Step6Review({ data, update, onBack, onEdit }: { data: CVData; update: <K extends keyof CVData>(key: K, value: CVData[K]) => void; onBack: () => void; onEdit: (step: number) => void }) {
+function Step6Review({ data, update, displayLang, originalLang, onToggleLang, onBack, onEdit }: {
+  data: CVData;
+  update: <K extends keyof CVData>(key: K, value: CVData[K]) => void;
+  displayLang: string;
+  originalLang: string;
+  onToggleLang: () => void;
+  onBack: () => void;
+  onEdit: (step: number) => void;
+}) {
   const navigate = useNavigate();
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -675,7 +753,7 @@ function Step6Review({ data, update, onBack, onEdit }: { data: CVData; update: <
       navigate({ to: "/result" });
     } catch (e) {
       console.error(e);
-      setError(e instanceof Error ? e.message : "Something went wrong. Please try again.");
+      setError(e instanceof Error ? e.message : t(displayLang, "somethingWrong"));
       setGenerating(false);
     }
   };
@@ -683,44 +761,54 @@ function Step6Review({ data, update, onBack, onEdit }: { data: CVData; update: <
   const jobLabels = useMemo(
     () =>
       data.jobTypes
-        .map((id) => (id === "other" ? data.otherJobType || "Other" : jobs.find((job) => job.id === id)?.label))
+        .map((id) => {
+          if (id === "other") return data.otherJobType || t(displayLang, "job_other");
+          const job = jobs.find((j) => j.id === id);
+          return job ? t(displayLang, job.tKey) : null;
+        })
         .filter(Boolean)
         .join(", "),
-    [data.jobTypes, data.otherJobType],
+    [data.jobTypes, data.otherJobType, displayLang],
   );
 
+  const dir = ["ar", "ur", "fa"].includes(displayLang) ? "rtl" : "ltr";
+
   return (
-    <section className="px-4 py-8 sm:px-6 lg:px-8">
+    <section className="relative px-4 py-8 sm:px-6 lg:px-8" dir={dir}>
+      {originalLang && originalLang !== "en" && (
+        <LangToggle displayLang={displayLang} originalLang={originalLang} onToggle={onToggleLang} />
+      )}
       <div className="mx-auto max-w-3xl">
         <div className="mb-8">
-          <p className="mb-2 text-sm font-medium text-muted-foreground">Step 6 of 6</p>
-          <h1 className="text-3xl font-semibold tracking-normal text-foreground sm:text-4xl">{t(data.questionLanguageCode, "step6Title")}</h1>
-          <p className="mt-3 text-base text-muted-foreground sm:text-lg">{t(data.questionLanguageCode, "step6Subtitle")}</p>
+          <p className="mb-2 text-sm font-medium text-muted-foreground">{t(displayLang, "stepOf", { n: 6 })}</p>
+          <h1 className="text-3xl font-semibold tracking-normal text-foreground sm:text-4xl">{t(displayLang, "step6Title")}</h1>
+          <p className="mt-3 text-base text-muted-foreground sm:text-lg">{t(displayLang, "step6Subtitle")}</p>
         </div>
         <div className="space-y-4">
           <LanguageReviewSection
             currentName={data.language}
+            displayLang={displayLang}
             onSelect={(lang) => {
               update("languageCode", lang.code);
               update("language", lang.name);
             }}
           />
-          <ReviewSection title="Work wanted" onEdit={() => onEdit(2)}>{jobLabels || "Not selected"}</ReviewSection>
-          <ReviewSection title="Personal details" onEdit={() => onEdit(3)}>
-            <p>{data.personalDetails.name || "Name missing"}</p>
-            <p>{data.personalDetails.phone || "Phone missing"}</p>
-            <p>{data.personalDetails.email || "Email not provided"}</p>
-            <p>{data.personalDetails.city || "City missing"}</p>
-            <p>{data.personalDetails.rightToWork || "Right to work missing"}</p>
+          <ReviewSection title={t(displayLang, "workWanted")} editLabel={t(displayLang, "edit")} onEdit={() => onEdit(2)}>{jobLabels || t(displayLang, "notSelected")}</ReviewSection>
+          <ReviewSection title={t(displayLang, "personalDetails")} editLabel={t(displayLang, "edit")} onEdit={() => onEdit(3)}>
+            <p>{data.personalDetails.name || t(displayLang, "nameMissing")}</p>
+            <p>{data.personalDetails.phone || t(displayLang, "phoneMissing")}</p>
+            <p>{data.personalDetails.email || t(displayLang, "emailMissing")}</p>
+            <p>{data.personalDetails.city || t(displayLang, "cityMissing")}</p>
+            <p>{data.personalDetails.rightToWork || t(displayLang, "rtwMissing")}</p>
           </ReviewSection>
-          <ReviewSection title="Experience" onEdit={() => onEdit(4)}>
+          <ReviewSection title={t(displayLang, "experience")} editLabel={t(displayLang, "edit")} onEdit={() => onEdit(4)}>
             {data.experienceType === "none" ? (
-              <p>No experience yet</p>
+              <p>{t(displayLang, "noExperienceYet")}</p>
             ) : data.experience.length ? (
               <ul className="space-y-2">
                 {data.experience.map((item, index) => (
                   <li key={index}>
-                    <span className="font-medium text-foreground">{item.title || "Role"}</span>
+                    <span className="font-medium text-foreground">{item.title || t(displayLang, "roleOrActivity")}</span>
                     {item.place && ` — ${item.place}`}
                     {item.duration && ` (${item.duration})`}
                     {item.description && <span className="block text-sm text-muted-foreground">{item.description}</span>}
@@ -728,26 +816,26 @@ function Step6Review({ data, update, onBack, onEdit }: { data: CVData; update: <
                 ))}
               </ul>
             ) : (
-              <p>Not added</p>
+              <p>{t(displayLang, "notAdded")}</p>
             )}
           </ReviewSection>
-          <ReviewSection title="Skills and availability" onEdit={() => onEdit(5)}>
-            <p>{data.skills.join(", ") || "No skills selected"}</p>
-            <p>{data.availability.join(", ") || "No availability selected"}</p>
+          <ReviewSection title={t(displayLang, "skillsAndAvailability")} editLabel={t(displayLang, "edit")} onEdit={() => onEdit(5)}>
+            <p>{data.skills.join(", ") || t(displayLang, "noSkills")}</p>
+            <p>{data.availability.join(", ") || t(displayLang, "noAvailability")}</p>
           </ReviewSection>
         </div>
         {error && (
           <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-            <p className="font-medium">Something went wrong. Please try again.</p>
+            <p className="font-medium">{t(displayLang, "somethingWrong")}</p>
             <p className="mt-1 opacity-80">{error}</p>
             <button type="button" onClick={handleGenerate} className="mt-3 rounded-lg bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground hover:opacity-90">
-              Retry
+              {t(displayLang, "retry")}
             </button>
           </div>
         )}
         <div className="mt-6 flex items-center justify-between gap-3">
           <button type="button" onClick={onBack} className="rounded-xl border border-border bg-background px-5 py-3 font-medium text-foreground transition hover:bg-muted">
-            {t(data.questionLanguageCode, "back")}
+            {t(displayLang, "back")}
           </button>
           <button
             type="button"
@@ -755,7 +843,7 @@ function Step6Review({ data, update, onBack, onEdit }: { data: CVData; update: <
             disabled={generating}
             className="rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
           >
-            {generating ? "Generating…" : "Generate My CV"}
+            {generating ? t(displayLang, "generating") : t(displayLang, "generateCv")}
           </button>
         </div>
       </div>
@@ -807,13 +895,13 @@ function Chip({ selected, onClick, children }: { selected: boolean; onClick: () 
   );
 }
 
-function ReviewSection({ title, onEdit, children }: { title: string; onEdit: () => void; children: React.ReactNode }) {
+function ReviewSection({ title, editLabel, onEdit, children }: { title: string; editLabel?: string; onEdit: () => void; children: React.ReactNode }) {
   return (
     <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="font-semibold text-foreground">{title}</h2>
         <button type="button" onClick={onEdit} className="text-sm font-medium text-primary hover:opacity-80">
-          Edit
+          {editLabel ?? "Edit"}
         </button>
       </div>
       <div className="text-sm leading-6 text-muted-foreground">{children}</div>
@@ -823,22 +911,22 @@ function ReviewSection({ title, onEdit, children }: { title: string; onEdit: () 
 
 type LangOption = (typeof languages)[number];
 
-function LanguageReviewSection({ currentName, onSelect }: { currentName: string; onSelect: (lang: LangOption) => void }) {
+function LanguageReviewSection({ currentName, displayLang, onSelect }: { currentName: string; displayLang?: string; onSelect: (lang: LangOption) => void }) {
   const [open, setOpen] = useState(false);
   return (
     <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="font-semibold text-foreground">Language</h2>
+        <h2 className="font-semibold text-foreground">{t(displayLang, "language")}</h2>
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           className="text-sm font-medium text-primary hover:opacity-80"
         >
-          {open ? "Close" : "Edit"}
+          {open ? t(displayLang, "close") : t(displayLang, "edit")}
         </button>
       </div>
-      <div className="text-sm leading-6 text-muted-foreground">{currentName || "Not selected"}</div>
+      <div className="text-sm leading-6 text-muted-foreground">{currentName || t(displayLang, "notSelected")}</div>
       {open && (
         <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
           {languages.map((lang) => {

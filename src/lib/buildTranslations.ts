@@ -1,7 +1,7 @@
 // Translations for the multi-step build form. Used when the user opts to see
 // the questions in their selected language. Keys cover step titles, subtitles,
-// and the primary navigation buttons. Field labels and helper copy remain in
-// English to keep the translation surface manageable.
+// navigation buttons, and the most common labels/hints. Missing keys fall back
+// to English per-key so partial translations remain readable.
 
 export type TKey =
   | "step2Title"
@@ -16,11 +16,100 @@ export type TKey =
   | "step6Subtitle"
   | "continue"
   | "back"
-  | "modalQuestion";
+  | "modalQuestion"
+  | "stepOf"
+  // Step 2
+  | "job_hospitality"
+  | "job_construction"
+  | "job_care"
+  | "job_delivery"
+  | "job_cleaning"
+  | "job_retail"
+  | "job_warehouse"
+  | "job_office"
+  | "job_beauty"
+  | "job_other"
+  | "otherWorkType"
+  | "otherWorkPlaceholder"
+  // Step 3
+  | "fullName"
+  | "phoneNumber"
+  | "email"
+  | "cityUk"
+  | "rightToWork"
+  | "rtw_british"
+  | "rtw_settled"
+  | "rtw_skilled"
+  | "rtw_student"
+  | "rtw_refugee"
+  | "rtw_other"
+  | "describeStatus"
+  | "describeStatusPlaceholder"
+  // Step 4
+  | "expType_paid"
+  | "expType_paid_desc"
+  | "expType_informal"
+  | "expType_informal_desc"
+  | "expType_volunteer"
+  | "expType_volunteer_desc"
+  | "expType_none"
+  | "expType_none_desc"
+  | "experienceN"
+  | "remove"
+  | "roleOrActivity"
+  | "companyOrPlace"
+  | "dates"
+  | "whatYouDid"
+  | "addExperience"
+  // Step 5
+  | "skills"
+  | "addAnotherSkill"
+  | "add"
+  | "availability"
+  | "skill_customer"
+  | "skill_teamwork"
+  | "skill_timekeeping"
+  | "skill_cleaning"
+  | "skill_food"
+  | "skill_stock"
+  | "skill_driving"
+  | "skill_cash"
+  | "skill_care"
+  | "skill_office"
+  | "skill_problem"
+  | "skill_english"
+  | "avail_weekdays"
+  | "avail_weekends"
+  | "avail_evenings"
+  | "avail_mornings"
+  | "avail_full"
+  | "avail_part"
+  // Step 6
+  | "language"
+  | "workWanted"
+  | "personalDetails"
+  | "experience"
+  | "skillsAndAvailability"
+  | "edit"
+  | "close"
+  | "notSelected"
+  | "nameMissing"
+  | "phoneMissing"
+  | "emailMissing"
+  | "cityMissing"
+  | "rtwMissing"
+  | "noExperienceYet"
+  | "notAdded"
+  | "noSkills"
+  | "noAvailability"
+  | "generateCv"
+  | "generating"
+  | "somethingWrong"
+  | "retry";
 
-type Dict = Record<TKey, string>;
+type Dict = Partial<Record<TKey, string>>;
 
-const en: Dict = {
+const en: Record<TKey, string> = {
   step2Title: "What kind of work are you looking for?",
   step2Subtitle: "Choose every type of role you would consider.",
   step3Title: "Tell us about yourself",
@@ -34,6 +123,90 @@ const en: Dict = {
   continue: "Continue",
   back: "Back",
   modalQuestion: "Would you like the questions in {lang} or in English?",
+  stepOf: "Step {n} of 6",
+  job_hospitality: "Hospitality",
+  job_construction: "Construction",
+  job_care: "Care work",
+  job_delivery: "Delivery & driving",
+  job_cleaning: "Cleaning",
+  job_retail: "Retail",
+  job_warehouse: "Warehouse",
+  job_office: "Office work",
+  job_beauty: "Beauty & salon",
+  job_other: "Something else",
+  otherWorkType: "Other work type",
+  otherWorkPlaceholder: "Tell us what kind of work",
+  fullName: "Full name",
+  phoneNumber: "Phone number",
+  email: "Email",
+  cityUk: "City in the UK",
+  rightToWork: "Right to work",
+  rtw_british: "British citizen",
+  rtw_settled: "Settled / pre-settled status",
+  rtw_skilled: "Skilled worker visa",
+  rtw_student: "Student visa",
+  rtw_refugee: "Refugee status",
+  rtw_other: "Other / not sure",
+  describeStatus: "Please describe your status",
+  describeStatusPlaceholder: "e.g. Pre-settled status, applying for visa…",
+  expType_paid: "Paid work",
+  expType_paid_desc: "Jobs in the UK or back home",
+  expType_informal: "Informal / family work",
+  expType_informal_desc: "Helped family business or neighbours",
+  expType_volunteer: "Volunteering",
+  expType_volunteer_desc: "Unpaid work for community or charity",
+  expType_none: "No experience yet",
+  expType_none_desc: "I’m just starting out",
+  experienceN: "Experience {n}",
+  remove: "Remove",
+  roleOrActivity: "Role or activity",
+  companyOrPlace: "Company or place",
+  dates: "Dates",
+  whatYouDid: "What you did",
+  addExperience: "Add experience",
+  skills: "Skills",
+  addAnotherSkill: "Add another skill",
+  add: "Add",
+  availability: "Availability",
+  skill_customer: "Customer service",
+  skill_teamwork: "Teamwork",
+  skill_timekeeping: "Timekeeping",
+  skill_cleaning: "Cleaning",
+  skill_food: "Food preparation",
+  skill_stock: "Stock handling",
+  skill_driving: "Driving",
+  skill_cash: "Cash handling",
+  skill_care: "Care support",
+  skill_office: "Microsoft Office",
+  skill_problem: "Problem solving",
+  skill_english: "English communication",
+  avail_weekdays: "Weekdays",
+  avail_weekends: "Weekends",
+  avail_evenings: "Evenings",
+  avail_mornings: "Early mornings",
+  avail_full: "Full-time",
+  avail_part: "Part-time",
+  language: "Language",
+  workWanted: "Work wanted",
+  personalDetails: "Personal details",
+  experience: "Experience",
+  skillsAndAvailability: "Skills and availability",
+  edit: "Edit",
+  close: "Close",
+  notSelected: "Not selected",
+  nameMissing: "Name missing",
+  phoneMissing: "Phone missing",
+  emailMissing: "Email not provided",
+  cityMissing: "City missing",
+  rtwMissing: "Right to work missing",
+  noExperienceYet: "No experience yet",
+  notAdded: "Not added",
+  noSkills: "No skills selected",
+  noAvailability: "No availability selected",
+  generateCv: "Generate My CV",
+  generating: "Generating…",
+  somethingWrong: "Something went wrong. Please try again.",
+  retry: "Retry",
 };
 
 const translations: Record<string, Dict> = {
@@ -52,6 +225,32 @@ const translations: Record<string, Dict> = {
     continue: "متابعة",
     back: "رجوع",
     modalQuestion: "هل تريد الأسئلة باللغة {lang} أم بالإنجليزية؟",
+    stepOf: "الخطوة {n} من 6",
+    fullName: "الاسم الكامل",
+    phoneNumber: "رقم الهاتف",
+    email: "البريد الإلكتروني",
+    cityUk: "المدينة في المملكة المتحدة",
+    rightToWork: "الحق في العمل",
+    skills: "المهارات",
+    availability: "التوفر",
+    add: "إضافة",
+    remove: "حذف",
+    edit: "تعديل",
+    close: "إغلاق",
+    language: "اللغة",
+    workWanted: "العمل المطلوب",
+    personalDetails: "البيانات الشخصية",
+    experience: "الخبرة",
+    skillsAndAvailability: "المهارات والتوفر",
+    generateCv: "أنشئ سيرتي الذاتية",
+    generating: "جارٍ الإنشاء…",
+    retry: "إعادة المحاولة",
+    addExperience: "أضف خبرة",
+    addAnotherSkill: "أضف مهارة أخرى",
+    dates: "التواريخ",
+    whatYouDid: "ما الذي قمت به",
+    roleOrActivity: "الدور أو النشاط",
+    companyOrPlace: "الشركة أو المكان",
   },
   uk: {
     step2Title: "Яку роботу ви шукаєте?",
@@ -67,6 +266,19 @@ const translations: Record<string, Dict> = {
     continue: "Далі",
     back: "Назад",
     modalQuestion: "Бажаєте бачити запитання {lang} чи англійською?",
+    stepOf: "Крок {n} з 6",
+    fullName: "Повне ім'я",
+    phoneNumber: "Номер телефону",
+    email: "Електронна пошта",
+    cityUk: "Місто у Великій Британії",
+    skills: "Навички",
+    availability: "Доступність",
+    add: "Додати",
+    edit: "Редагувати",
+    close: "Закрити",
+    language: "Мова",
+    generateCv: "Створити моє резюме",
+    generating: "Створюється…",
   },
   pl: {
     step2Title: "Jakiej pracy szukasz?",
@@ -82,6 +294,90 @@ const translations: Record<string, Dict> = {
     continue: "Dalej",
     back: "Wstecz",
     modalQuestion: "Czy chcesz widzieć pytania po {lang} czy po angielsku?",
+    stepOf: "Krok {n} z 6",
+    job_hospitality: "Gastronomia",
+    job_construction: "Budownictwo",
+    job_care: "Opieka",
+    job_delivery: "Dostawy i kierowanie",
+    job_cleaning: "Sprzątanie",
+    job_retail: "Handel",
+    job_warehouse: "Magazyn",
+    job_office: "Praca biurowa",
+    job_beauty: "Uroda i salon",
+    job_other: "Coś innego",
+    otherWorkType: "Inny rodzaj pracy",
+    otherWorkPlaceholder: "Powiedz nam, jaką pracę",
+    fullName: "Imię i nazwisko",
+    phoneNumber: "Numer telefonu",
+    email: "E-mail",
+    cityUk: "Miasto w Wielkiej Brytanii",
+    rightToWork: "Prawo do pracy",
+    rtw_british: "Obywatel brytyjski",
+    rtw_settled: "Status osiedlony / wstępny",
+    rtw_skilled: "Wiza pracownika wykwalifikowanego",
+    rtw_student: "Wiza studencka",
+    rtw_refugee: "Status uchodźcy",
+    rtw_other: "Inny / nie wiem",
+    describeStatus: "Opisz swój status",
+    describeStatusPlaceholder: "np. status wstępny, w trakcie wnioskowania o wizę…",
+    expType_paid: "Praca płatna",
+    expType_paid_desc: "Praca w Wielkiej Brytanii lub w kraju",
+    expType_informal: "Praca nieformalna / rodzinna",
+    expType_informal_desc: "Pomoc w firmie rodzinnej lub u sąsiadów",
+    expType_volunteer: "Wolontariat",
+    expType_volunteer_desc: "Praca bez wynagrodzenia dla wspólnoty",
+    expType_none: "Brak doświadczenia",
+    expType_none_desc: "Dopiero zaczynam",
+    experienceN: "Doświadczenie {n}",
+    remove: "Usuń",
+    roleOrActivity: "Rola lub działalność",
+    companyOrPlace: "Firma lub miejsce",
+    dates: "Daty",
+    whatYouDid: "Co robiłeś/aś",
+    addExperience: "Dodaj doświadczenie",
+    skills: "Umiejętności",
+    addAnotherSkill: "Dodaj kolejną umiejętność",
+    add: "Dodaj",
+    availability: "Dostępność",
+    skill_customer: "Obsługa klienta",
+    skill_teamwork: "Praca zespołowa",
+    skill_timekeeping: "Punktualność",
+    skill_cleaning: "Sprzątanie",
+    skill_food: "Przygotowywanie jedzenia",
+    skill_stock: "Obsługa towaru",
+    skill_driving: "Prowadzenie pojazdu",
+    skill_cash: "Obsługa kasy",
+    skill_care: "Opieka",
+    skill_office: "Microsoft Office",
+    skill_problem: "Rozwiązywanie problemów",
+    skill_english: "Komunikacja po angielsku",
+    avail_weekdays: "Dni robocze",
+    avail_weekends: "Weekendy",
+    avail_evenings: "Wieczory",
+    avail_mornings: "Wczesne ranki",
+    avail_full: "Pełny etat",
+    avail_part: "Niepełny etat",
+    language: "Język",
+    workWanted: "Poszukiwana praca",
+    personalDetails: "Dane osobowe",
+    experience: "Doświadczenie",
+    skillsAndAvailability: "Umiejętności i dostępność",
+    edit: "Edytuj",
+    close: "Zamknij",
+    notSelected: "Nie wybrano",
+    nameMissing: "Brak imienia",
+    phoneMissing: "Brak telefonu",
+    emailMissing: "Nie podano e-maila",
+    cityMissing: "Brak miasta",
+    rtwMissing: "Brak prawa do pracy",
+    noExperienceYet: "Brak doświadczenia",
+    notAdded: "Nie dodano",
+    noSkills: "Nie wybrano umiejętności",
+    noAvailability: "Nie wybrano dostępności",
+    generateCv: "Wygeneruj moje CV",
+    generating: "Generowanie…",
+    somethingWrong: "Coś poszło nie tak. Spróbuj ponownie.",
+    retry: "Spróbuj ponownie",
   },
   ro: {
     step2Title: "Ce fel de muncă cauți?",
@@ -97,6 +393,19 @@ const translations: Record<string, Dict> = {
     continue: "Continuă",
     back: "Înapoi",
     modalQuestion: "Vrei întrebările în {lang} sau în engleză?",
+    stepOf: "Pasul {n} din 6",
+    fullName: "Nume complet",
+    phoneNumber: "Număr de telefon",
+    email: "Email",
+    cityUk: "Oraș în Marea Britanie",
+    skills: "Abilități",
+    availability: "Disponibilitate",
+    add: "Adaugă",
+    edit: "Editează",
+    close: "Închide",
+    language: "Limbă",
+    generateCv: "Generează CV-ul meu",
+    generating: "Se generează…",
   },
   es: {
     step2Title: "¿Qué tipo de trabajo buscas?",
@@ -112,6 +421,43 @@ const translations: Record<string, Dict> = {
     continue: "Continuar",
     back: "Atrás",
     modalQuestion: "¿Quieres las preguntas en {lang} o en inglés?",
+    stepOf: "Paso {n} de 6",
+    job_hospitality: "Hostelería",
+    job_construction: "Construcción",
+    job_care: "Cuidado",
+    job_delivery: "Reparto y conducción",
+    job_cleaning: "Limpieza",
+    job_retail: "Comercio",
+    job_warehouse: "Almacén",
+    job_office: "Trabajo de oficina",
+    job_beauty: "Belleza y salón",
+    job_other: "Otra cosa",
+    fullName: "Nombre completo",
+    phoneNumber: "Número de teléfono",
+    email: "Correo electrónico",
+    cityUk: "Ciudad en el Reino Unido",
+    rightToWork: "Derecho a trabajar",
+    skills: "Habilidades",
+    availability: "Disponibilidad",
+    add: "Añadir",
+    remove: "Quitar",
+    edit: "Editar",
+    close: "Cerrar",
+    language: "Idioma",
+    workWanted: "Trabajo deseado",
+    personalDetails: "Datos personales",
+    experience: "Experiencia",
+    skillsAndAvailability: "Habilidades y disponibilidad",
+    addExperience: "Añadir experiencia",
+    addAnotherSkill: "Añadir otra habilidad",
+    dates: "Fechas",
+    whatYouDid: "Qué hiciste",
+    roleOrActivity: "Rol o actividad",
+    companyOrPlace: "Empresa o lugar",
+    generateCv: "Generar mi CV",
+    generating: "Generando…",
+    somethingWrong: "Algo salió mal. Inténtalo de nuevo.",
+    retry: "Reintentar",
   },
   pt: {
     step2Title: "Que tipo de trabalho você procura?",
@@ -127,6 +473,19 @@ const translations: Record<string, Dict> = {
     continue: "Continuar",
     back: "Voltar",
     modalQuestion: "Quer as perguntas em {lang} ou em inglês?",
+    stepOf: "Passo {n} de 6",
+    fullName: "Nome completo",
+    phoneNumber: "Número de telefone",
+    email: "Email",
+    cityUk: "Cidade no Reino Unido",
+    skills: "Competências",
+    availability: "Disponibilidade",
+    add: "Adicionar",
+    edit: "Editar",
+    close: "Fechar",
+    language: "Idioma",
+    generateCv: "Gerar meu CV",
+    generating: "Gerando…",
   },
   fr: {
     step2Title: "Quel type de travail recherchez-vous ?",
@@ -142,6 +501,19 @@ const translations: Record<string, Dict> = {
     continue: "Continuer",
     back: "Retour",
     modalQuestion: "Voulez-vous les questions en {lang} ou en anglais ?",
+    stepOf: "Étape {n} sur 6",
+    fullName: "Nom complet",
+    phoneNumber: "Numéro de téléphone",
+    email: "Email",
+    cityUk: "Ville au Royaume-Uni",
+    skills: "Compétences",
+    availability: "Disponibilité",
+    add: "Ajouter",
+    edit: "Modifier",
+    close: "Fermer",
+    language: "Langue",
+    generateCv: "Générer mon CV",
+    generating: "Génération…",
   },
   ur: {
     step2Title: "آپ کس قسم کا کام تلاش کر رہے ہیں؟",
@@ -157,6 +529,19 @@ const translations: Record<string, Dict> = {
     continue: "جاری رکھیں",
     back: "واپس",
     modalQuestion: "کیا آپ سوالات {lang} میں چاہتے ہیں یا انگریزی میں؟",
+    stepOf: "مرحلہ {n} از 6",
+    fullName: "پورا نام",
+    phoneNumber: "فون نمبر",
+    email: "ای میل",
+    cityUk: "برطانیہ میں شہر",
+    skills: "مہارتیں",
+    availability: "دستیابی",
+    add: "شامل کریں",
+    edit: "ترمیم",
+    close: "بند کریں",
+    language: "زبان",
+    generateCv: "میرا سی وی بنائیں",
+    generating: "بن رہا ہے…",
   },
   hi: {
     step2Title: "आप किस तरह का काम ढूंढ रहे हैं?",
@@ -172,6 +557,19 @@ const translations: Record<string, Dict> = {
     continue: "जारी रखें",
     back: "पीछे",
     modalQuestion: "क्या आप प्रश्न {lang} में चाहते हैं या अंग्रेज़ी में?",
+    stepOf: "चरण {n} / 6",
+    fullName: "पूरा नाम",
+    phoneNumber: "फ़ोन नंबर",
+    email: "ईमेल",
+    cityUk: "यूके में शहर",
+    skills: "कौशल",
+    availability: "उपलब्धता",
+    add: "जोड़ें",
+    edit: "संपादित करें",
+    close: "बंद करें",
+    language: "भाषा",
+    generateCv: "मेरा CV बनाएं",
+    generating: "बना रहे हैं…",
   },
   bn: {
     step2Title: "আপনি কী ধরনের কাজ খুঁজছেন?",
@@ -202,21 +600,6 @@ const translations: Record<string, Dict> = {
     continue: "Sii wad",
     back: "Dib",
     modalQuestion: "Ma rabtaa su'aalaha {lang} mise Ingiriis?",
-  },
-  sw: {
-    step2Title: "Unatafuta kazi ya aina gani?",
-    step2Subtitle: "Chagua kila aina ya kazi unayoweza kufikiria.",
-    step3Title: "Tuambie kukuhusu",
-    step3Subtitle: "Maelezo haya husaidia waajiri kuwasiliana nawe.",
-    step4Title: "Una uzoefu gani?",
-    step4Subtitle: "Kazi ya malipo, isiyo rasmi na ya kujitolea zote husaidia CV yako.",
-    step5Title: "Ujuzi na upatikanaji wako ni upi?",
-    step5Subtitle: "Chagua nguvu zako na nyakati za kazi zinazokufaa.",
-    step6Title: "Kagua maelezo ya CV yako",
-    step6Subtitle: "Hakiki kila kitu kabla ya kutengeneza CV yako kwa Kiingereza.",
-    continue: "Endelea",
-    back: "Rudi",
-    modalQuestion: "Ungependa maswali kwa {lang} au Kiingereza?",
   },
   tr: {
     step2Title: "Ne tür bir iş arıyorsunuz?",
@@ -263,69 +646,15 @@ const translations: Record<string, Dict> = {
     back: "返回",
     modalQuestion: "您希望以{lang}还是英文显示问题？",
   },
-  yo: {
-    step2Title: "Iru iṣẹ́ wo ni o ń wá?",
-    step2Subtitle: "Yan gbogbo iru iṣẹ́ tí o lè gbà.",
-    step3Title: "Sọ fún wa nípa rẹ",
-    step3Subtitle: "Àwọn ìmọ̀ wọ̀nyí ń ràn àwọn agbanisiṣẹ́ lọ́wọ́ láti kàn sí ọ.",
-    step4Title: "Ìrírí wo lo ní?",
-    step4Subtitle: "Iṣẹ́ owó, ti ìdílé àti àtinúwá—gbogbo wọn ràn CV rẹ lọ́wọ́.",
-    step5Title: "Kí ni ọgbọ́n àti àkókò rẹ?",
-    step5Subtitle: "Yan agbára àti àkókò iṣẹ́ tí ó bá ọ mu.",
-    step6Title: "Ṣàyẹ̀wò ìsọfúnni CV rẹ",
-    step6Subtitle: "Ṣàyẹ̀wò gbogbo rẹ̀ kí o tó ṣe CV Gẹ̀ẹ́sì rẹ.",
-    continue: "Tẹ̀síwájú",
-    back: "Padà",
-    modalQuestion: "Ṣé o fẹ́ àwọn ìbéèrè ní {lang} tàbí ní Gẹ̀ẹ́sì?",
-  },
-  ig: {
-    step2Title: "Kedu ụdị ọrụ ị na-achọ?",
-    step2Subtitle: "Họrọ ụdị ọrụ niile ị ga-eche.",
-    step3Title: "Gwa anyị banyere onwe gị",
-    step3Subtitle: "Nkọwa ndị a na-enyere ndị ọrụ aka ịkpọtụrụ gị.",
-    step4Title: "Kedu ahụmahụ i nwere?",
-    step4Subtitle: "Ọrụ ụgwọ, nke ezinaụlọ na nke afọ ofufo na-enyere CV gị aka.",
-    step5Title: "Kedu nkà na oge ị nweere onwe gị?",
-    step5Subtitle: "Họrọ ike gị na oge ọrụ kwesịrị gị.",
-    step6Title: "Tulee nkọwa CV gị",
-    step6Subtitle: "Lelee ihe niile tupu ị mepụta CV Bekee gị.",
-    continue: "Gaa n'ihu",
-    back: "Laghachi",
-    modalQuestion: "Ị chọrọ ajụjụ ndị ahụ na {lang} ka ọ bụ na Bekee?",
-  },
-  om: {
-    step2Title: "Hojii akkamii barbaadda?",
-    step2Subtitle: "Gosa hojii hunda kan yaadduu danda’u filadhu.",
-    step3Title: "Waa’ee kee nutti himi",
-    step3Subtitle: "Odeeffannoon kun qacartoonni si quunnamuuf isaan gargaara.",
-    step4Title: "Muuxannoo akkamii qabda?",
-    step4Subtitle: "Hojii kaffaltii, idilee miti fi gargaarsa hundi CV kee gargaara.",
-    step5Title: "Dandeettii fi yeroo kee maaliidha?",
-    step5Subtitle: "Cimina kee fi yeroo hojii sii ta’u filadhu.",
-    step6Title: "Bal’ina CV kee ilaali",
-    step6Subtitle: "CV Ingiliffaa uumuu dura waan hunda mirkaneessi.",
-    continue: "Itti fufi",
-    back: "Duuba deebi’i",
-    modalQuestion: "Gaaffiiwwan {lang} ykn Ingiliffaan barbaadda?",
-  },
-  ln: {
-    step2Title: "Mosala ya ndenge nini ozali koluka?",
-    step2Subtitle: "Pona ndenge nyonso ya mosala oyo okoki kopona.",
-    step3Title: "Yebisa biso na ntina na yo",
-    step3Subtitle: "Makambo oyo ekosalisa bakonzi ya mosala kobenga yo.",
-    step4Title: "Ozali na bonganga nini?",
-    step4Subtitle: "Mosala ya mbongo, ya libota, mpe ya bolingo nyonso ekosalisa CV.",
-    step5Title: "Mayele mpe ntango nini ozali na yango?",
-    step5Subtitle: "Pona makasi mpe ntango ya mosala oyo ebongi na yo.",
-    step6Title: "Tala makambo ya CV na yo",
-    step6Subtitle: "Tala nyonso liboso ya kosala CV na yo na Lingelesi.",
-    continue: "Kobá",
-    back: "Zonga",
-    modalQuestion: "Olingi mituna na {lang} to na Lingelesi?",
-  },
 };
 
-export function t(code: string | undefined, key: TKey): string {
+export function t(code: string | undefined, key: TKey, vars?: Record<string, string | number>): string {
   const dict = (code && translations[code]) || translations.en;
-  return dict[key];
+  let str: string = dict[key] ?? translations.en[key] ?? "";
+  if (vars) {
+    for (const [k, v] of Object.entries(vars)) {
+      str = str.replace(`{${k}}`, String(v));
+    }
+  }
+  return str;
 }
