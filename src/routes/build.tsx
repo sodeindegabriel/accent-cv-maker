@@ -689,8 +689,8 @@ function Step6Review({ data, update, onBack, onEdit }: { data: CVData; update: <
       <div className="mx-auto max-w-3xl">
         <div className="mb-8">
           <p className="mb-2 text-sm font-medium text-muted-foreground">Step 6 of 6</p>
-          <h1 className="text-3xl font-semibold tracking-normal text-foreground sm:text-4xl">Review your CV details</h1>
-          <p className="mt-3 text-base text-muted-foreground sm:text-lg">Check everything before generating your English CV.</p>
+          <h1 className="text-3xl font-semibold tracking-normal text-foreground sm:text-4xl">{t(data.questionLanguageCode, "step6Title")}</h1>
+          <p className="mt-3 text-base text-muted-foreground sm:text-lg">{t(data.questionLanguageCode, "step6Subtitle")}</p>
         </div>
         <div className="space-y-4">
           <LanguageReviewSection
