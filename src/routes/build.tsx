@@ -666,10 +666,10 @@ function Step4Experience({ data, update, displayLang, originalLang, onToggleLang
                   </button>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <TextField label={t(displayLang, "roleOrActivity")} value={experience.title} onChange={(value) => updateExperience(index, "title", value)} placeholder="Kitchen assistant" />
-                  <TextField label={t(displayLang, "companyOrPlace")} value={experience.place} onChange={(value) => updateExperience(index, "place", value)} placeholder="Cafe Roma" />
+                  <TextField label={t(displayLang, "roleOrActivity")} value={experience.title} onChange={(value) => updateExperience(index, "title", value)} placeholder={t(displayLang, "rolePlaceholder")} />
+                  <TextField label={t(displayLang, "companyOrPlace")} value={experience.place} onChange={(value) => updateExperience(index, "place", value)} placeholder={t(displayLang, "placePlaceholder")} />
                   <TextField label={t(displayLang, "dates")} value={experience.duration} onChange={(value) => updateExperience(index, "duration", value)} placeholder="2022–2024" />
-                  <TextField label={t(displayLang, "whatYouDid")} value={experience.description} onChange={(value) => updateExperience(index, "description", value)} placeholder="Prepared food and served customers" />
+                  <TextField label={t(displayLang, "whatYouDid")} value={experience.description} onChange={(value) => updateExperience(index, "description", value)} placeholder={t(displayLang, "descriptionPlaceholder")} />
                 </div>
               </div>
             ))}
