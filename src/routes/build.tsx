@@ -598,8 +598,9 @@ function Step5Skills({ data, update, onBack, onNext }: StepProps) {
   return (
     <StepShell
       step={5}
-      title="What are your skills and availability?"
-      subtitle="Select the strengths and working times that fit you."
+      qLang={data.questionLanguageCode}
+      title={t(data.questionLanguageCode, "step5Title")}
+      subtitle={t(data.questionLanguageCode, "step5Subtitle")}
       onBack={onBack}
       onNext={onNext}
       nextDisabled={data.skills.length === 0 || data.availability.length === 0}
