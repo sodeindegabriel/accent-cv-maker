@@ -120,6 +120,7 @@ const availabilityOptions = ["Weekdays", "Weekends", "Evenings", "Early mornings
 function BuildPage() {
   const [step, setStep] = useState(1);
   const [data, setData] = useState<CVData>(initialData);
+  const [forceEnglish, setForceEnglish] = useState(false);
 
   useEffect(() => {
     try {
@@ -156,6 +157,16 @@ function BuildPage() {
   const next = () => setStep((current) => Math.min(6, current + 1));
   const back = () => setStep((current) => Math.max(1, current - 1));
 
+  const originalLang = data.questionLanguageCode || "en";
+  const displayLang = forceEnglish ? "en" : originalLang;
+  const stepProps = {
+    data,
+    update,
+    displayLang,
+    originalLang,
+    onToggleLang: () => setForceEnglish((v) => !v),
+  };
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
@@ -177,11 +188,11 @@ function BuildPage() {
         </div>
       </header>
       {step === 1 && <Step1Language data={data} update={update} onNext={next} />}
-      {step === 2 && <Step2JobType data={data} update={update} onBack={back} onNext={next} />}
-      {step === 3 && <Step3PersonalDetails data={data} update={update} onBack={back} onNext={next} />}
-      {step === 4 && <Step4Experience data={data} update={update} onBack={back} onNext={next} />}
-      {step === 5 && <Step5Skills data={data} update={update} onBack={back} onNext={next} />}
-      {step === 6 && <Step6Review data={data} update={update} onBack={back} onEdit={setStep} />}
+      {step === 2 && <Step2JobType {...stepProps} onBack={back} onNext={next} />}
+      {step === 3 && <Step3PersonalDetails {...stepProps} onBack={back} onNext={next} />}
+      {step === 4 && <Step4Experience {...stepProps} onBack={back} onNext={next} />}
+      {step === 5 && <Step5Skills {...stepProps} onBack={back} onNext={next} />}
+      {step === 6 && <Step6Review {...stepProps} onBack={back} onEdit={setStep} />}
     </main>
   );
 }
@@ -189,9 +200,38 @@ function BuildPage() {
 type StepProps = {
   data: CVData;
   update: <K extends keyof CVData>(key: K, value: CVData[K]) => void;
+  displayLang: string;
+  originalLang: string;
+  onToggleLang: () => void;
   onBack?: () => void;
   onNext: () => void;
 };
+
+function LangToggle({
+  displayLang,
+  originalLang,
+  onToggle,
+}: {
+  displayLang: string;
+  originalLang: string;
+  onToggle: () => void;
+}) {
+  if (!originalLang || originalLang === "en") return null;
+  const otherCode = displayLang === "en" ? originalLang : "en";
+  const otherLang = languages.find((l) => l.code === otherCode);
+  const label = otherCode === "en" ? "English" : otherLang?.native ?? otherLang?.name ?? otherCode;
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={`Switch to ${label}`}
+      className="fixed right-4 top-4 z-30 inline-flex items-center gap-1.5 rounded-full border border-border bg-background/90 px-3 py-1.5 text-xs font-medium text-foreground shadow-sm backdrop-blur transition hover:bg-muted sm:right-6 sm:top-6"
+    >
+      <span aria-hidden="true">🌐</span>
+      <span>{label}</span>
+    </button>
+  );
+}
 
 function StepShell({
   step,
