@@ -173,7 +173,7 @@ function Index() {
                 style={{ animationDelay: "500ms" }}
               >
                 <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                  Available in 20 languages
+                  Available in 20 languages — more coming soon
                 </p>
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
                   {heroFlags.map((f) => (
