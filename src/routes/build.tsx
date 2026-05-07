@@ -730,7 +730,15 @@ function Step5Skills({ data, update, displayLang, originalLang, onToggleLang, on
   );
 }
 
-function Step6Review({ data, update, onBack, onEdit }: { data: CVData; update: <K extends keyof CVData>(key: K, value: CVData[K]) => void; onBack: () => void; onEdit: (step: number) => void }) {
+function Step6Review({ data, update, displayLang, originalLang, onToggleLang, onBack, onEdit }: {
+  data: CVData;
+  update: <K extends keyof CVData>(key: K, value: CVData[K]) => void;
+  displayLang: string;
+  originalLang: string;
+  onToggleLang: () => void;
+  onBack: () => void;
+  onEdit: (step: number) => void;
+}) {
   const navigate = useNavigate();
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -745,7 +753,7 @@ function Step6Review({ data, update, onBack, onEdit }: { data: CVData; update: <
       navigate({ to: "/result" });
     } catch (e) {
       console.error(e);
-      setError(e instanceof Error ? e.message : "Something went wrong. Please try again.");
+      setError(e instanceof Error ? e.message : t(displayLang, "somethingWrong"));
       setGenerating(false);
     }
   };
@@ -753,44 +761,54 @@ function Step6Review({ data, update, onBack, onEdit }: { data: CVData; update: <
   const jobLabels = useMemo(
     () =>
       data.jobTypes
-        .map((id) => (id === "other" ? data.otherJobType || "Other" : jobs.find((job) => job.id === id)?.label))
+        .map((id) => {
+          if (id === "other") return data.otherJobType || t(displayLang, "job_other");
+          const job = jobs.find((j) => j.id === id);
+          return job ? t(displayLang, job.tKey) : null;
+        })
         .filter(Boolean)
         .join(", "),
-    [data.jobTypes, data.otherJobType],
+    [data.jobTypes, data.otherJobType, displayLang],
   );
 
+  const dir = ["ar", "ur", "fa"].includes(displayLang) ? "rtl" : "ltr";
+
   return (
-    <section className="px-4 py-8 sm:px-6 lg:px-8">
+    <section className="relative px-4 py-8 sm:px-6 lg:px-8" dir={dir}>
+      {originalLang && originalLang !== "en" && (
+        <LangToggle displayLang={displayLang} originalLang={originalLang} onToggle={onToggleLang} />
+      )}
       <div className="mx-auto max-w-3xl">
         <div className="mb-8">
-          <p className="mb-2 text-sm font-medium text-muted-foreground">Step 6 of 6</p>
-          <h1 className="text-3xl font-semibold tracking-normal text-foreground sm:text-4xl">{t(data.questionLanguageCode, "step6Title")}</h1>
-          <p className="mt-3 text-base text-muted-foreground sm:text-lg">{t(data.questionLanguageCode, "step6Subtitle")}</p>
+          <p className="mb-2 text-sm font-medium text-muted-foreground">{t(displayLang, "stepOf", { n: 6 })}</p>
+          <h1 className="text-3xl font-semibold tracking-normal text-foreground sm:text-4xl">{t(displayLang, "step6Title")}</h1>
+          <p className="mt-3 text-base text-muted-foreground sm:text-lg">{t(displayLang, "step6Subtitle")}</p>
         </div>
         <div className="space-y-4">
           <LanguageReviewSection
             currentName={data.language}
+            displayLang={displayLang}
             onSelect={(lang) => {
               update("languageCode", lang.code);
               update("language", lang.name);
             }}
           />
-          <ReviewSection title="Work wanted" onEdit={() => onEdit(2)}>{jobLabels || "Not selected"}</ReviewSection>
-          <ReviewSection title="Personal details" onEdit={() => onEdit(3)}>
-            <p>{data.personalDetails.name || "Name missing"}</p>
-            <p>{data.personalDetails.phone || "Phone missing"}</p>
-            <p>{data.personalDetails.email || "Email not provided"}</p>
-            <p>{data.personalDetails.city || "City missing"}</p>
-            <p>{data.personalDetails.rightToWork || "Right to work missing"}</p>
+          <ReviewSection title={t(displayLang, "workWanted")} editLabel={t(displayLang, "edit")} onEdit={() => onEdit(2)}>{jobLabels || t(displayLang, "notSelected")}</ReviewSection>
+          <ReviewSection title={t(displayLang, "personalDetails")} editLabel={t(displayLang, "edit")} onEdit={() => onEdit(3)}>
+            <p>{data.personalDetails.name || t(displayLang, "nameMissing")}</p>
+            <p>{data.personalDetails.phone || t(displayLang, "phoneMissing")}</p>
+            <p>{data.personalDetails.email || t(displayLang, "emailMissing")}</p>
+            <p>{data.personalDetails.city || t(displayLang, "cityMissing")}</p>
+            <p>{data.personalDetails.rightToWork || t(displayLang, "rtwMissing")}</p>
           </ReviewSection>
-          <ReviewSection title="Experience" onEdit={() => onEdit(4)}>
+          <ReviewSection title={t(displayLang, "experience")} editLabel={t(displayLang, "edit")} onEdit={() => onEdit(4)}>
             {data.experienceType === "none" ? (
-              <p>No experience yet</p>
+              <p>{t(displayLang, "noExperienceYet")}</p>
             ) : data.experience.length ? (
               <ul className="space-y-2">
                 {data.experience.map((item, index) => (
                   <li key={index}>
-                    <span className="font-medium text-foreground">{item.title || "Role"}</span>
+                    <span className="font-medium text-foreground">{item.title || t(displayLang, "roleOrActivity")}</span>
                     {item.place && ` — ${item.place}`}
                     {item.duration && ` (${item.duration})`}
                     {item.description && <span className="block text-sm text-muted-foreground">{item.description}</span>}
@@ -798,26 +816,26 @@ function Step6Review({ data, update, onBack, onEdit }: { data: CVData; update: <
                 ))}
               </ul>
             ) : (
-              <p>Not added</p>
+              <p>{t(displayLang, "notAdded")}</p>
             )}
           </ReviewSection>
-          <ReviewSection title="Skills and availability" onEdit={() => onEdit(5)}>
-            <p>{data.skills.join(", ") || "No skills selected"}</p>
-            <p>{data.availability.join(", ") || "No availability selected"}</p>
+          <ReviewSection title={t(displayLang, "skillsAndAvailability")} editLabel={t(displayLang, "edit")} onEdit={() => onEdit(5)}>
+            <p>{data.skills.join(", ") || t(displayLang, "noSkills")}</p>
+            <p>{data.availability.join(", ") || t(displayLang, "noAvailability")}</p>
           </ReviewSection>
         </div>
         {error && (
           <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-            <p className="font-medium">Something went wrong. Please try again.</p>
+            <p className="font-medium">{t(displayLang, "somethingWrong")}</p>
             <p className="mt-1 opacity-80">{error}</p>
             <button type="button" onClick={handleGenerate} className="mt-3 rounded-lg bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground hover:opacity-90">
-              Retry
+              {t(displayLang, "retry")}
             </button>
           </div>
         )}
         <div className="mt-6 flex items-center justify-between gap-3">
           <button type="button" onClick={onBack} className="rounded-xl border border-border bg-background px-5 py-3 font-medium text-foreground transition hover:bg-muted">
-            {t(data.questionLanguageCode, "back")}
+            {t(displayLang, "back")}
           </button>
           <button
             type="button"
@@ -825,7 +843,7 @@ function Step6Review({ data, update, onBack, onEdit }: { data: CVData; update: <
             disabled={generating}
             className="rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
           >
-            {generating ? "Generating…" : "Generate My CV"}
+            {generating ? t(displayLang, "generating") : t(displayLang, "generateCv")}
           </button>
         </div>
       </div>
