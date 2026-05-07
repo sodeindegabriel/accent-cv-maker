@@ -229,7 +229,7 @@ function Index() {
           <div className="mx-auto grid max-w-6xl gap-10 px-5 text-center md:grid-cols-3">
             <div>
               <div className="font-serif text-5xl text-white md:text-6xl">
-                <CountUp value={20} suffix="+" />
+                <CountUp value={20} />
               </div>
               <p className="mt-2 text-sm uppercase tracking-widest text-white/70">Languages Supported</p>
             </div>
