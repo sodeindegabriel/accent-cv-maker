@@ -559,10 +559,10 @@ function Step3PersonalDetails({ data, update, displayLang, originalLang, onToggl
       nextDisabled={!valid}
     >
       <div className="space-y-4">
-        <TextField label={t(displayLang, "fullName")} value={personal.name} onChange={(value) => setPersonal("name", value)} placeholder="Maria Kowalska" />
+        <TextField label={t(displayLang, "fullName")} value={personal.name} onChange={(value) => setPersonal("name", value)} placeholder={t(displayLang, "namePlaceholder")} />
         <TextField label={t(displayLang, "phoneNumber")} value={personal.phone} onChange={(value) => setPersonal("phone", value)} placeholder="07…" type="tel" />
         <TextField label={t(displayLang, "email")} value={personal.email} onChange={(value) => setPersonal("email", value)} placeholder="you@example.com" type="email" />
-        <TextField label={t(displayLang, "cityUk")} value={personal.city} onChange={(value) => setPersonal("city", value)} placeholder="London" />
+        <TextField label={t(displayLang, "cityUk")} value={personal.city} onChange={(value) => setPersonal("city", value)} placeholder={t(displayLang, "cityPlaceholder")} />
         <div>
           <label className="mb-2 block text-sm font-medium text-foreground">{t(displayLang, "rightToWork")}</label>
           <div className="grid gap-2 sm:grid-cols-2">
@@ -666,10 +666,10 @@ function Step4Experience({ data, update, displayLang, originalLang, onToggleLang
                   </button>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <TextField label={t(displayLang, "roleOrActivity")} value={experience.title} onChange={(value) => updateExperience(index, "title", value)} placeholder="Kitchen assistant" />
-                  <TextField label={t(displayLang, "companyOrPlace")} value={experience.place} onChange={(value) => updateExperience(index, "place", value)} placeholder="Cafe Roma" />
+                  <TextField label={t(displayLang, "roleOrActivity")} value={experience.title} onChange={(value) => updateExperience(index, "title", value)} placeholder={t(displayLang, "rolePlaceholder")} />
+                  <TextField label={t(displayLang, "companyOrPlace")} value={experience.place} onChange={(value) => updateExperience(index, "place", value)} placeholder={t(displayLang, "placePlaceholder")} />
                   <TextField label={t(displayLang, "dates")} value={experience.duration} onChange={(value) => updateExperience(index, "duration", value)} placeholder="2022–2024" />
-                  <TextField label={t(displayLang, "whatYouDid")} value={experience.description} onChange={(value) => updateExperience(index, "description", value)} placeholder="Prepared food and served customers" />
+                  <TextField label={t(displayLang, "whatYouDid")} value={experience.description} onChange={(value) => updateExperience(index, "description", value)} placeholder={t(displayLang, "descriptionPlaceholder")} />
                 </div>
               </div>
             ))}
