@@ -1,9 +1,21 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Reveal } from "@/components/Reveal";
 import { CountUp } from "@/components/CountUp";
 import { Globe, MessageCircle, FileDown, Check, ArrowRight } from "lucide-react";
+
+const chooseLangPhrases: { text: string; dir: "ltr" | "rtl"; lang: string }[] = [
+  { text: "اختر لغتك", dir: "rtl", lang: "ar" },
+  { text: "اپنی زبان منتخب کریں", dir: "rtl", lang: "ur" },
+  { text: "Dooro luqaddaada", dir: "ltr", lang: "so" },
+  { text: "Wybierz swój język", dir: "ltr", lang: "pl" },
+  { text: "Alege limba ta", dir: "ltr", lang: "ro" },
+  { text: "Elige tu idioma", dir: "ltr", lang: "es" },
+  { text: "Choisissez votre langue", dir: "ltr", lang: "fr" },
+  { text: "अपनी भाषा चुनें", dir: "ltr", lang: "hi" },
+];
 
 export const Route = createFileRoute("/")({
   component: Index,
