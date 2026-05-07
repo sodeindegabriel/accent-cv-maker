@@ -184,7 +184,7 @@ const editSections: { step: number; label: string }[] = [
   { step: 2, label: "Job Type" },
   { step: 3, label: "Personal Details" },
   { step: 4, label: "Experience" },
-  { step: 5, label: "Skills" },
+  { step: 5, label: "Skills & Availability" },
 ];
 
 function EditAnswersMenu() {
