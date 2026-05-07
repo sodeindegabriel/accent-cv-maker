@@ -895,13 +895,13 @@ function Chip({ selected, onClick, children }: { selected: boolean; onClick: () 
   );
 }
 
-function ReviewSection({ title, onEdit, children }: { title: string; onEdit: () => void; children: React.ReactNode }) {
+function ReviewSection({ title, editLabel, onEdit, children }: { title: string; editLabel?: string; onEdit: () => void; children: React.ReactNode }) {
   return (
     <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="font-semibold text-foreground">{title}</h2>
         <button type="button" onClick={onEdit} className="text-sm font-medium text-primary hover:opacity-80">
-          Edit
+          {editLabel ?? "Edit"}
         </button>
       </div>
       <div className="text-sm leading-6 text-muted-foreground">{children}</div>
@@ -911,22 +911,22 @@ function ReviewSection({ title, onEdit, children }: { title: string; onEdit: () 
 
 type LangOption = (typeof languages)[number];
 
-function LanguageReviewSection({ currentName, onSelect }: { currentName: string; onSelect: (lang: LangOption) => void }) {
+function LanguageReviewSection({ currentName, displayLang, onSelect }: { currentName: string; displayLang?: string; onSelect: (lang: LangOption) => void }) {
   const [open, setOpen] = useState(false);
   return (
     <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="font-semibold text-foreground">Language</h2>
+        <h2 className="font-semibold text-foreground">{t(displayLang, "language")}</h2>
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           className="text-sm font-medium text-primary hover:opacity-80"
         >
-          {open ? "Close" : "Edit"}
+          {open ? t(displayLang, "close") : t(displayLang, "edit")}
         </button>
       </div>
-      <div className="text-sm leading-6 text-muted-foreground">{currentName || "Not selected"}</div>
+      <div className="text-sm leading-6 text-muted-foreground">{currentName || t(displayLang, "notSelected")}</div>
       {open && (
         <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
           {languages.map((lang) => {
