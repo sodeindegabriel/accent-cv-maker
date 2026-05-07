@@ -58,6 +58,10 @@ const languages: { flag: string; en: string; native: string; code: string }[] = 
   { flag: "🇵🇹", en: "Portuguese", native: "Português", code: "pt" },
   { flag: "🇮🇷", en: "Farsi", native: "فارسی", code: "fa" },
   { flag: "🇬🇧", en: "English", native: "English", code: "en" },
+  { flag: "🇳🇬", en: "Yoruba", native: "Yorùbá", code: "yo" },
+  { flag: "🇳🇬", en: "Igbo", native: "Igbo", code: "ig" },
+  { flag: "🇪🇹", en: "Oromo", native: "Afaan Oromoo", code: "om" },
+  { flag: "🇨🇩", en: "Lingala", native: "Lingála", code: "ln" },
 ];
 
 const steps = [
