@@ -207,6 +207,12 @@ type StepProps = {
   onNext: () => void;
 };
 
+type Step1Props = {
+  data: CVData;
+  update: <K extends keyof CVData>(key: K, value: CVData[K]) => void;
+  onNext: () => void;
+};
+
 function LangToggle({
   displayLang,
   originalLang,
