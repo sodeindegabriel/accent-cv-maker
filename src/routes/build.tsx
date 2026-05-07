@@ -49,6 +49,7 @@ const initialData: CVData = {
 };
 
 const languages = [
+  { code: "en", name: "English", native: "English", flag: "🇬🇧" },
   { code: "pl", name: "Polish", native: "Polski", flag: "🇵🇱" },
   { code: "ro", name: "Romanian", native: "Română", flag: "🇷🇴" },
   { code: "pa", name: "Punjabi", native: "ਪੰਜਾਬੀ", flag: "🇮🇳" },
