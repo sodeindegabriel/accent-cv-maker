@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Reveal } from "@/components/Reveal";
@@ -9,25 +9,39 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const heroFlags = ["🇸🇦", "🇵🇰", "🇸🇴", "🇵🇱", "🇷🇴", "🇧🇩", "🇮🇳", "🇪🇷", "🇪🇹", "🇦🇫", "🇫🇷", "🇪🇸"];
+// Flags map to language codes supported in /build
+const heroFlags: { flag: string; code: string; name: string }[] = [
+  { flag: "🇸🇦", code: "ar", name: "Arabic" },
+  { flag: "🇵🇰", code: "ur", name: "Urdu" },
+  { flag: "🇸🇴", code: "so", name: "Somali" },
+  { flag: "🇵🇱", code: "pl", name: "Polish" },
+  { flag: "🇷🇴", code: "ro", name: "Romanian" },
+  { flag: "🇧🇩", code: "bn", name: "Bengali" },
+  { flag: "🇮🇳", code: "hi", name: "Hindi" },
+  { flag: "🇫🇷", code: "fr", name: "French" },
+  { flag: "🇪🇸", code: "es", name: "Spanish" },
+  { flag: "🇹🇷", code: "tr", name: "Turkish" },
+  { flag: "🇨🇳", code: "zh", name: "Chinese" },
+  { flag: "🇰🇪", code: "sw", name: "Swahili" },
+];
 
-const languages = [
-  { flag: "🇸🇦", en: "Arabic", native: "عربي" },
-  { flag: "🇵🇰", en: "Urdu", native: "اردو" },
-  { flag: "🇸🇴", en: "Somali", native: "Soomaali" },
-  { flag: "🇵🇱", en: "Polish", native: "Polski" },
-  { flag: "🇷🇴", en: "Romanian", native: "Română" },
-  { flag: "🇧🇩", en: "Bengali", native: "বাংলা" },
-  { flag: "🇮🇳", en: "Punjabi", native: "ਪੰਜਾਬੀ" },
-  { flag: "🇪🇷", en: "Tigrinya", native: "ትግርኛ" },
-  { flag: "🇪🇹", en: "Amharic", native: "አማርኛ" },
-  { flag: "🇦🇫", en: "Dari", native: "دری" },
-  { flag: "🇫🇷", en: "French", native: "Français" },
-  { flag: "🇪🇸", en: "Spanish", native: "Español" },
-  { flag: "🇹🇷", en: "Turkish", native: "Türkçe" },
-  { flag: "🇨🇳", en: "Mandarin", native: "普通话" },
-  { flag: "🇮🇳", en: "Hindi", native: "हिंदी" },
-  { flag: "🇰🇪", en: "Swahili", native: "Kiswahili" },
+const languages: { flag: string; en: string; native: string; code: string }[] = [
+  { flag: "🇸🇦", en: "Arabic", native: "عربي", code: "ar" },
+  { flag: "🇵🇰", en: "Urdu", native: "اردو", code: "ur" },
+  { flag: "🇸🇴", en: "Somali", native: "Soomaali", code: "so" },
+  { flag: "🇵🇱", en: "Polish", native: "Polski", code: "pl" },
+  { flag: "🇷🇴", en: "Romanian", native: "Română", code: "ro" },
+  { flag: "🇧🇩", en: "Bengali", native: "বাংলা", code: "bn" },
+  { flag: "🇮🇳", en: "Hindi", native: "हिंदी", code: "hi" },
+  { flag: "🇫🇷", en: "French", native: "Français", code: "fr" },
+  { flag: "🇪🇸", en: "Spanish", native: "Español", code: "es" },
+  { flag: "🇹🇷", en: "Turkish", native: "Türkçe", code: "tr" },
+  { flag: "🇨🇳", en: "Mandarin", native: "普通话", code: "zh" },
+  { flag: "🇰🇪", en: "Swahili", native: "Kiswahili", code: "sw" },
+  { flag: "🇺🇦", en: "Ukrainian", native: "Українська", code: "uk" },
+  { flag: "🇵🇹", en: "Portuguese", native: "Português", code: "pt" },
+  { flag: "🇮🇷", en: "Farsi", native: "فارسی", code: "fa" },
+  { flag: "🇬🇧", en: "English", native: "English", code: "en" },
 ];
 
 const steps = [
