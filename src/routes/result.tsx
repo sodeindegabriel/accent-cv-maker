@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import type { GeneratedCV } from "@/utils/generateCV";
 
 function ResultPage() {
@@ -34,7 +35,8 @@ function ResultPage() {
 
   const activeText = useMemo(() => {
     if (!result) return "";
-    return tab === "native" ? result.native : result.english;
+    const raw = tab === "native" ? result.native : result.english;
+    return normalizeMarkdown(raw);
   }, [result, tab]);
 
   if (!result) return null;
@@ -102,7 +104,7 @@ function ResultPage() {
             style={{ minHeight: "60vh" }}
           >
             <div className="prose prose-slate max-w-none prose-headings:font-semibold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:my-2 prose-ul:my-2 prose-li:my-0.5 text-sm leading-6 sm:text-base">
-              <ReactMarkdown>{activeText}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{activeText}</ReactMarkdown>
             </div>
           </article>
 
@@ -159,6 +161,22 @@ function ResultPage() {
       </section>
     </main>
   );
+}
+
+function normalizeMarkdown(input: string): string {
+  if (!input) return "";
+  let s = input.replace(/\r\n/g, "\n");
+  // Strip surrounding code fences if the model wrapped output
+  s = s.replace(/^```(?:markdown|md)?\s*\n([\s\S]*?)\n```\s*$/i, "$1");
+  // Trim spaces inside bold/italic delimiters: "** Text **" -> "**Text**"
+  s = s.replace(/\*\*\s+([^*\n]+?)\s+\*\*/g, "**$1**");
+  s = s.replace(/\*\*\s+([^*\n]+?)\*\*/g, "**$1**");
+  s = s.replace(/\*\*([^*\n]+?)\s+\*\*/g, "**$1**");
+  // Ensure ATX headings have a space after #
+  s = s.replace(/^(#{1,6})([^#\s])/gm, "$1 $2");
+  // Ensure blank line before headings
+  s = s.replace(/([^\n])\n(#{1,6} )/g, "$1\n\n$2");
+  return s;
 }
 
 const editSections: { step: number; label: string }[] = [
