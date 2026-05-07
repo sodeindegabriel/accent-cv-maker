@@ -1,9 +1,21 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Reveal } from "@/components/Reveal";
 import { CountUp } from "@/components/CountUp";
 import { Globe, MessageCircle, FileDown, Check, ArrowRight } from "lucide-react";
+
+const chooseLangPhrases: { text: string; dir: "ltr" | "rtl"; lang: string }[] = [
+  { text: "اختر لغتك", dir: "rtl", lang: "ar" },
+  { text: "اپنی زبان منتخب کریں", dir: "rtl", lang: "ur" },
+  { text: "Dooro luqaddaada", dir: "ltr", lang: "so" },
+  { text: "Wybierz swój język", dir: "ltr", lang: "pl" },
+  { text: "Alege limba ta", dir: "ltr", lang: "ro" },
+  { text: "Elige tu idioma", dir: "ltr", lang: "es" },
+  { text: "Choisissez votre langue", dir: "ltr", lang: "fr" },
+  { text: "अपनी भाषा चुनें", dir: "ltr", lang: "hi" },
+];
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -64,6 +76,13 @@ const steps = [
 
 function Index() {
   const navigate = useNavigate();
+  const [phraseIndex, setPhraseIndex] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => {
+      setPhraseIndex((i) => (i + 1) % chooseLangPhrases.length);
+    }, 2000);
+    return () => clearInterval(id);
+  }, []);
   const pickLanguage = (code: string) => {
     try {
       sessionStorage.setItem("cvlingo:preselectLanguage", code);
@@ -119,18 +138,21 @@ function Index() {
                 className="mt-8 flex animate-fade-in flex-col items-center justify-center gap-3 sm:flex-row"
                 style={{ animationDelay: "400ms" }}
               >
-                <Link
-                  to="/build"
+                <button
+                  type="button"
+                  onClick={() => pickLanguage("en")}
                   className="inline-flex w-full items-center justify-center rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary/90 hover:shadow-lg sm:w-auto"
                 >
                   Start in English
-                </Link>
+                </button>
                 <Link
                   to="/build"
-                  dir="rtl"
-                  className="inline-flex w-full items-center justify-center rounded-full border-2 border-primary bg-transparent px-7 py-3 text-base font-semibold text-primary transition-all hover:bg-primary/5 sm:w-auto"
+                  dir={chooseLangPhrases[phraseIndex].dir}
+                  lang={chooseLangPhrases[phraseIndex].lang}
+                  key={chooseLangPhrases[phraseIndex].lang}
+                  className="inline-flex w-full animate-fade-in items-center justify-center rounded-full border-2 border-primary bg-transparent px-7 py-3 text-base font-semibold text-primary transition-all hover:bg-primary/5 sm:w-auto"
                 >
-                  اختر لغتك
+                  {chooseLangPhrases[phraseIndex].text}
                 </Link>
               </div>
 
