@@ -712,6 +712,54 @@ function ReviewSection({ title, onEdit, children }: { title: string; onEdit: () 
   );
 }
 
+type LangOption = (typeof languages)[number];
+
+function LanguageReviewSection({ currentName, onSelect }: { currentName: string; onSelect: (lang: LangOption) => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="font-semibold text-foreground">Language</h2>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          className="text-sm font-medium text-primary hover:opacity-80"
+        >
+          {open ? "Close" : "Edit"}
+        </button>
+      </div>
+      <div className="text-sm leading-6 text-muted-foreground">{currentName || "Not selected"}</div>
+      {open && (
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+          {languages.map((lang) => {
+            const selected = lang.name === currentName;
+            return (
+              <button
+                key={lang.code}
+                type="button"
+                onClick={() => {
+                  onSelect(lang);
+                  setOpen(false);
+                }}
+                className={`flex items-center gap-2 rounded-xl border p-3 text-left transition ${
+                  selected ? "border-primary bg-primary/10" : "border-border bg-background hover:bg-muted"
+                }`}
+              >
+                <span className="text-xl" aria-hidden="true">{lang.flag}</span>
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-medium text-foreground">{lang.name}</span>
+                  <span className="block truncate text-xs text-muted-foreground">{lang.native}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export const Route = createFileRoute("/build")({
   codeSplitGroupings: [],
   head: () => ({
