@@ -4,7 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Reveal } from "@/components/Reveal";
 import { CountUp } from "@/components/CountUp";
-import { Globe, MessageCircle, FileDown, Check, ArrowRight } from "lucide-react";
+import { Globe, MessageCircle, FileDown, Check, ArrowRight, Clock } from "lucide-react";
 
 const chooseLangPhrases: { text: string; dir: "ltr" | "rtl"; lang: string }[] = [
   { text: "اختر لغتك", dir: "rtl", lang: "ar" },
