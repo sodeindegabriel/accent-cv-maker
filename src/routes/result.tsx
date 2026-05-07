@@ -332,6 +332,43 @@ function normalizeMarkdown(input: string): string {
   return s;
 }
 
+function splitCvHeader(
+  text: string,
+  fallbackName: string,
+): { headerName: string; contactParts: string[]; body: string } {
+  if (!text) return { headerName: fallbackName || "", contactParts: [], body: "" };
+  const lines = text.split("\n");
+  let headerName = "";
+  const contactParts: string[] = [];
+  let i = 0;
+  while (i < lines.length && !lines[i].trim()) i++;
+  if (i < lines.length) {
+    const m = lines[i].match(/^\s*#{1,2}\s+(.+?)\s*$/);
+    if (m) {
+      headerName = m[1].trim();
+      i++;
+    } else if (!lines[i].startsWith("#") && !/^[-*]/.test(lines[i].trim())) {
+      const candidate = lines[i].trim();
+      if (candidate.length < 80 && !candidate.includes(":")) {
+        headerName = candidate;
+        i++;
+      }
+    }
+  }
+  if (!headerName) headerName = fallbackName || "";
+  while (i < lines.length) {
+    const ln = lines[i];
+    if (!ln.trim()) { i++; if (contactParts.length) break; else continue; }
+    if (/^\s*#/.test(ln)) break;
+    const parts = ln.split(/\s*[•·|]\s*|\s{2,}/).map((p: string) => p.trim()).filter(Boolean);
+    contactParts.push(...parts);
+    i++;
+    if (contactParts.length >= 6) break;
+  }
+  const body = lines.slice(i).join("\n").trimStart();
+  return { headerName, contactParts, body };
+}
+
 function stripMarkdown(input: string): string {
   if (!input) return "";
   let s = input.replace(/\r\n/g, "\n");
