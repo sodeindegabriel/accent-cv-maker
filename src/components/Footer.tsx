@@ -1,4 +1,25 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import type { ReactNode } from "react";
+
+function FooterAnchor({ hash, children }: { hash: string; children: ReactNode }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const onClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (location.pathname === "/") {
+      const el = document.getElementById(hash);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.history.replaceState(null, "", `/#${hash}`);
+    } else {
+      navigate({ to: "/", hash });
+    }
+  };
+  return (
+    <a href={`/#${hash}`} onClick={onClick} className="hover:text-accent transition-colors">
+      {children}
+    </a>
+  );
+}
 
 function BridgeIcon({ className }: { className?: string }) {
   return (
