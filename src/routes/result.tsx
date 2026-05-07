@@ -163,6 +163,22 @@ function ResultPage() {
   );
 }
 
+function normalizeMarkdown(input: string): string {
+  if (!input) return "";
+  let s = input.replace(/\r\n/g, "\n");
+  // Strip surrounding code fences if the model wrapped output
+  s = s.replace(/^```(?:markdown|md)?\s*\n([\s\S]*?)\n```\s*$/i, "$1");
+  // Trim spaces inside bold/italic delimiters: "** Text **" -> "**Text**"
+  s = s.replace(/\*\*\s+([^*\n]+?)\s+\*\*/g, "**$1**");
+  s = s.replace(/\*\*\s+([^*\n]+?)\*\*/g, "**$1**");
+  s = s.replace(/\*\*([^*\n]+?)\s+\*\*/g, "**$1**");
+  // Ensure ATX headings have a space after #
+  s = s.replace(/^(#{1,6})([^#\s])/gm, "$1 $2");
+  // Ensure blank line before headings
+  s = s.replace(/([^\n])\n(#{1,6} )/g, "$1\n\n$2");
+  return s;
+}
+
 const editSections: { step: number; label: string }[] = [
   { step: 1, label: "Language" },
   { step: 2, label: "Job Type" },
