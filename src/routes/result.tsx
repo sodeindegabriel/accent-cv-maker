@@ -201,7 +201,7 @@ function ResultPage() {
                 {headerName && <h1 className="cv-name">{headerName}</h1>}
                 {contactParts.length > 0 && (
                   <div className="cv-contact">
-                    {contactParts.map((c, i) => (
+                    {contactParts.map((c: string, i: number) => (
                       <span key={i}>{c}</span>
                     ))}
                   </div>
