@@ -231,16 +231,19 @@ function Index() {
 
             <div className="mt-14 grid grid-cols-2 gap-3 md:grid-cols-4">
               {languages.map((l, i) => (
-                <Reveal
-                  key={l.en}
-                  delay={i * 30}
-                  className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
-                >
-                  <span className="text-3xl" aria-hidden="true">{l.flag}</span>
-                  <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">{l.en}</p>
-                    <p className="truncate font-semibold text-foreground">{l.native}</p>
-                  </div>
+                <Reveal key={l.en} delay={i * 30}>
+                  <button
+                    type="button"
+                    onClick={() => pickLanguage(l.code)}
+                    aria-label={`Start in ${l.en}`}
+                    className="flex w-full items-center gap-4 rounded-xl border border-border bg-card p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  >
+                    <span className="text-3xl" aria-hidden="true">{l.flag}</span>
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground">{l.en}</p>
+                      <p className="truncate font-semibold text-foreground">{l.native}</p>
+                    </div>
+                  </button>
                 </Reveal>
               ))}
             </div>
