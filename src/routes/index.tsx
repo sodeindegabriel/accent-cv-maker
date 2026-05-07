@@ -168,15 +168,16 @@ function Index() {
                 >
                   Start in English
                 </button>
-                <Link
-                  to="/build"
+                <button
+                  type="button"
+                  onClick={() => pickLanguage(chooseLangPhrases[phraseIndex].lang)}
                   dir={chooseLangPhrases[phraseIndex].dir}
                   lang={chooseLangPhrases[phraseIndex].lang}
                   key={chooseLangPhrases[phraseIndex].lang}
                   className="inline-flex w-full animate-fade-in items-center justify-center rounded-full border-2 border-primary bg-transparent px-7 py-3 text-base font-semibold text-primary transition-all hover:bg-primary/5 sm:w-auto"
                 >
                   {chooseLangPhrases[phraseIndex].text}
-                </Link>
+                </button>
               </div>
 
               <div

@@ -128,6 +128,7 @@ function BuildPage() {
   const [step, setStep] = useState(1);
   const [data, setData] = useState<CVData>(initialData);
   const [forceEnglish, setForceEnglish] = useState(false);
+  const [preselectModalLang, setPreselectModalLang] = useState<typeof languages[number] | null>(null);
 
   useEffect(() => {
     try {
@@ -141,8 +142,23 @@ function BuildPage() {
       if (preselect) {
         const lang = languages.find((l) => l.code === preselect);
         if (lang) {
-          setData((current) => ({ ...current, languageCode: lang.code, language: lang.name }));
-          setStep(2);
+          if (lang.code === "en") {
+            setData((current) => ({
+              ...current,
+              languageCode: lang.code,
+              language: lang.name,
+              questionLanguageCode: "en",
+            }));
+            setStep(2);
+          } else {
+            setData((current) => ({
+              ...current,
+              languageCode: lang.code,
+              language: lang.name,
+            }));
+            setStep(2);
+            setPreselectModalLang(lang);
+          }
         }
         sessionStorage.removeItem("cvlingo:preselectLanguage");
       }
@@ -200,6 +216,19 @@ function BuildPage() {
       {step === 4 && <Step4Experience {...stepProps} onBack={back} onNext={next} />}
       {step === 5 && <Step5Skills {...stepProps} onBack={back} onNext={next} />}
       {step === 6 && <Step6Review {...stepProps} onBack={back} onEdit={setStep} />}
+      {preselectModalLang && (
+        <LanguageChoiceModal
+          lang={preselectModalLang}
+          onChoose={(code) => {
+            update("questionLanguageCode", code);
+            setPreselectModalLang(null);
+          }}
+          onClose={() => {
+            update("questionLanguageCode", preselectModalLang.code);
+            setPreselectModalLang(null);
+          }}
+        />
+      )}
     </main>
   );
 }
