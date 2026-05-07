@@ -247,6 +247,8 @@ function StepShell({
   onBack,
   onNext,
   qLang,
+  originalLang,
+  onToggleLang,
   children,
 }: {
   step: number;
@@ -256,14 +258,19 @@ function StepShell({
   onBack?: () => void;
   onNext: () => void;
   qLang?: string;
+  originalLang?: string;
+  onToggleLang?: () => void;
   children: React.ReactNode;
 }) {
   const dir = qLang && ["ar", "ur", "fa"].includes(qLang) ? "rtl" : "ltr";
   return (
-    <section className="px-4 py-8 sm:px-6 lg:px-8" dir={dir}>
+    <section className="relative px-4 py-8 sm:px-6 lg:px-8" dir={dir}>
+      {originalLang && originalLang !== "en" && onToggleLang && (
+        <LangToggle displayLang={qLang || "en"} originalLang={originalLang} onToggle={onToggleLang} />
+      )}
       <div className="mx-auto max-w-3xl">
         <div className="mb-8">
-          <div className="mb-4 flex items-center gap-2" aria-label={`Step ${step} of 6`}>
+          <div className="mb-4 flex items-center gap-2" aria-label={t(qLang, "stepOf", { n: step })}>
             {Array.from({ length: 6 }, (_, index) => (
               <div
                 key={index}
@@ -271,7 +278,7 @@ function StepShell({
               />
             ))}
           </div>
-          <p className="mb-2 text-sm font-medium text-muted-foreground">Step {step} of 6</p>
+          <p className="mb-2 text-sm font-medium text-muted-foreground">{t(qLang, "stepOf", { n: step })}</p>
           <h1 className="text-3xl font-semibold tracking-normal text-foreground sm:text-4xl">{title}</h1>
           <p className="mt-3 text-base text-muted-foreground sm:text-lg">{subtitle}</p>
         </div>
