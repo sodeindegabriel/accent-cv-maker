@@ -868,29 +868,34 @@ function Step6Review({ data, update, displayLang, originalLang, onToggleLang, on
             <p>{data.personalDetails.phone || t(displayLang, "phoneMissing")}</p>
             <p>{data.personalDetails.email || t(displayLang, "emailMissing")}</p>
             <p>{data.personalDetails.city || t(displayLang, "cityMissing")}</p>
-            <p>{data.personalDetails.rightToWork || t(displayLang, "rtwMissing")}</p>
+            <p>{rtwLabel || t(displayLang, "rtwMissing")}</p>
           </ReviewSection>
           <ReviewSection title={t(displayLang, "experience")} editLabel={t(displayLang, "edit")} onEdit={() => onEdit(4)}>
             {data.experienceType === "none" ? (
               <p>{t(displayLang, "noExperienceYet")}</p>
-            ) : data.experience.length ? (
-              <ul className="space-y-2">
-                {data.experience.map((item, index) => (
-                  <li key={index}>
-                    <span className="font-medium text-foreground">{item.title || t(displayLang, "roleOrActivity")}</span>
-                    {item.place && ` — ${item.place}`}
-                    {item.duration && ` (${item.duration})`}
-                    {item.description && <span className="block text-sm text-muted-foreground">{item.description}</span>}
-                  </li>
-                ))}
-              </ul>
             ) : (
-              <p>{t(displayLang, "notAdded")}</p>
+              <>
+                {experienceTypeLabel && <p className="mb-2 font-medium text-foreground">{experienceTypeLabel}</p>}
+                {data.experience.length ? (
+                  <ul className="space-y-2">
+                    {data.experience.map((item, index) => (
+                      <li key={index}>
+                        <span className="font-medium text-foreground">{item.title || t(displayLang, "roleOrActivity")}</span>
+                        {item.place && ` — ${item.place}`}
+                        {item.duration && ` (${item.duration})`}
+                        {item.description && <span className="block text-sm text-muted-foreground">{item.description}</span>}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>{t(displayLang, "notAdded")}</p>
+                )}
+              </>
             )}
           </ReviewSection>
           <ReviewSection title={t(displayLang, "skillsAndAvailability")} editLabel={t(displayLang, "edit")} onEdit={() => onEdit(5)}>
-            <p>{data.skills.join(", ") || t(displayLang, "noSkills")}</p>
-            <p>{data.availability.join(", ") || t(displayLang, "noAvailability")}</p>
+            <p>{skillLabels || t(displayLang, "noSkills")}</p>
+            <p>{availabilityLabels || t(displayLang, "noAvailability")}</p>
           </ReviewSection>
         </div>
         {error && (
