@@ -104,7 +104,7 @@ function ResultPage() {
             style={{ minHeight: "60vh" }}
           >
             <div className="prose prose-slate max-w-none prose-headings:font-semibold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:my-2 prose-ul:my-2 prose-li:my-0.5 text-sm leading-6 sm:text-base">
-              <ReactMarkdown>{activeText}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{activeText}</ReactMarkdown>
             </div>
           </article>
 
