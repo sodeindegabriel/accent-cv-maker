@@ -393,8 +393,9 @@ function Step2JobType({ data, update, onBack, onNext }: StepProps) {
   return (
     <StepShell
       step={2}
-      title="What kind of work are you looking for?"
-      subtitle="Choose every type of role you would consider."
+      qLang={data.questionLanguageCode}
+      title={t(data.questionLanguageCode, "step2Title")}
+      subtitle={t(data.questionLanguageCode, "step2Subtitle")}
       onBack={onBack}
       onNext={onNext}
       nextDisabled={data.jobTypes.length === 0}
