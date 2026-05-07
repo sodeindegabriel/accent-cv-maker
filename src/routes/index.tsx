@@ -131,18 +131,21 @@ function Index() {
                 className="mt-8 flex animate-fade-in flex-col items-center justify-center gap-3 sm:flex-row"
                 style={{ animationDelay: "400ms" }}
               >
-                <Link
-                  to="/build"
+                <button
+                  type="button"
+                  onClick={() => pickLanguage("en")}
                   className="inline-flex w-full items-center justify-center rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary/90 hover:shadow-lg sm:w-auto"
                 >
                   Start in English
-                </Link>
+                </button>
                 <Link
                   to="/build"
-                  dir="rtl"
-                  className="inline-flex w-full items-center justify-center rounded-full border-2 border-primary bg-transparent px-7 py-3 text-base font-semibold text-primary transition-all hover:bg-primary/5 sm:w-auto"
+                  dir={chooseLangPhrases[phraseIndex].dir}
+                  lang={chooseLangPhrases[phraseIndex].lang}
+                  key={chooseLangPhrases[phraseIndex].lang}
+                  className="inline-flex w-full animate-fade-in items-center justify-center rounded-full border-2 border-primary bg-transparent px-7 py-3 text-base font-semibold text-primary transition-all hover:bg-primary/5 sm:w-auto"
                 >
-                  اختر لغتك
+                  {chooseLangPhrases[phraseIndex].text}
                 </Link>
               </div>
 
