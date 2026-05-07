@@ -650,7 +650,7 @@ const translations: Record<string, Dict> = {
 
 export function t(code: string | undefined, key: TKey, vars?: Record<string, string | number>): string {
   const dict = (code && translations[code]) || translations.en;
-  let str = dict[key] ?? translations.en[key];
+  let str: string = dict[key] ?? translations.en[key];
   if (vars) {
     for (const [k, v] of Object.entries(vars)) {
       str = str.replace(`{${k}}`, String(v));
