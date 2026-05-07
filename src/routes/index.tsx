@@ -68,7 +68,7 @@ const steps = [
   {
     icon: Globe,
     title: "Choose your language",
-    desc: "Pick from 20+ languages — we meet you where you are, no English required to get started.",
+    desc: "Pick from 20 languages — we meet you where you are, no English required to get started.",
   },
   {
     icon: MessageCircle,
