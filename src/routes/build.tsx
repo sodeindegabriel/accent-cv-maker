@@ -742,7 +742,7 @@ function Step6Review({ data, update, onBack, onEdit }: { data: CVData; update: <
         )}
         <div className="mt-6 flex items-center justify-between gap-3">
           <button type="button" onClick={onBack} className="rounded-xl border border-border bg-background px-5 py-3 font-medium text-foreground transition hover:bg-muted">
-            Back
+            {t(data.questionLanguageCode, "back")}
           </button>
           <button
             type="button"
