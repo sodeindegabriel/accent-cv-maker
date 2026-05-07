@@ -190,49 +190,61 @@ function ResultPage() {
             </button>
           </div>
 
-          <article
-            id="cv-print"
-            className="rounded-2xl border border-border bg-white p-6 text-slate-900 shadow-sm sm:p-10"
-            style={{ minHeight: "60vh" }}
-          >
-            <div className="max-w-none text-[15px] leading-relaxed text-slate-900 sm:text-base">
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                components={{
-                  h1: ({ children }) => (
-                    <h1 className="mb-3 mt-2 text-3xl font-bold tracking-tight text-slate-900">{children}</h1>
-                  ),
-                  h2: ({ children }) => (
-                    <h2 className="mb-2 mt-6 border-b border-slate-200 pb-1 text-xl font-semibold uppercase tracking-wide text-slate-900">{children}</h2>
-                  ),
-                  h3: ({ children }) => (
-                    <h3 className="mb-1 mt-4 text-base font-semibold text-slate-900">{children}</h3>
-                  ),
-                  h4: ({ children }) => (
-                    <h4 className="mb-1 mt-3 text-sm font-semibold text-slate-900">{children}</h4>
-                  ),
-                  p: ({ children }) => (
-                    <p className="my-2 whitespace-pre-line text-slate-800">{children}</p>
-                  ),
-                  ul: ({ children }) => (
-                    <ul className="my-2 list-disc space-y-1 pl-6 text-slate-800">{children}</ul>
-                  ),
-                  ol: ({ children }) => (
-                    <ol className="my-2 list-decimal space-y-1 pl-6 text-slate-800">{children}</ol>
-                  ),
-                  li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-                  strong: ({ children }) => <strong className="font-semibold text-slate-900">{children}</strong>,
-                  em: ({ children }) => <em className="italic">{children}</em>,
-                  hr: () => <hr className="my-4 border-slate-200" />,
-                  a: ({ children, href }) => (
-                    <a href={href} className="text-blue-700 underline">{children}</a>
-                  ),
-                }}
+          {(() => {
+            const { headerName, contactParts, body } = splitCvHeader(activeText, name);
+            return (
+              <article
+                id="cv-print"
+                className="rounded-2xl border border-border bg-white p-8 text-slate-900 shadow-sm sm:p-12"
+                style={{ minHeight: "60vh" }}
               >
-                {activeText}
-              </ReactMarkdown>
-            </div>
-          </article>
+                {headerName && <h1 className="cv-name">{headerName}</h1>}
+                {contactParts.length > 0 && (
+                  <div className="cv-contact">
+                    {contactParts.map((c, i) => (
+                      <span key={i}>{c}</span>
+                    ))}
+                  </div>
+                )}
+                <div className="max-w-none text-[15px] leading-relaxed text-slate-900 sm:text-base">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      h1: ({ children }) => (
+                        <h2>{children}</h2>
+                      ),
+                      h2: ({ children }) => <h2>{children}</h2>,
+                      h3: ({ children }) => (
+                        <h3 className="text-base font-semibold text-slate-900">{children}</h3>
+                      ),
+                      h4: ({ children }) => (
+                        <h4 className="text-sm font-semibold text-slate-900">{children}</h4>
+                      ),
+                      p: ({ children }) => (
+                        <p className="whitespace-pre-line text-slate-800">{children}</p>
+                      ),
+                      ul: ({ children }) => (
+                        <ul className="list-disc text-slate-800">{children}</ul>
+                      ),
+                      ol: ({ children }) => (
+                        <ol className="list-decimal text-slate-800">{children}</ol>
+                      ),
+                      li: ({ children }) => <li>{children}</li>,
+                      strong: ({ children }) => <strong className="font-semibold text-slate-900">{children}</strong>,
+                      em: ({ children }) => <em className="italic">{children}</em>,
+                      hr: () => <hr className="my-4 border-slate-200" />,
+                      a: ({ children, href }) => (
+                        <a href={href} className="text-blue-700 underline">{children}</a>
+                      ),
+                    }}
+                  >
+                    {body}
+                  </ReactMarkdown>
+                </div>
+                <div className="cv-watermark">Created with CVLingo · cvlingo.com</div>
+              </article>
+            );
+          })()}
 
           <div className="no-print mt-6 flex flex-wrap gap-3">
             <button
