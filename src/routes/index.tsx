@@ -63,6 +63,15 @@ const steps = [
 ];
 
 function Index() {
+  const navigate = useNavigate();
+  const pickLanguage = (code: string) => {
+    try {
+      sessionStorage.setItem("cvlingo:preselectLanguage", code);
+    } catch {
+      /* ignore */
+    }
+    navigate({ to: "/build" });
+  };
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
