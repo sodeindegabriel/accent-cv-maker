@@ -200,6 +200,7 @@ function StepShell({
   nextDisabled,
   onBack,
   onNext,
+  qLang,
   children,
 }: {
   step: number;
@@ -208,10 +209,12 @@ function StepShell({
   nextDisabled?: boolean;
   onBack?: () => void;
   onNext: () => void;
+  qLang?: string;
   children: React.ReactNode;
 }) {
+  const dir = qLang && ["ar", "ur", "fa"].includes(qLang) ? "rtl" : "ltr";
   return (
-    <section className="px-4 py-8 sm:px-6 lg:px-8">
+    <section className="px-4 py-8 sm:px-6 lg:px-8" dir={dir}>
       <div className="mx-auto max-w-3xl">
         <div className="mb-8">
           <div className="mb-4 flex items-center gap-2" aria-label={`Step ${step} of 6`}>
@@ -236,7 +239,7 @@ function StepShell({
               onClick={onBack}
               className="rounded-xl border border-border bg-background px-5 py-3 font-medium text-foreground transition hover:bg-muted"
             >
-              Back
+              {t(qLang, "back")}
             </button>
           ) : (
             <span />
@@ -247,7 +250,7 @@ function StepShell({
             disabled={nextDisabled}
             className="rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Continue
+            {t(qLang, "continue")}
           </button>
         </div>
       </div>
