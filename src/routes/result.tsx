@@ -63,8 +63,53 @@ function ResultPage() {
   return (
     <main className="min-h-screen bg-background text-foreground">
       <style>{`
+        #cv-print h1.cv-name {
+          text-align: center;
+          font-size: 2rem;
+          font-weight: 700;
+          margin: 0 0 0.5rem 0;
+          letter-spacing: -0.01em;
+        }
+        #cv-print .cv-contact {
+          text-align: center;
+          font-size: 0.95rem;
+          color: #334155;
+          margin: 0 0 0.75rem 0;
+          padding-bottom: 1rem;
+          border-bottom: 1px solid #e2e8f0;
+        }
+        #cv-print .cv-contact span + span::before {
+          content: " • ";
+          color: #94a3b8;
+          margin: 0 0.4rem;
+        }
+        #cv-print h2 {
+          margin-top: 1.75rem !important;
+          margin-bottom: 0.75rem !important;
+          padding-bottom: 0.35rem !important;
+          border-bottom: 1px solid #e2e8f0 !important;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          font-size: 1.05rem;
+          font-weight: 700;
+        }
+        #cv-print h2:first-child { margin-top: 0 !important; }
+        #cv-print p { margin: 0.5rem 0; line-height: 1.65; }
+        #cv-print ul, #cv-print ol { margin: 0.5rem 0 0.75rem 0; padding-left: 1.4rem; }
+        #cv-print li { margin: 0.3rem 0; line-height: 1.6; }
+        #cv-print li + li { margin-top: 0.35rem; }
+        #cv-print h3 { margin-top: 1rem; margin-bottom: 0.25rem; }
+        #cv-print .cv-watermark {
+          margin-top: 2.5rem;
+          padding-top: 1rem;
+          border-top: 1px solid #e2e8f0;
+          text-align: center;
+          font-size: 0.8rem;
+          color: #94a3b8;
+          letter-spacing: 0.08em;
+        }
         @media print {
-          @page { size: A4; margin: 12mm; }
+          @page { size: A4; margin: 14mm; }
           html, body { background: #ffffff !important; }
           body * { visibility: hidden !important; }
           #cv-print, #cv-print * {
@@ -82,10 +127,36 @@ function ResultPage() {
             margin: 0;
             border: none !important;
             display: block !important;
+            font-size: 11pt;
+            line-height: 1.55;
           }
-          #cv-print h1, #cv-print h2, #cv-print h3, #cv-print h4,
-          #cv-print p, #cv-print li, #cv-print span, #cv-print strong, #cv-print em, #cv-print a {
-            color: #000000 !important;
+          #cv-print h1.cv-name { font-size: 22pt; margin-bottom: 6pt; }
+          #cv-print .cv-contact {
+            font-size: 10.5pt;
+            border-bottom: 1px solid #cbd5e1 !important;
+            padding-bottom: 8pt;
+            margin-bottom: 14pt;
+          }
+          #cv-print h2 {
+            font-size: 12pt;
+            margin-top: 18pt !important;
+            margin-bottom: 8pt !important;
+            padding-bottom: 4pt !important;
+            border-bottom: 1px solid #cbd5e1 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            page-break-after: avoid;
+          }
+          #cv-print h3 { page-break-after: avoid; }
+          #cv-print p, #cv-print li { page-break-inside: avoid; }
+          #cv-print ul, #cv-print ol { padding-left: 18pt; }
+          #cv-print li { margin: 3pt 0; }
+          #cv-print .cv-watermark {
+            margin-top: 20pt;
+            padding-top: 8pt;
+            border-top: 1px solid #cbd5e1 !important;
+            color: #64748b !important;
+            font-size: 9pt;
           }
           .no-print { display: none !important; }
         }
@@ -119,49 +190,61 @@ function ResultPage() {
             </button>
           </div>
 
-          <article
-            id="cv-print"
-            className="rounded-2xl border border-border bg-white p-6 text-slate-900 shadow-sm sm:p-10"
-            style={{ minHeight: "60vh" }}
-          >
-            <div className="max-w-none text-[15px] leading-relaxed text-slate-900 sm:text-base">
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                components={{
-                  h1: ({ children }) => (
-                    <h1 className="mb-3 mt-2 text-3xl font-bold tracking-tight text-slate-900">{children}</h1>
-                  ),
-                  h2: ({ children }) => (
-                    <h2 className="mb-2 mt-6 border-b border-slate-200 pb-1 text-xl font-semibold uppercase tracking-wide text-slate-900">{children}</h2>
-                  ),
-                  h3: ({ children }) => (
-                    <h3 className="mb-1 mt-4 text-base font-semibold text-slate-900">{children}</h3>
-                  ),
-                  h4: ({ children }) => (
-                    <h4 className="mb-1 mt-3 text-sm font-semibold text-slate-900">{children}</h4>
-                  ),
-                  p: ({ children }) => (
-                    <p className="my-2 whitespace-pre-line text-slate-800">{children}</p>
-                  ),
-                  ul: ({ children }) => (
-                    <ul className="my-2 list-disc space-y-1 pl-6 text-slate-800">{children}</ul>
-                  ),
-                  ol: ({ children }) => (
-                    <ol className="my-2 list-decimal space-y-1 pl-6 text-slate-800">{children}</ol>
-                  ),
-                  li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-                  strong: ({ children }) => <strong className="font-semibold text-slate-900">{children}</strong>,
-                  em: ({ children }) => <em className="italic">{children}</em>,
-                  hr: () => <hr className="my-4 border-slate-200" />,
-                  a: ({ children, href }) => (
-                    <a href={href} className="text-blue-700 underline">{children}</a>
-                  ),
-                }}
+          {(() => {
+            const { headerName, contactParts, body } = splitCvHeader(activeText, name);
+            return (
+              <article
+                id="cv-print"
+                className="rounded-2xl border border-border bg-white p-8 text-slate-900 shadow-sm sm:p-12"
+                style={{ minHeight: "60vh" }}
               >
-                {activeText}
-              </ReactMarkdown>
-            </div>
-          </article>
+                {headerName && <h1 className="cv-name">{headerName}</h1>}
+                {contactParts.length > 0 && (
+                  <div className="cv-contact">
+                    {contactParts.map((c: string, i: number) => (
+                      <span key={i}>{c}</span>
+                    ))}
+                  </div>
+                )}
+                <div className="max-w-none text-[15px] leading-relaxed text-slate-900 sm:text-base">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      h1: ({ children }) => (
+                        <h2>{children}</h2>
+                      ),
+                      h2: ({ children }) => <h2>{children}</h2>,
+                      h3: ({ children }) => (
+                        <h3 className="text-base font-semibold text-slate-900">{children}</h3>
+                      ),
+                      h4: ({ children }) => (
+                        <h4 className="text-sm font-semibold text-slate-900">{children}</h4>
+                      ),
+                      p: ({ children }) => (
+                        <p className="whitespace-pre-line text-slate-800">{children}</p>
+                      ),
+                      ul: ({ children }) => (
+                        <ul className="list-disc text-slate-800">{children}</ul>
+                      ),
+                      ol: ({ children }) => (
+                        <ol className="list-decimal text-slate-800">{children}</ol>
+                      ),
+                      li: ({ children }) => <li>{children}</li>,
+                      strong: ({ children }) => <strong className="font-semibold text-slate-900">{children}</strong>,
+                      em: ({ children }) => <em className="italic">{children}</em>,
+                      hr: () => <hr className="my-4 border-slate-200" />,
+                      a: ({ children, href }) => (
+                        <a href={href} className="text-blue-700 underline">{children}</a>
+                      ),
+                    }}
+                  >
+                    {body}
+                  </ReactMarkdown>
+                </div>
+                <div className="cv-watermark">Created with CVLingo · cvlingo.com</div>
+              </article>
+            );
+          })()}
 
           <div className="no-print mt-6 flex flex-wrap gap-3">
             <button
@@ -247,6 +330,43 @@ function normalizeMarkdown(input: string): string {
     "$1  \n",
   );
   return s;
+}
+
+function splitCvHeader(
+  text: string,
+  fallbackName: string,
+): { headerName: string; contactParts: string[]; body: string } {
+  if (!text) return { headerName: fallbackName || "", contactParts: [], body: "" };
+  const lines = text.split("\n");
+  let headerName = "";
+  const contactParts: string[] = [];
+  let i = 0;
+  while (i < lines.length && !lines[i].trim()) i++;
+  if (i < lines.length) {
+    const m = lines[i].match(/^\s*#{1,2}\s+(.+?)\s*$/);
+    if (m) {
+      headerName = m[1].trim();
+      i++;
+    } else if (!lines[i].startsWith("#") && !/^[-*]/.test(lines[i].trim())) {
+      const candidate = lines[i].trim();
+      if (candidate.length < 80 && !candidate.includes(":")) {
+        headerName = candidate;
+        i++;
+      }
+    }
+  }
+  if (!headerName) headerName = fallbackName || "";
+  while (i < lines.length) {
+    const ln = lines[i];
+    if (!ln.trim()) { i++; if (contactParts.length) break; else continue; }
+    if (/^\s*#/.test(ln)) break;
+    const parts = ln.split(/\s*[•·|]\s*|\s{2,}/).map((p: string) => p.trim()).filter(Boolean);
+    contactParts.push(...parts);
+    i++;
+    if (contactParts.length >= 6) break;
+  }
+  const body = lines.slice(i).join("\n").trimStart();
+  return { headerName, contactParts, body };
 }
 
 function stripMarkdown(input: string): string {
