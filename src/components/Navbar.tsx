@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { BridgeIcon } from "@/components/BridgeIcon";
@@ -6,6 +6,8 @@ import { BridgeIcon } from "@/components/BridgeIcon";
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -14,10 +16,22 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const handleAnchor = (e: React.MouseEvent, hash: string) => {
+    e.preventDefault();
+    setOpen(false);
+    if (location.pathname === "/") {
+      const el = document.getElementById(hash);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.history.replaceState(null, "", `/#${hash}`);
+    } else {
+      navigate({ to: "/", hash });
+    }
+  };
+
   const links = [
-    { label: "How it works", href: "#how" },
-    { label: "For Employers", href: "/employer", to: "/employer" as const },
-    { label: "Languages", href: "#languages" },
+    { label: "How it works", hash: "how" },
+    { label: "For Employers", to: "/employer" as const },
+    { label: "Languages", hash: "languages" },
   ];
 
   return (
@@ -45,7 +59,8 @@ export function Navbar() {
             ) : (
               <a
                 key={l.label}
-                href={l.href}
+                href={`/#${l.hash}`}
+                onClick={(e) => handleAnchor(e, l.hash!)}
                 className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
               >
                 {l.label}
@@ -90,8 +105,8 @@ export function Navbar() {
             ) : (
               <a
                 key={l.label}
-                href={l.href}
-                onClick={() => setOpen(false)}
+                href={`/#${l.hash}`}
+                onClick={(e) => handleAnchor(e, l.hash!)}
                 className="rounded-lg px-3 py-3 text-base font-medium text-foreground hover:bg-secondary"
               >
                 {l.label}

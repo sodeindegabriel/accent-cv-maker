@@ -1,4 +1,25 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import type { ReactNode } from "react";
+
+function FooterAnchor({ hash, children }: { hash: string; children: ReactNode }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const onClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (location.pathname === "/") {
+      const el = document.getElementById(hash);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.history.replaceState(null, "", `/#${hash}`);
+    } else {
+      navigate({ to: "/", hash });
+    }
+  };
+  return (
+    <a href={`/#${hash}`} onClick={onClick} className="hover:text-accent transition-colors">
+      {children}
+    </a>
+  );
+}
 
 function BridgeIcon({ className }: { className?: string }) {
   return (
@@ -27,8 +48,8 @@ export function Footer() {
           <h4 className="font-sans text-sm font-semibold uppercase tracking-wider text-white/90">Platform</h4>
           <ul className="mt-4 space-y-3 text-sm text-white/70">
             <li><Link to="/build" className="hover:text-accent transition-colors">Build Your CV</Link></li>
-            <li><a href="/#how" className="hover:text-accent transition-colors">How It Works</a></li>
-            <li><a href="/#languages" className="hover:text-accent transition-colors">Languages</a></li>
+            <li><FooterAnchor hash="how">How It Works</FooterAnchor></li>
+            <li><FooterAnchor hash="languages">Languages</FooterAnchor></li>
             <li><Link to="/employer" className="hover:text-accent transition-colors">For Employers</Link></li>
           </ul>
         </div>
