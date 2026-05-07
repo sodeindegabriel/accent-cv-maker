@@ -803,6 +803,43 @@ function Step6Review({ data, update, displayLang, originalLang, onToggleLang, on
     [data.jobTypes, data.otherJobType, displayLang],
   );
 
+  const skillLabels = useMemo(
+    () =>
+      data.skills
+        .map((s) => {
+          const found = suggestedSkills.find((x) => x.value === s);
+          return found ? t(displayLang, found.tKey) : s;
+        })
+        .join(", "),
+    [data.skills, displayLang],
+  );
+
+  const availabilityLabels = useMemo(
+    () =>
+      data.availability
+        .map((a) => {
+          const found = availabilityOptions.find((x) => x.value === a);
+          return found ? t(displayLang, found.tKey) : a;
+        })
+        .join(", "),
+    [data.availability, displayLang],
+  );
+
+  const rtwLabel = useMemo(() => {
+    const v = data.personalDetails.rightToWork;
+    if (!v) return "";
+    if (v.startsWith("Other:")) {
+      return `${t(displayLang, "rtw_other")}: ${v.slice(6).trim()}`;
+    }
+    const found = rightToWorkOptions.find((x) => x.value === v);
+    return found ? t(displayLang, found.tKey) : v;
+  }, [data.personalDetails.rightToWork, displayLang]);
+
+  const experienceTypeLabel = useMemo(() => {
+    const found = experienceTypes.find((x) => x.id === data.experienceType);
+    return found ? t(displayLang, found.tKey) : "";
+  }, [data.experienceType, displayLang]);
+
   const dir = ["ar", "ur", "fa", "ku"].includes(displayLang) ? "rtl" : "ltr";
 
   return (
