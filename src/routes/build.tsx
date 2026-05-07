@@ -551,7 +551,7 @@ function Step5Skills({ data, update, onBack, onNext }: StepProps) {
   );
 }
 
-function Step6Review({ data, onBack, onEdit }: { data: CVData; onBack: () => void; onEdit: (step: number) => void }) {
+function Step6Review({ data, update, onBack, onEdit }: { data: CVData; update: <K extends keyof CVData>(key: K, value: CVData[K]) => void; onBack: () => void; onEdit: (step: number) => void }) {
   const navigate = useNavigate();
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
