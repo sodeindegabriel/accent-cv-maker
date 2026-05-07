@@ -76,6 +76,13 @@ const steps = [
 
 function Index() {
   const navigate = useNavigate();
+  const [phraseIndex, setPhraseIndex] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => {
+      setPhraseIndex((i) => (i + 1) % chooseLangPhrases.length);
+    }, 2000);
+    return () => clearInterval(id);
+  }, []);
   const pickLanguage = (code: string) => {
     try {
       sessionStorage.setItem("cvlingo:preselectLanguage", code);
