@@ -172,7 +172,7 @@ function BuildPage() {
       {step === 3 && <Step3PersonalDetails data={data} update={update} onBack={back} onNext={next} />}
       {step === 4 && <Step4Experience data={data} update={update} onBack={back} onNext={next} />}
       {step === 5 && <Step5Skills data={data} update={update} onBack={back} onNext={next} />}
-      {step === 6 && <Step6Review data={data} onBack={back} onEdit={setStep} />}
+      {step === 6 && <Step6Review data={data} update={update} onBack={back} onEdit={setStep} />}
     </main>
   );
 }
