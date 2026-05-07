@@ -71,51 +71,58 @@ const languages = [
   { code: "ti", name: "Tigrinya", native: "ትግርኛ", flag: "🇪🇷" },
 ];
 
-const jobs = [
-  { id: "hospitality", label: "Hospitality", emoji: "🍽️" },
-  { id: "construction", label: "Construction", emoji: "🏗️" },
-  { id: "care", label: "Care work", emoji: "🤝" },
-  { id: "delivery", label: "Delivery & driving", emoji: "🚗" },
-  { id: "cleaning", label: "Cleaning", emoji: "🧹" },
-  { id: "retail", label: "Retail", emoji: "🛍️" },
-  { id: "warehouse", label: "Warehouse", emoji: "📦" },
-  { id: "office", label: "Office work", emoji: "💼" },
-  { id: "beauty", label: "Beauty & salon", emoji: "💇" },
-  { id: "other", label: "Something else", emoji: "✨" },
+const jobs: { id: string; tKey: TKey; emoji: string }[] = [
+  { id: "hospitality", tKey: "job_hospitality", emoji: "🍽️" },
+  { id: "construction", tKey: "job_construction", emoji: "🏗️" },
+  { id: "care", tKey: "job_care", emoji: "🤝" },
+  { id: "delivery", tKey: "job_delivery", emoji: "🚗" },
+  { id: "cleaning", tKey: "job_cleaning", emoji: "🧹" },
+  { id: "retail", tKey: "job_retail", emoji: "🛍️" },
+  { id: "warehouse", tKey: "job_warehouse", emoji: "📦" },
+  { id: "office", tKey: "job_office", emoji: "💼" },
+  { id: "beauty", tKey: "job_beauty", emoji: "💇" },
+  { id: "other", tKey: "job_other", emoji: "✨" },
 ];
 
-const rightToWorkOptions = [
-  "British citizen",
-  "Settled / pre-settled status",
-  "Skilled worker visa",
-  "Student visa",
-  "Refugee status",
-  "Other / not sure",
+const rightToWorkOptions: { value: string; tKey: TKey }[] = [
+  { value: "British citizen", tKey: "rtw_british" },
+  { value: "Settled / pre-settled status", tKey: "rtw_settled" },
+  { value: "Skilled worker visa", tKey: "rtw_skilled" },
+  { value: "Student visa", tKey: "rtw_student" },
+  { value: "Refugee status", tKey: "rtw_refugee" },
+  { value: "Other / not sure", tKey: "rtw_other" },
 ];
 
-const experienceTypes = [
-  { id: "paid", label: "Paid work", desc: "Jobs in the UK or back home" },
-  { id: "informal", label: "Informal / family work", desc: "Helped family business or neighbours" },
-  { id: "volunteer", label: "Volunteering", desc: "Unpaid work for community or charity" },
-  { id: "none", label: "No experience yet", desc: "I’m just starting out" },
+const experienceTypes: { id: string; tKey: TKey; descKey: TKey }[] = [
+  { id: "paid", tKey: "expType_paid", descKey: "expType_paid_desc" },
+  { id: "informal", tKey: "expType_informal", descKey: "expType_informal_desc" },
+  { id: "volunteer", tKey: "expType_volunteer", descKey: "expType_volunteer_desc" },
+  { id: "none", tKey: "expType_none", descKey: "expType_none_desc" },
 ];
 
-const suggestedSkills = [
-  "Customer service",
-  "Teamwork",
-  "Timekeeping",
-  "Cleaning",
-  "Food preparation",
-  "Stock handling",
-  "Driving",
-  "Cash handling",
-  "Care support",
-  "Microsoft Office",
-  "Problem solving",
-  "English communication",
+const suggestedSkills: { value: string; tKey: TKey }[] = [
+  { value: "Customer service", tKey: "skill_customer" },
+  { value: "Teamwork", tKey: "skill_teamwork" },
+  { value: "Timekeeping", tKey: "skill_timekeeping" },
+  { value: "Cleaning", tKey: "skill_cleaning" },
+  { value: "Food preparation", tKey: "skill_food" },
+  { value: "Stock handling", tKey: "skill_stock" },
+  { value: "Driving", tKey: "skill_driving" },
+  { value: "Cash handling", tKey: "skill_cash" },
+  { value: "Care support", tKey: "skill_care" },
+  { value: "Microsoft Office", tKey: "skill_office" },
+  { value: "Problem solving", tKey: "skill_problem" },
+  { value: "English communication", tKey: "skill_english" },
 ];
 
-const availabilityOptions = ["Weekdays", "Weekends", "Evenings", "Early mornings", "Full-time", "Part-time"];
+const availabilityOptions: { value: string; tKey: TKey }[] = [
+  { value: "Weekdays", tKey: "avail_weekdays" },
+  { value: "Weekends", tKey: "avail_weekends" },
+  { value: "Evenings", tKey: "avail_evenings" },
+  { value: "Early mornings", tKey: "avail_mornings" },
+  { value: "Full-time", tKey: "avail_full" },
+  { value: "Part-time", tKey: "avail_part" },
+];
 
 function BuildPage() {
   const [step, setStep] = useState(1);
