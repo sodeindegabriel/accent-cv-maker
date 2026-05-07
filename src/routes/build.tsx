@@ -273,7 +273,7 @@ function StepShell({
 }) {
   const dir = qLang && ["ar", "ur", "fa"].includes(qLang) ? "rtl" : "ltr";
   return (
-    <section className="relative px-4 py-8 sm:px-6 lg:px-8" dir={dir}>
+    <section className="relative px-4 pb-28 pt-8 sm:px-6 sm:pb-8 lg:px-8" dir={dir}>
       {originalLang && originalLang !== "en" && onToggleLang && (
         <LangToggle displayLang={qLang || "en"} originalLang={originalLang} onToggle={onToggleLang} />
       )}
@@ -288,18 +288,18 @@ function StepShell({
             ))}
           </div>
           <p className="mb-2 text-sm font-medium text-muted-foreground">{t(qLang, "stepOf", { n: step })}</p>
-          <h1 className="text-3xl font-semibold tracking-normal text-foreground sm:text-4xl">{title}</h1>
+          <h1 className="text-2xl font-semibold tracking-normal text-foreground sm:text-4xl">{title}</h1>
           <p className="mt-3 text-base text-muted-foreground sm:text-lg">{subtitle}</p>
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">{children}</div>
 
-        <div className="mt-6 flex items-center justify-between gap-3">
+        <div className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 border-t border-border bg-background/95 px-4 py-3 backdrop-blur sm:static sm:mt-6 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
           {onBack ? (
             <button
               type="button"
               onClick={onBack}
-              className="rounded-xl border border-border bg-background px-5 py-3 font-medium text-foreground transition hover:bg-muted"
+              className="inline-flex min-h-[48px] items-center justify-center rounded-xl border border-border bg-background px-5 py-3 font-medium text-foreground transition hover:bg-muted"
             >
               {t(qLang, "back")}
             </button>
@@ -310,7 +310,7 @@ function StepShell({
             type="button"
             onClick={onNext}
             disabled={nextDisabled}
-            className="rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex min-h-[48px] items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {t(qLang, "continue")}
           </button>
