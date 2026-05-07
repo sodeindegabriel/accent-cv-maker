@@ -59,7 +59,8 @@ export function Navbar() {
             ) : (
               <a
                 key={l.label}
-                href={l.href}
+                href={`/#${l.hash}`}
+                onClick={(e) => handleAnchor(e, l.hash!)}
                 className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
               >
                 {l.label}
