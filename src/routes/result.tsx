@@ -35,7 +35,8 @@ function ResultPage() {
 
   const activeText = useMemo(() => {
     if (!result) return "";
-    return tab === "native" ? result.native : result.english;
+    const raw = tab === "native" ? result.native : result.english;
+    return normalizeMarkdown(raw);
   }, [result, tab]);
 
   if (!result) return null;
