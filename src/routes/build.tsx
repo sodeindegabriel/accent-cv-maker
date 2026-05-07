@@ -523,8 +523,9 @@ function Step4Experience({ data, update, onBack, onNext }: StepProps) {
   return (
     <StepShell
       step={4}
-      title="What experience do you have?"
-      subtitle="Paid, informal and volunteer experience can all help your CV."
+      qLang={data.questionLanguageCode}
+      title={t(data.questionLanguageCode, "step4Title")}
+      subtitle={t(data.questionLanguageCode, "step4Subtitle")}
       onBack={onBack}
       onNext={onNext}
       nextDisabled={!valid}
