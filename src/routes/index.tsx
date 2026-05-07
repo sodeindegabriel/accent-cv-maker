@@ -142,14 +142,17 @@ function Index() {
                   Available in 20+ languages
                 </p>
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                  {heroFlags.map((f, i) => (
-                    <span
-                      key={i}
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-xl shadow-sm transition-transform hover:scale-110"
-                      aria-hidden="true"
+                  {heroFlags.map((f) => (
+                    <button
+                      key={f.code}
+                      type="button"
+                      onClick={() => pickLanguage(f.code)}
+                      aria-label={`Start in ${f.name}`}
+                      title={`Start in ${f.name}`}
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-xl shadow-sm transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
-                      {f}
-                    </span>
+                      <span aria-hidden="true">{f.flag}</span>
+                    </button>
                   ))}
                 </div>
               </div>
