@@ -134,13 +134,16 @@ function ResultPage() {
               onClick={() => {
                 const langForFile = tab === "english" ? "English" : result.language || "Native";
                 const safeName = (name || "CV").trim();
-                const filename = `${safeName} - CVLingo - ${langForFile}`;
+                const filename = `${safeName} - CVLingo - ${langForFile}.pdf`;
                 const previousTitle = document.title;
                 document.title = filename;
-                window.print();
+                // Wait for the CV content to be fully painted before opening the print dialog
                 setTimeout(() => {
-                  document.title = previousTitle;
-                }, 1000);
+                  window.print();
+                  setTimeout(() => {
+                    document.title = previousTitle;
+                  }, 1000);
+                }, 300);
               }}
               className="rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground transition hover:opacity-90"
             >
