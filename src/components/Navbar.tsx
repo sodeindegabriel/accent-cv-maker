@@ -105,8 +105,8 @@ export function Navbar() {
             ) : (
               <a
                 key={l.label}
-                href={l.href}
-                onClick={() => setOpen(false)}
+                href={`/#${l.hash}`}
+                onClick={(e) => handleAnchor(e, l.hash!)}
                 className="rounded-lg px-3 py-3 text-base font-medium text-foreground hover:bg-secondary"
               >
                 {l.label}
