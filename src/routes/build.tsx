@@ -297,6 +297,11 @@ function Step1Language({ data, update, onNext }: StepProps) {
                 onClick={() => {
                   update("languageCode", language.code);
                   update("language", language.name);
+                  if (language.code === "en") {
+                    update("questionLanguageCode", "en");
+                  } else {
+                    setShowModal(true);
+                  }
                 }}
                 className={`rounded-xl border p-4 text-left transition ${
                   selected ? "border-primary bg-primary/10 ring-2 ring-primary/30" : "border-border bg-background hover:bg-muted"
