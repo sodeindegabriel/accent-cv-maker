@@ -35,6 +35,10 @@ const heroFlags: { flag: string; code: string; name: string }[] = [
   { flag: "🇹🇷", code: "tr", name: "Turkish" },
   { flag: "🇨🇳", code: "zh", name: "Chinese" },
   { flag: "🇰🇪", code: "sw", name: "Swahili" },
+  { flag: "🇳🇬", code: "yo", name: "Yoruba" },
+  { flag: "🇳🇬", code: "ig", name: "Igbo" },
+  { flag: "🇪🇹", code: "om", name: "Oromo" },
+  { flag: "🇨🇩", code: "ln", name: "Lingala" },
 ];
 
 const languages: { flag: string; en: string; native: string; code: string }[] = [
