@@ -4,7 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Reveal } from "@/components/Reveal";
 import { CountUp } from "@/components/CountUp";
-import { Globe, MessageCircle, FileDown, Check, ArrowRight } from "lucide-react";
+import { Globe, MessageCircle, FileDown, Check, ArrowRight, Clock } from "lucide-react";
 
 const chooseLangPhrases: { text: string; dir: "ltr" | "rtl"; lang: string }[] = [
   { text: "اختر لغتك", dir: "rtl", lang: "ar" },
@@ -35,6 +35,10 @@ const heroFlags: { flag: string; code: string; name: string }[] = [
   { flag: "🇹🇷", code: "tr", name: "Turkish" },
   { flag: "🇨🇳", code: "zh", name: "Chinese" },
   { flag: "🇰🇪", code: "sw", name: "Swahili" },
+  { flag: "🇳🇬", code: "yo", name: "Yoruba" },
+  { flag: "🇳🇬", code: "ig", name: "Igbo" },
+  { flag: "🇪🇹", code: "om", name: "Oromo" },
+  { flag: "🇨🇩", code: "ln", name: "Lingala" },
 ];
 
 const languages: { flag: string; en: string; native: string; code: string }[] = [
@@ -54,13 +58,17 @@ const languages: { flag: string; en: string; native: string; code: string }[] = 
   { flag: "🇵🇹", en: "Portuguese", native: "Português", code: "pt" },
   { flag: "🇮🇷", en: "Farsi", native: "فارسی", code: "fa" },
   { flag: "🇬🇧", en: "English", native: "English", code: "en" },
+  { flag: "🇳🇬", en: "Yoruba", native: "Yorùbá", code: "yo" },
+  { flag: "🇳🇬", en: "Igbo", native: "Igbo", code: "ig" },
+  { flag: "🇪🇹", en: "Oromo", native: "Afaan Oromoo", code: "om" },
+  { flag: "🇨🇩", en: "Lingala", native: "Lingála", code: "ln" },
 ];
 
 const steps = [
   {
     icon: Globe,
     title: "Choose your language",
-    desc: "Pick from 20+ languages — we meet you where you are, no English required to get started.",
+    desc: "Pick from 20 languages — we meet you where you are, no English required to get started.",
   },
   {
     icon: MessageCircle,
@@ -161,7 +169,7 @@ function Index() {
                 style={{ animationDelay: "500ms" }}
               >
                 <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                  Available in 20+ languages
+                  Available in 20 languages
                 </p>
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
                   {heroFlags.map((f) => (
@@ -221,7 +229,7 @@ function Index() {
           <div className="mx-auto grid max-w-6xl gap-10 px-5 text-center md:grid-cols-3">
             <div>
               <div className="font-serif text-5xl text-white md:text-6xl">
-                <CountUp value={20} suffix="+" />
+                <CountUp value={20} />
               </div>
               <p className="mt-2 text-sm uppercase tracking-widest text-white/70">Languages Supported</p>
             </div>
@@ -268,6 +276,18 @@ function Index() {
                   </button>
                 </Reveal>
               ))}
+              <Reveal delay={languages.length * 30}>
+                <div
+                  aria-disabled="true"
+                  className="flex w-full items-center gap-4 rounded-xl border-2 border-dashed border-border bg-muted/40 p-4 text-left opacity-70"
+                >
+                  <Clock className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground">More languages</p>
+                    <p className="truncate font-semibold text-muted-foreground">coming soon…</p>
+                  </div>
+                </div>
+              </Reveal>
             </div>
           </div>
         </section>

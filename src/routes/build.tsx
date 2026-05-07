@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { generateCV } from "@/utils/generateCV";
 import { GeneratingOverlay } from "@/components/GeneratingOverlay";
 import { BridgeIcon } from "@/components/BridgeIcon";
+import { Clock } from "lucide-react";
+import { t, type TKey } from "@/lib/buildTranslations";
 
 type Experience = {
   title: string;
@@ -22,6 +24,8 @@ type PersonalDetails = {
 type CVData = {
   language: string;
   languageCode: string;
+  /** Language code used to display the questions in the build form. */
+  questionLanguageCode: string;
   jobTypes: string[];
   otherJobType: string;
   personalDetails: PersonalDetails;
@@ -34,6 +38,7 @@ type CVData = {
 const initialData: CVData = {
   language: "",
   languageCode: "",
+  questionLanguageCode: "en",
   jobTypes: [],
   otherJobType: "",
   personalDetails: { name: "", phone: "", email: "", city: "", rightToWork: "" },
@@ -60,6 +65,10 @@ const languages = [
   { code: "tr", name: "Turkish", native: "Türkçe", flag: "🇹🇷" },
   { code: "fa", name: "Farsi", native: "فارسی", flag: "🇮🇷" },
   { code: "zh", name: "Chinese", native: "中文", flag: "🇨🇳" },
+  { code: "yo", name: "Yoruba", native: "Yorùbá", flag: "🇳🇬" },
+  { code: "ig", name: "Igbo", native: "Igbo", flag: "🇳🇬" },
+  { code: "om", name: "Oromo", native: "Afaan Oromoo", flag: "🇪🇹" },
+  { code: "ln", name: "Lingala", native: "Lingála", flag: "🇨🇩" },
 ];
 
 const jobs = [
@@ -191,6 +200,7 @@ function StepShell({
   nextDisabled,
   onBack,
   onNext,
+  qLang,
   children,
 }: {
   step: number;
@@ -199,10 +209,12 @@ function StepShell({
   nextDisabled?: boolean;
   onBack?: () => void;
   onNext: () => void;
+  qLang?: string;
   children: React.ReactNode;
 }) {
+  const dir = qLang && ["ar", "ur", "fa"].includes(qLang) ? "rtl" : "ltr";
   return (
-    <section className="px-4 py-8 sm:px-6 lg:px-8">
+    <section className="px-4 py-8 sm:px-6 lg:px-8" dir={dir}>
       <div className="mx-auto max-w-3xl">
         <div className="mb-8">
           <div className="mb-4 flex items-center gap-2" aria-label={`Step ${step} of 6`}>
@@ -227,7 +239,7 @@ function StepShell({
               onClick={onBack}
               className="rounded-xl border border-border bg-background px-5 py-3 font-medium text-foreground transition hover:bg-muted"
             >
-              Back
+              {t(qLang, "back")}
             </button>
           ) : (
             <span />
@@ -238,7 +250,7 @@ function StepShell({
             disabled={nextDisabled}
             className="rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Continue
+            {t(qLang, "continue")}
           </button>
         </div>
       </div>
@@ -247,38 +259,126 @@ function StepShell({
 }
 
 function Step1Language({ data, update, onNext }: StepProps) {
+  const [showModal, setShowModal] = useState(false);
+  const selectedLang = languages.find((l) => l.code === data.languageCode);
+
+  const handleContinue = () => {
+    if (!selectedLang) return;
+    if (selectedLang.code === "en") {
+      update("questionLanguageCode", "en");
+      onNext();
+    } else {
+      setShowModal(true);
+    }
+  };
+
+  const choose = (code: string) => {
+    update("questionLanguageCode", code);
+    setShowModal(false);
+    onNext();
+  };
+
   return (
-    <StepShell
-      step={1}
-      title="What language would you like to use?"
-      subtitle="Answer in the language that feels easiest for you."
-      onNext={onNext}
-      nextDisabled={!data.languageCode}
+    <>
+      <StepShell
+        step={1}
+        title="What language would you like to use?"
+        subtitle="Answer in the language that feels easiest for you."
+        onNext={handleContinue}
+        nextDisabled={!data.languageCode}
+      >
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {languages.map((language) => {
+            const selected = data.languageCode === language.code;
+            return (
+              <button
+                key={language.code}
+                type="button"
+                onClick={() => {
+                  update("languageCode", language.code);
+                  update("language", language.name);
+                }}
+                className={`rounded-xl border p-4 text-left transition ${
+                  selected ? "border-primary bg-primary/10 ring-2 ring-primary/30" : "border-border bg-background hover:bg-muted"
+                }`}
+              >
+                <span className="block text-2xl" aria-hidden="true">{language.flag}</span>
+                <span className="mt-2 block font-medium text-foreground">{language.name}</span>
+                <span className="block text-sm text-muted-foreground">{language.native}</span>
+              </button>
+            );
+          })}
+          <ComingSoonCard />
+        </div>
+      </StepShell>
+      {showModal && selectedLang && (
+        <LanguageChoiceModal
+          lang={selectedLang}
+          onChoose={choose}
+          onClose={() => setShowModal(false)}
+        />
+      )}
+    </>
+  );
+}
+
+function ComingSoonCard() {
+  return (
+    <div
+      aria-disabled="true"
+      className="flex flex-col items-start justify-center rounded-xl border-2 border-dashed border-border bg-muted/40 p-4 text-left opacity-70"
     >
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {languages.map((language) => {
-          const selected = data.languageCode === language.code;
-          return (
-            <button
-              key={language.code}
-              type="button"
-              onClick={() => {
-                update("languageCode", language.code);
-                update("language", language.name);
-                setTimeout(() => onNext(), 500);
-              }}
-              className={`rounded-xl border p-4 text-left transition ${
-                selected ? "border-primary bg-primary/10 ring-2 ring-primary/30" : "border-border bg-background hover:bg-muted"
-              }`}
-            >
-              <span className="block text-2xl" aria-hidden="true">{language.flag}</span>
-              <span className="mt-2 block font-medium text-foreground">{language.name}</span>
-              <span className="block text-sm text-muted-foreground">{language.native}</span>
-            </button>
-          );
-        })}
+      <Clock className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
+      <span className="mt-2 block font-medium text-muted-foreground">More languages</span>
+      <span className="block text-sm text-muted-foreground">coming soon…</span>
+    </div>
+  );
+}
+
+function LanguageChoiceModal({
+  lang,
+  onChoose,
+  onClose,
+}: {
+  lang: { code: string; name: string; native: string };
+  onChoose: (code: string) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl bg-card p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-lg font-semibold text-foreground">
+          {t(lang.code, "modalQuestion").replace("{lang}", lang.native)}
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Your CV will always be generated in both {lang.name} and English.
+        </p>
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+          <button
+            type="button"
+            onClick={() => onChoose(lang.code)}
+            className="flex-1 rounded-xl bg-primary px-4 py-3 font-semibold text-primary-foreground transition hover:opacity-90"
+          >
+            {lang.native}
+          </button>
+          <button
+            type="button"
+            onClick={() => onChoose("en")}
+            className="flex-1 rounded-xl border border-border bg-background px-4 py-3 font-medium text-foreground transition hover:bg-muted"
+          >
+            English
+          </button>
+        </div>
       </div>
-    </StepShell>
+    </div>
   );
 }
 
@@ -293,8 +393,9 @@ function Step2JobType({ data, update, onBack, onNext }: StepProps) {
   return (
     <StepShell
       step={2}
-      title="What kind of work are you looking for?"
-      subtitle="Choose every type of role you would consider."
+      qLang={data.questionLanguageCode}
+      title={t(data.questionLanguageCode, "step2Title")}
+      subtitle={t(data.questionLanguageCode, "step2Subtitle")}
       onBack={onBack}
       onNext={onNext}
       nextDisabled={data.jobTypes.length === 0}
@@ -349,8 +450,9 @@ function Step3PersonalDetails({ data, update, onBack, onNext }: StepProps) {
   return (
     <StepShell
       step={3}
-      title="Tell us about yourself"
-      subtitle="These details help employers contact you."
+      qLang={data.questionLanguageCode}
+      title={t(data.questionLanguageCode, "step3Title")}
+      subtitle={t(data.questionLanguageCode, "step3Subtitle")}
       onBack={onBack}
       onNext={onNext}
       nextDisabled={!valid}
@@ -421,8 +523,9 @@ function Step4Experience({ data, update, onBack, onNext }: StepProps) {
   return (
     <StepShell
       step={4}
-      title="What experience do you have?"
-      subtitle="Paid, informal and volunteer experience can all help your CV."
+      qLang={data.questionLanguageCode}
+      title={t(data.questionLanguageCode, "step4Title")}
+      subtitle={t(data.questionLanguageCode, "step4Subtitle")}
       onBack={onBack}
       onNext={onNext}
       nextDisabled={!valid}
@@ -495,8 +598,9 @@ function Step5Skills({ data, update, onBack, onNext }: StepProps) {
   return (
     <StepShell
       step={5}
-      title="What are your skills and availability?"
-      subtitle="Select the strengths and working times that fit you."
+      qLang={data.questionLanguageCode}
+      title={t(data.questionLanguageCode, "step5Title")}
+      subtitle={t(data.questionLanguageCode, "step5Subtitle")}
       onBack={onBack}
       onNext={onNext}
       nextDisabled={data.skills.length === 0 || data.availability.length === 0}
@@ -585,8 +689,8 @@ function Step6Review({ data, update, onBack, onEdit }: { data: CVData; update: <
       <div className="mx-auto max-w-3xl">
         <div className="mb-8">
           <p className="mb-2 text-sm font-medium text-muted-foreground">Step 6 of 6</p>
-          <h1 className="text-3xl font-semibold tracking-normal text-foreground sm:text-4xl">Review your CV details</h1>
-          <p className="mt-3 text-base text-muted-foreground sm:text-lg">Check everything before generating your English CV.</p>
+          <h1 className="text-3xl font-semibold tracking-normal text-foreground sm:text-4xl">{t(data.questionLanguageCode, "step6Title")}</h1>
+          <p className="mt-3 text-base text-muted-foreground sm:text-lg">{t(data.questionLanguageCode, "step6Subtitle")}</p>
         </div>
         <div className="space-y-4">
           <LanguageReviewSection
@@ -638,7 +742,7 @@ function Step6Review({ data, update, onBack, onEdit }: { data: CVData; update: <
         )}
         <div className="mt-6 flex items-center justify-between gap-3">
           <button type="button" onClick={onBack} className="rounded-xl border border-border bg-background px-5 py-3 font-medium text-foreground transition hover:bg-muted">
-            Back
+            {t(data.questionLanguageCode, "back")}
           </button>
           <button
             type="button"
