@@ -123,8 +123,42 @@ function ResultPage() {
             className="rounded-2xl border border-border bg-white p-6 text-slate-900 shadow-sm sm:p-10"
             style={{ minHeight: "60vh" }}
           >
-            <div className="prose prose-slate max-w-none prose-headings:font-semibold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:my-2 prose-ul:my-2 prose-li:my-0.5 text-sm leading-6 sm:text-base">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{activeText}</ReactMarkdown>
+            <div className="max-w-none text-[15px] leading-relaxed text-slate-900 sm:text-base">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  h1: ({ children }) => (
+                    <h1 className="mb-3 mt-2 text-3xl font-bold tracking-tight text-slate-900">{children}</h1>
+                  ),
+                  h2: ({ children }) => (
+                    <h2 className="mb-2 mt-6 border-b border-slate-200 pb-1 text-xl font-semibold uppercase tracking-wide text-slate-900">{children}</h2>
+                  ),
+                  h3: ({ children }) => (
+                    <h3 className="mb-1 mt-4 text-base font-semibold text-slate-900">{children}</h3>
+                  ),
+                  h4: ({ children }) => (
+                    <h4 className="mb-1 mt-3 text-sm font-semibold text-slate-900">{children}</h4>
+                  ),
+                  p: ({ children }) => (
+                    <p className="my-2 whitespace-pre-line text-slate-800">{children}</p>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="my-2 list-disc space-y-1 pl-6 text-slate-800">{children}</ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className="my-2 list-decimal space-y-1 pl-6 text-slate-800">{children}</ol>
+                  ),
+                  li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                  strong: ({ children }) => <strong className="font-semibold text-slate-900">{children}</strong>,
+                  em: ({ children }) => <em className="italic">{children}</em>,
+                  hr: () => <hr className="my-4 border-slate-200" />,
+                  a: ({ children, href }) => (
+                    <a href={href} className="text-blue-700 underline">{children}</a>
+                  ),
+                }}
+              >
+                {activeText}
+              </ReactMarkdown>
             </div>
           </article>
 
@@ -199,6 +233,18 @@ function normalizeMarkdown(input: string): string {
   s = s.replace(/^(#{1,6})([^#\s])/gm, "$1 $2");
   // Ensure blank line before headings
   s = s.replace(/([^\n])\n(#{1,6} )/g, "$1\n\n$2");
+  // Split contact details lines (Phone/Email/Location/Right to work) onto their own lines.
+  // The model often emits "Phone: 123 | Email: a@b | Location: London" on a single line.
+  const contactLabels = "(Phone|Tel|Telephone|Mobile|Email|E-mail|Location|City|Address|Right to [Ww]ork|Right-to-[Ww]ork)";
+  s = s.replace(
+    new RegExp(`(\\S)\\s*[•·\\|‧/–—-]\\s+(?=${contactLabels}\\s*:)`, "g"),
+    "$1  \n",
+  );
+  // Also handle ", " separating contact fields when both sides look like labelled values
+  s = s.replace(
+    new RegExp(`(\\S),\\s+(?=${contactLabels}\\s*:)`, "g"),
+    "$1  \n",
+  );
   return s;
 }
 
