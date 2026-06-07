@@ -28,19 +28,61 @@ export type GeneratedCV = {
 function buildPrompt(cvData: CVData) {
   const { language, jobTypes, personalDetails, experience, skills, availability } = cvData;
 
-  return `You are a professional UK CV writer helping immigrants find employment.
+  return `You are a professional UK CV writer. Generate a complete, well-formatted UK CV as clean HTML only.
 
-The user has provided their information. Generate TWO versions of their CV:
-1. A professional CV written entirely in ${language}
-2. The same CV written entirely in English
+STRICT RULES:
+- Output ONLY valid HTML. No markdown. No asterisks. No **bold** syntax. No explanatory text.
+- Use semantic HTML tags: h1, h2, p, ul, li, strong, span
+- Do NOT include html, head, body, or style tags — just the inner CV content div
 
-The CV should:
-- Follow standard UK CV format (no photo, no date of birth, no nationality)
-- Be appropriate for entry-level / hands-on roles (cleaning, care, warehouse, kitchen, etc.)
-- Be warm, professional, and highlight transferable skills
-- Be honest — do not invent qualifications they did not mention
-- Be concise — ideally one page
-- Include a short personal statement (2-3 sentences) that sounds human, not corporate
+CV STRUCTURE (follow this exact order):
+<div class="cv-header">
+  <h1 class="cv-name">[Full Name]</h1>
+  <p class="cv-contact">[Town/City] · [Phone] · [Email]</p>
+</div>
+<div class="cv-section">
+  <h2>Personal Statement</h2>
+  <p>[First paragraph: who they are, their background, what role they're seeking, their key strengths. Professional and compelling.]</p>
+  <p>[Second paragraph: what they bring to an employer, availability, work ethic, and ambition. Rich and persuasive.]</p>
+</div>
+<div class="cv-section">
+  <h2>Work Experience</h2>
+  [For each role:]
+  <div class="cv-job">
+    <p><strong>[Job Title]</strong> — [Company Name] <span class="cv-date">[Dates]</span></p>
+    <ul>
+      <li>[Responsibility or achievement]</li>
+    </ul>
+  </div>
+</div>
+<div class="cv-section">
+  <h2>Skills</h2>
+  <ul>
+    <li><strong>[Skill name]:</strong> [Brief description of that skill]</li>
+  </ul>
+</div>
+<div class="cv-section">
+  <h2>Availability</h2>
+  <ul>
+    <li>[Availability option]</li>
+  </ul>
+</div>
+<div class="cv-section">
+  <h2>Right to Work</h2>
+  <p>[Right to work status]</p>
+</div>
+<div class="cv-section">
+  <h2>References</h2>
+  <p>Available upon request</p>
+</div>
+
+QUALITY STANDARDS:
+- Personal statement must always be 2 full paragraphs minimum — rich, professional, no clichés
+- Every skill must have a name AND a description, never just a single word
+- Section headings are plain text inside h2 tags — no asterisks, no colons, no markdown
+- Contact details: full name as h1, then one clean line below with location · phone · email
+- Never output asterisks, hashtags, or any markdown syntax under any circumstances
+- If generating in ${language}, write all CV content in that language. For the English version, write everything in professional British English.
 
 USER INFORMATION:
 Name: ${personalDetails.name}
@@ -64,13 +106,17 @@ ${
 Skills: ${skills.join(", ")}
 Availability: ${availability.join(", ")}
 
-FORMAT YOUR RESPONSE EXACTLY LIKE THIS — no commentary before or after:
+Generate TWO versions of the CV using the exact structure above:
+1. One written entirely in ${language}
+2. One written entirely in English
+
+FORMAT YOUR RESPONSE EXACTLY LIKE THIS — no commentary before or after, no code fences:
 
 ===CV IN ${language.toUpperCase()}===
-[Full CV in ${language}]
+[Full HTML CV in ${language}]
 
 ===CV IN ENGLISH===
-[Full CV in English]`;
+[Full HTML CV in English]`;
 }
 
 export const generateCVServer = createServerFn({ method: "POST" })
