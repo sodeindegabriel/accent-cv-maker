@@ -1,7 +1,5 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import type { GeneratedCV } from "@/utils/generateCV";
 
 function ResultPage() {
@@ -9,7 +7,6 @@ function ResultPage() {
   const [result, setResult] = useState<GeneratedCV | null>(null);
   const [name, setName] = useState<string>("");
   const [tab, setTab] = useState<"native" | "english">("native");
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const raw = sessionStorage.getItem("cvlingo:result");
@@ -33,25 +30,14 @@ function ResultPage() {
     }
   }, [navigate]);
 
-  const activeText = useMemo(() => {
+  const activeHtml = useMemo(() => {
     if (!result) return "";
-    const raw = tab === "native" ? result.native : result.english;
-    return normalizeMarkdown(raw);
+    return sanitizeCvHtml(tab === "native" ? result.native : result.english);
   }, [result, tab]);
 
   if (!result) return null;
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(activeText);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      /* ignore */
-    }
-  };
-
-  const plainText = stripMarkdown(activeText);
+  const plainText = htmlToPlainText(activeHtml);
   const whatsappHref = `https://wa.me/?text=${encodeURIComponent(`Here is my CV:\n\n${plainText}`)}`;
   const shareLink = typeof window !== "undefined" ? `${window.location.origin}/build` : "/build";
   const friendShareHref = `https://wa.me/?text=${encodeURIComponent(
@@ -63,49 +49,71 @@ function ResultPage() {
   return (
     <main className="min-h-screen bg-background text-foreground">
       <style>{`
-        #cv-print h1.cv-name {
-          text-align: center;
-          font-size: 2rem;
+        #cv-print {
+          max-width: 680px;
+          margin: 0 auto;
+          padding: 40px;
+          background: #ffffff;
+          color: #111827;
+          font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+        }
+        #cv-print .cv-header { text-align: center; }
+        #cv-print .cv-name {
+          font-family: "DM Serif Display", ui-serif, Georgia, serif;
+          font-size: 2.25rem;
           font-weight: 700;
-          margin: 0 0 0.5rem 0;
+          text-align: center;
+          margin: 0 0 8px 0;
+          color: #111827;
           letter-spacing: -0.01em;
         }
         #cv-print .cv-contact {
           text-align: center;
-          font-size: 0.95rem;
-          color: #334155;
-          margin: 0 0 0.75rem 0;
-          padding-bottom: 1rem;
-          border-bottom: 1px solid #e2e8f0;
+          color: #6B7280;
+          font-size: 0.9rem;
+          margin: 0;
         }
-        #cv-print .cv-contact span + span::before {
-          content: " • ";
-          color: #94a3b8;
-          margin: 0 0.4rem;
+        #cv-print .cv-section {
+          margin-top: 32px;
+          border-top: 1px solid #E5E7EB;
+          padding-top: 16px;
         }
-        #cv-print h2 {
-          margin-top: 1.75rem !important;
-          margin-bottom: 0.75rem !important;
-          padding-bottom: 0.35rem !important;
-          border-bottom: 1px solid #e2e8f0 !important;
+        #cv-print .cv-section h2 {
+          font-size: 14px;
           text-transform: uppercase;
-          letter-spacing: 0.06em;
-          font-size: 1.05rem;
+          letter-spacing: 0.1em;
+          color: #0D6E6E;
           font-weight: 700;
+          margin: 0 0 12px 0;
         }
-        #cv-print h2:first-child { margin-top: 0 !important; }
-        #cv-print p { margin: 0.5rem 0; line-height: 1.65; }
-        #cv-print ul, #cv-print ol { margin: 0.5rem 0 0.75rem 0; padding-left: 1.4rem; }
-        #cv-print li { margin: 0.3rem 0; line-height: 1.6; }
-        #cv-print li + li { margin-top: 0.35rem; }
-        #cv-print h3 { margin-top: 1rem; margin-bottom: 0.25rem; }
+        #cv-print .cv-job { margin-bottom: 16px; }
+        #cv-print .cv-job p { margin: 0 0 6px 0; }
+        #cv-print .cv-date {
+          float: right;
+          color: #6B7280;
+          font-size: 0.85rem;
+          font-weight: 400;
+        }
+        #cv-print .cv-section ul {
+          padding-left: 20px;
+          line-height: 1.8;
+          margin: 0;
+          list-style: disc;
+        }
+        #cv-print .cv-section li { margin-bottom: 4px; }
+        #cv-print .cv-section p {
+          line-height: 1.7;
+          margin: 0 0 10px 0;
+          color: #111827;
+        }
+        #cv-print strong { font-weight: 600; color: #111827; }
         #cv-print .cv-watermark {
-          margin-top: 2.5rem;
-          padding-top: 1rem;
-          border-top: 1px solid #e2e8f0;
+          margin-top: 40px;
+          padding-top: 16px;
+          border-top: 1px solid #E5E7EB;
           text-align: center;
           font-size: 0.8rem;
-          color: #94a3b8;
+          color: #9CA3AF;
           letter-spacing: 0.08em;
         }
         @media print {
@@ -114,49 +122,17 @@ function ResultPage() {
           body * { visibility: hidden !important; }
           #cv-print, #cv-print * {
             visibility: visible !important;
-            color: #000000 !important;
-            background: #ffffff !important;
-            box-shadow: none !important;
           }
           #cv-print {
             position: absolute;
             left: 0;
             top: 0;
             width: 100%;
+            max-width: 100%;
             padding: 0;
             margin: 0;
+            box-shadow: none !important;
             border: none !important;
-            display: block !important;
-            font-size: 11pt;
-            line-height: 1.55;
-          }
-          #cv-print h1.cv-name { font-size: 22pt; margin-bottom: 6pt; }
-          #cv-print .cv-contact {
-            font-size: 10.5pt;
-            border-bottom: 1px solid #cbd5e1 !important;
-            padding-bottom: 8pt;
-            margin-bottom: 14pt;
-          }
-          #cv-print h2 {
-            font-size: 12pt;
-            margin-top: 18pt !important;
-            margin-bottom: 8pt !important;
-            padding-bottom: 4pt !important;
-            border-bottom: 1px solid #cbd5e1 !important;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            page-break-after: avoid;
-          }
-          #cv-print h3 { page-break-after: avoid; }
-          #cv-print p, #cv-print li { page-break-inside: avoid; }
-          #cv-print ul, #cv-print ol { padding-left: 18pt; }
-          #cv-print li { margin: 3pt 0; }
-          #cv-print .cv-watermark {
-            margin-top: 20pt;
-            padding-top: 8pt;
-            border-top: 1px solid #cbd5e1 !important;
-            color: #64748b !important;
-            font-size: 9pt;
           }
           .no-print { display: none !important; }
         }
@@ -190,61 +166,15 @@ function ResultPage() {
             </button>
           </div>
 
-          {(() => {
-            const { headerName, contactParts, body } = splitCvHeader(activeText, name);
-            return (
-              <article
-                id="cv-print"
-                className="rounded-2xl border border-border bg-white p-8 text-slate-900 shadow-sm sm:p-12"
-                style={{ minHeight: "60vh" }}
-              >
-                {headerName && <h1 className="cv-name">{headerName}</h1>}
-                {contactParts.length > 0 && (
-                  <div className="cv-contact">
-                    {contactParts.map((c: string, i: number) => (
-                      <span key={i}>{c}</span>
-                    ))}
-                  </div>
-                )}
-                <div className="max-w-none text-[15px] leading-relaxed text-slate-900 sm:text-base">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      h1: ({ children }) => (
-                        <h2>{children}</h2>
-                      ),
-                      h2: ({ children }) => <h2>{children}</h2>,
-                      h3: ({ children }) => (
-                        <h3 className="text-base font-semibold text-slate-900">{children}</h3>
-                      ),
-                      h4: ({ children }) => (
-                        <h4 className="text-sm font-semibold text-slate-900">{children}</h4>
-                      ),
-                      p: ({ children }) => (
-                        <p className="whitespace-pre-line text-slate-800">{children}</p>
-                      ),
-                      ul: ({ children }) => (
-                        <ul className="list-disc text-slate-800">{children}</ul>
-                      ),
-                      ol: ({ children }) => (
-                        <ol className="list-decimal text-slate-800">{children}</ol>
-                      ),
-                      li: ({ children }) => <li>{children}</li>,
-                      strong: ({ children }) => <strong className="font-semibold text-slate-900">{children}</strong>,
-                      em: ({ children }) => <em className="italic">{children}</em>,
-                      hr: () => <hr className="my-4 border-slate-200" />,
-                      a: ({ children, href }) => (
-                        <a href={href} className="text-blue-700 underline">{children}</a>
-                      ),
-                    }}
-                  >
-                    {body}
-                  </ReactMarkdown>
-                </div>
-                <div className="cv-watermark">Created with CVLingo · cvlingo.com</div>
-              </article>
-            );
-          })()}
+          <article
+            className="rounded-2xl border border-border bg-white shadow-sm"
+            style={{ minHeight: "60vh" }}
+          >
+            <div id="cv-print">
+              <div dangerouslySetInnerHTML={{ __html: activeHtml }} />
+              <div className="cv-watermark">Created with CVLingo · cvlingo.com</div>
+            </div>
+          </article>
 
           <div className="no-print mt-6 flex flex-wrap gap-3">
             <button
@@ -255,7 +185,6 @@ function ResultPage() {
                 const filename = `${safeName} - CVLingo - ${langForFile}.pdf`;
                 const previousTitle = document.title;
                 document.title = filename;
-                // Wait for the CV content to be fully painted before opening the print dialog
                 setTimeout(() => {
                   window.print();
                   setTimeout(() => {
@@ -275,13 +204,6 @@ function ResultPage() {
             >
               Share via WhatsApp
             </a>
-            <button
-              type="button"
-              onClick={handleCopy}
-              className="rounded-xl border border-border bg-background px-5 py-3 font-medium text-foreground transition hover:bg-muted"
-            >
-              {copied ? "Copied!" : "Copy to clipboard"}
-            </button>
           </div>
 
           <section className="no-print mt-10 rounded-2xl border border-border bg-card p-6">
@@ -304,97 +226,37 @@ function ResultPage() {
   );
 }
 
-function normalizeMarkdown(input: string): string {
+// Strip code fences and any stray markdown/script tags. Allow our CV HTML through.
+function sanitizeCvHtml(input: string): string {
   if (!input) return "";
-  let s = input.replace(/\r\n/g, "\n");
-  // Strip surrounding code fences if the model wrapped output
-  s = s.replace(/^```(?:markdown|md)?\s*\n([\s\S]*?)\n```\s*$/i, "$1");
-  // Trim spaces inside bold/italic delimiters: "** Text **" -> "**Text**"
-  s = s.replace(/\*\*\s+([^*\n]+?)\s+\*\*/g, "**$1**");
-  s = s.replace(/\*\*\s+([^*\n]+?)\*\*/g, "**$1**");
-  s = s.replace(/\*\*([^*\n]+?)\s+\*\*/g, "**$1**");
-  // Ensure ATX headings have a space after #
-  s = s.replace(/^(#{1,6})([^#\s])/gm, "$1 $2");
-  // Ensure blank line before headings
-  s = s.replace(/([^\n])\n(#{1,6} )/g, "$1\n\n$2");
-  // Split contact details lines (Phone/Email/Location/Right to work) onto their own lines.
-  // The model often emits "Phone: 123 | Email: a@b | Location: London" on a single line.
-  const contactLabels = "(Phone|Tel|Telephone|Mobile|Email|E-mail|Location|City|Address|Right to [Ww]ork|Right-to-[Ww]ork)";
-  s = s.replace(
-    new RegExp(`(\\S)\\s*[•·\\|‧/–—-]\\s+(?=${contactLabels}\\s*:)`, "g"),
-    "$1  \n",
-  );
-  // Also handle ", " separating contact fields when both sides look like labelled values
-  s = s.replace(
-    new RegExp(`(\\S),\\s+(?=${contactLabels}\\s*:)`, "g"),
-    "$1  \n",
-  );
-  return s;
-}
-
-function splitCvHeader(
-  text: string,
-  fallbackName: string,
-): { headerName: string; contactParts: string[]; body: string } {
-  if (!text) return { headerName: fallbackName || "", contactParts: [], body: "" };
-  const lines = text.split("\n");
-  let headerName = "";
-  const contactParts: string[] = [];
-  let i = 0;
-  while (i < lines.length && !lines[i].trim()) i++;
-  if (i < lines.length) {
-    const m = lines[i].match(/^\s*#{1,2}\s+(.+?)\s*$/);
-    if (m) {
-      headerName = m[1].trim();
-      i++;
-    } else if (!lines[i].startsWith("#") && !/^[-*]/.test(lines[i].trim())) {
-      const candidate = lines[i].trim();
-      if (candidate.length < 80 && !candidate.includes(":")) {
-        headerName = candidate;
-        i++;
-      }
-    }
-  }
-  if (!headerName) headerName = fallbackName || "";
-  while (i < lines.length) {
-    const ln = lines[i];
-    if (!ln.trim()) { i++; if (contactParts.length) break; else continue; }
-    if (/^\s*#/.test(ln)) break;
-    const parts = ln.split(/\s*[•·|]\s*|\s{2,}/).map((p: string) => p.trim()).filter(Boolean);
-    contactParts.push(...parts);
-    i++;
-    if (contactParts.length >= 6) break;
-  }
-  const body = lines.slice(i).join("\n").trimStart();
-  return { headerName, contactParts, body };
-}
-
-function stripMarkdown(input: string): string {
-  if (!input) return "";
-  let s = input.replace(/\r\n/g, "\n");
-  // Remove code fences
-  s = s.replace(/```[a-z]*\n?/gi, "").replace(/```/g, "");
-  // Headings: drop leading #'s
-  s = s.replace(/^\s{0,3}#{1,6}\s+/gm, "");
-  // Bold/italic markers
-  s = s.replace(/\*\*\*(.+?)\*\*\*/g, "$1");
-  s = s.replace(/\*\*(.+?)\*\*/g, "$1");
-  s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, "$1$2");
-  s = s.replace(/__(.+?)__/g, "$1");
-  s = s.replace(/(^|[^_])_([^_\n]+)_/g, "$1$2");
-  // Bullet lists -> dashes
-  s = s.replace(/^\s*[-*+]\s+/gm, "- ");
-  // Numbered lists keep as is but trim
-  s = s.replace(/^\s*(\d+)\.\s+/gm, "$1. ");
-  // Horizontal rules
-  s = s.replace(/^\s*([-*_])\1{2,}\s*$/gm, "");
-  // Links [text](url) -> text (url)
-  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1 ($2)");
-  // Inline code
-  s = s.replace(/`([^`]+)`/g, "$1");
-  // Collapse 3+ newlines
-  s = s.replace(/\n{3,}/g, "\n\n");
+  let s = input.replace(/\r\n/g, "\n").trim();
+  // Strip code fences if model wrapped output
+  s = s.replace(/^```(?:html|HTML)?\s*\n?/, "").replace(/\n?```\s*$/, "");
+  // Remove dangerous tags
+  s = s.replace(/<script[\s\S]*?<\/script>/gi, "");
+  s = s.replace(/<style[\s\S]*?<\/style>/gi, "");
+  s = s.replace(/\son\w+\s*=\s*"[^"]*"/gi, "");
+  s = s.replace(/\son\w+\s*=\s*'[^']*'/gi, "");
+  // Strip stray markdown bold/heading markers in case the model slipped
+  s = s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   return s.trim();
+}
+
+function htmlToPlainText(html: string): string {
+  if (typeof document === "undefined") {
+    return html.replace(/<[^>]+>/g, "").replace(/\s+\n/g, "\n").trim();
+  }
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html;
+  // Add line breaks for block-level elements
+  tmp.querySelectorAll("h1, h2, h3, p, li, div").forEach((el) => {
+    el.append("\n");
+  });
+  tmp.querySelectorAll("li").forEach((el) => {
+    el.prepend("- ");
+  });
+  const text = (tmp.textContent || "").replace(/\n{3,}/g, "\n\n").trim();
+  return text;
 }
 
 const editSections: { step: number; label: string }[] = [
