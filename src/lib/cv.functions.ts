@@ -122,9 +122,9 @@ FORMAT YOUR RESPONSE EXACTLY LIKE THIS — no commentary before or after, no cod
 export const generateCVServer = createServerFn({ method: "POST" })
   .inputValidator((data: CVData) => data)
   .handler(async ({ data: cvData }): Promise<GeneratedCV> => {
-    const apiKey = process.env.ANTHROPIC_KEY;
+    const apiKey = process.env.ANTHROPIC_API_KEY ?? process.env.ANTHROPIC_KEY;
     if (!apiKey) {
-      throw new Error("Missing ANTHROPIC_KEY secret on the server.");
+      throw new Error("Missing ANTHROPIC_API_KEY secret on the server.");
     }
 
     const prompt = buildPrompt(cvData);
