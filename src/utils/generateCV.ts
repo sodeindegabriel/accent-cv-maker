@@ -1,5 +1,5 @@
-import { generateCVServer } from "@/server/cv.functions";
-import type { CVData, GeneratedCV } from "@/server/cv.functions";
+import { generateCVServer } from "@/lib/cv.functions";
+import type { CVData, GeneratedCV } from "@/lib/cv.functions";
 
 export type { CVData, GeneratedCV };
 
