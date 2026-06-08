@@ -817,8 +817,10 @@ function Step6Review({ data, update, displayLang, originalLang, onToggleLang, on
   const navigate = useNavigate();
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [consent, setConsent] = useState(false);
 
   const handleGenerate = async () => {
+    if (!consent) return;
     setGenerating(true);
     setError(null);
     try {
@@ -832,6 +834,7 @@ function Step6Review({ data, update, displayLang, originalLang, onToggleLang, on
       setGenerating(false);
     }
   };
+
 
   const jobLabels = useMemo(
     () =>
