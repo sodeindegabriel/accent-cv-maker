@@ -847,10 +847,10 @@ function Step5Skills({ data, update, displayLang, originalLang, onToggleLang, on
                     placeholder="e.g. City College"
                   />
                   <TextField
-                    label="Country"
+                    label={t(displayLang, "country")}
                     value={edu.country}
                     onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, country: v } : e))}
-                    placeholder="e.g. UK, Poland"
+                    placeholder={t(displayLang, "countryPlaceholder")}
                   />
                   <TextField
                     label={t(displayLang, "yearCompleted")}
