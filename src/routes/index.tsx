@@ -366,7 +366,7 @@ function Index() {
           <div className="mx-auto grid max-w-6xl gap-6 px-5 py-8 text-center sm:grid-cols-2 md:grid-cols-4">
             <div className="flex flex-col items-center gap-1">
               <Globe className="h-5 w-5 text-primary" />
-              <p className="font-semibold text-foreground">20 Languages Supported</p>
+              <p className="font-semibold text-foreground">Build in Your Language</p>
             </div>
             <div className="flex flex-col items-center gap-1">
               <Check className="h-5 w-5 text-primary" />
