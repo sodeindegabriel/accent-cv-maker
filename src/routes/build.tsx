@@ -40,6 +40,7 @@ type CVData = {
   personalDetails: PersonalDetails;
   experienceType: string;
   experience: Experience[];
+  hasEducation: "" | "yes" | "no";
   education: Education[];
   skills: string[];
   availability: string[];
@@ -54,6 +55,7 @@ const initialData: CVData = {
   personalDetails: { name: "", phone: "", email: "", city: "", postcode: "", rightToWork: "" },
   experienceType: "",
   experience: [],
+  hasEducation: "",
   education: [],
   skills: [],
   availability: [],
