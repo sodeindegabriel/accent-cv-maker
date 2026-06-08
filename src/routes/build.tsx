@@ -1030,6 +1030,8 @@ function Step6Review({ data, update, displayLang, originalLang, onToggleLang, on
                 ))}
               </ul>
             )}
+          </ReviewSection>
+
 
         </div>
         {error && (
