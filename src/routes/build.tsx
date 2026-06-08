@@ -1060,7 +1060,7 @@ function Step6Review({ data, update, displayLang, originalLang, onToggleLang, on
           </button>
         </div>
       </div>
-      {generating && <GeneratingOverlay />}
+      {generating && <GeneratingOverlay lang={displayLang} />}
     </section>
   );
 }
