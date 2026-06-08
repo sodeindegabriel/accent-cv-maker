@@ -1015,6 +1015,22 @@ function Step6Review({ data, update, displayLang, originalLang, onToggleLang, on
             <p>{skillLabels || t(displayLang, "noSkills")}</p>
             <p>{availabilityLabels || t(displayLang, "noAvailability")}</p>
           </ReviewSection>
+          <ReviewSection title={t(displayLang, "education")} editLabel={t(displayLang, "edit")} onEdit={() => onEdit(5)}>
+            {data.education.length === 0 ? (
+              <p>{t(displayLang, "noEducation")}</p>
+            ) : (
+              <ul className="space-y-1">
+                {data.education.map((e, i) => (
+                  <li key={i}>
+                    <span className="font-medium text-foreground">{e.qualification || t(displayLang, "qualificationName")}</span>
+                    {e.institution && ` — ${e.institution}`}
+                    {e.country && `, ${e.country}`}
+                    {e.year && ` (${e.year})`}
+                  </li>
+                ))}
+              </ul>
+            )}
+
         </div>
         {error && (
           <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
