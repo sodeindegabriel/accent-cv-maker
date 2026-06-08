@@ -7,8 +7,10 @@ export type TKey =
   | "continue" | "back" | "modalQuestion" | "stepOf"
   | "job_hospitality" | "job_construction" | "job_care" | "job_delivery"
   | "job_cleaning" | "job_retail" | "job_warehouse" | "job_office"
-  | "job_beauty" | "job_other" | "otherWorkType" | "otherWorkPlaceholder"
-  | "fullName" | "phoneNumber" | "email" | "cityUk" | "rightToWork"
+  | "job_beauty" | "job_security" | "job_agriculture" | "job_other"
+  | "otherWorkType" | "otherWorkPlaceholder"
+  | "fullName" | "phoneNumber" | "email" | "cityUk" | "postcodeOptional"
+  | "postcodePlaceholder" | "rightToWork"
   | "rtw_british" | "rtw_settled" | "rtw_skilled" | "rtw_student"
   | "rtw_refugee" | "rtw_other" | "describeStatus" | "describeStatusPlaceholder"
   | "namePlaceholder" | "cityPlaceholder"
@@ -23,11 +25,15 @@ export type TKey =
   | "skill_care" | "skill_office" | "skill_problem" | "skill_english"
   | "avail_weekdays" | "avail_weekends" | "avail_evenings" | "avail_mornings"
   | "avail_full" | "avail_part"
+  | "educationTitle" | "educationSubtitle" | "qualificationName" | "institution"
+  | "yearCompleted" | "yearPlaceholder" | "addQualification" | "educationN"
+  | "education" | "noEducation"
   | "language" | "workWanted" | "personalDetails" | "experience"
   | "skillsAndAvailability" | "edit" | "close" | "notSelected"
   | "nameMissing" | "phoneMissing" | "emailMissing" | "cityMissing" | "rtwMissing"
   | "noExperienceYet" | "notAdded" | "noSkills" | "noAvailability"
   | "generateCv" | "generating" | "somethingWrong" | "retry";
+
 
 type Dict = Partial<Record<TKey, string>>;
 
