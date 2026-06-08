@@ -432,83 +432,198 @@ function Index() {
               </p>
             </Reveal>
 
-            <Reveal delay={120} className="mx-auto mt-14 max-w-3xl">
-              <div className="overflow-hidden rounded-xl border border-border bg-white shadow-2xl">
-                {/* Mock CV Document */}
-                <div className="bg-white p-8 md:p-12">
-                  {/* Header */}
-                  <div className="border-b-2 border-primary pb-4">
-                    <h3 className="font-serif text-2xl font-bold text-foreground md:text-3xl">Amina Hussain</h3>
-                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                      <span>+44 7700 900123</span>
-                      <span>amina.hussain@email.com</span>
-                      <span>Birmingham, UK</span>
-                    </div>
-                  </div>
+            <Reveal delay={120} className="mx-auto mt-10 max-w-3xl">
+              <div className="mb-5 flex flex-wrap items-center justify-center gap-2">
+                {previewLanguages.map((l) => {
+                  const active = previewLang === l.code;
+                  return (
+                    <button
+                      key={l.code}
+                      type="button"
+                      onClick={() => setPreviewLang(l.code)}
+                      className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all ${
+                        active
+                          ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                          : "border-border bg-white text-foreground hover:border-primary/40"
+                      }`}
+                    >
+                      {l.label}
+                    </button>
+                  );
+                })}
+              </div>
 
-                  {/* Profile */}
-                  <div className="mt-5">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Professional Summary</h4>
-                    <p className="mt-2 text-sm leading-relaxed text-foreground">
-                      Dedicated healthcare assistant with 4+ years of experience in residential and hospital care settings. 
-                      Compassionate, reliable, and committed to delivering high-quality patient support. 
-                      Seeking a new opportunity to grow within the UK healthcare sector.
-                    </p>
-                  </div>
-
-                  {/* Experience */}
-                  <div className="mt-5">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Work Experience</h4>
-                    <div className="mt-3">
-                      <div className="flex justify-between items-baseline">
-                        <p className="text-sm font-semibold text-foreground">Healthcare Assistant</p>
-                        <p className="text-xs text-muted-foreground">2020 – Present</p>
+              {(() => {
+                const cv = cvTranslations[previewLang] ?? cvTranslations.en;
+                return (
+                  <div
+                    className="overflow-hidden rounded-xl border border-border bg-white shadow-2xl"
+                    dir={cv.dir}
+                    lang={previewLang}
+                  >
+                    <div className="bg-white p-8 md:p-12">
+                      <div className="border-b-2 border-primary pb-4">
+                        <h3 className="font-serif text-2xl font-bold text-foreground md:text-3xl">Amina Hussain</h3>
+                        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                          <span>{cv.contact.phone}</span>
+                          <span>{cv.contact.email}</span>
+                          <span>{cv.contact.location}</span>
+                        </div>
                       </div>
-                      <p className="text-xs text-muted-foreground">Greenwood Care Home, Birmingham, UK</p>
-                      <ul className="mt-2 space-y-1 text-sm text-foreground">
-                        <li>• Provided daily personal care to 8+ residents, maintaining dignity and comfort</li>
-                        <li>• Assisted with medication reminders and mobility support</li>
-                        <li>• Collaborated with nurses and families to update care plans</li>
-                      </ul>
+
+                      <div className="mt-5">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary">{cv.summaryHeading}</h4>
+                        <p className="mt-2 text-sm leading-relaxed text-foreground">{cv.summary}</p>
+                      </div>
+
+                      <div className="mt-5">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary">{cv.experienceHeading}</h4>
+                        <div className="mt-3">
+                          <div className="flex items-baseline justify-between">
+                            <p className="text-sm font-semibold text-foreground">{cv.jobTitle}</p>
+                            <p className="text-xs text-muted-foreground">{cv.jobDates}</p>
+                          </div>
+                          <p className="text-xs text-muted-foreground">{cv.employer}</p>
+                          <ul className="mt-2 space-y-1 text-sm text-foreground">
+                            {cv.bullets.map((b) => (
+                              <li key={b}>• {b}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div className="mt-5">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary">{cv.skillsHeading}</h4>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {cv.skills.map((skill) => (
+                            <span key={skill} className="rounded-full bg-primary-soft px-3 py-1 text-xs font-medium text-primary">
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="mt-5">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary">{cv.educationHeading}</h4>
+                        <div className="mt-2">
+                          <p className="text-sm font-semibold text-foreground">{cv.degree}</p>
+                          <p className="text-xs text-muted-foreground">{cv.school}</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-5">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary">{cv.languagesHeading}</h4>
+                        <p className="mt-2 text-sm text-foreground">{cv.languagesText}</p>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-border bg-secondary/50 px-8 py-3 text-center text-xs text-muted-foreground">
+                      Created with CVLingo · cvlingo.com
                     </div>
                   </div>
+                );
+              })()}
+            </Reveal>
 
-                  {/* Skills */}
-                  <div className="mt-5">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Key Skills</h4>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {["Patient Care", "Teamwork", "Communication", "First Aid", "Time Management"].map((skill) => (
-                        <span key={skill} className="rounded-full bg-primary-soft px-3 py-1 text-xs font-medium text-primary">
-                          {skill}
+            {/* TEMPLATE CARDS */}
+            <Reveal delay={180} className="mx-auto mt-12 max-w-4xl">
+              <p className="text-center text-xs font-semibold uppercase tracking-widest text-accent">Templates</p>
+              <h3 className="mt-2 text-center font-serif text-2xl text-foreground md:text-3xl">Choose your style</h3>
+              <div className="mt-8 grid gap-5 sm:grid-cols-3">
+                {[
+                  { name: "Classic", available: true },
+                  { name: "Modern", available: false },
+                  { name: "Executive", available: false },
+                ].map((tpl) => (
+                  <button
+                    key={tpl.name}
+                    type="button"
+                    onClick={() => {
+                      if (!tpl.available) setComingSoonOpen(true);
+                    }}
+                    className={`group relative flex flex-col items-stretch overflow-hidden rounded-2xl border bg-white p-5 text-left transition-all ${
+                      tpl.available
+                        ? "border-primary/30 hover:-translate-y-0.5 hover:shadow-lg"
+                        : "border-border opacity-70 hover:opacity-90"
+                    }`}
+                  >
+                    <div className={`h-28 rounded-lg ${tpl.available ? "bg-primary-soft" : "bg-muted"}`}>
+                      <div className="flex h-full flex-col justify-center gap-1.5 p-3">
+                        <div className={`h-2 w-1/2 rounded ${tpl.available ? "bg-primary/60" : "bg-muted-foreground/30"}`} />
+                        <div className={`h-1.5 w-3/4 rounded ${tpl.available ? "bg-primary/30" : "bg-muted-foreground/20"}`} />
+                        <div className={`h-1.5 w-2/3 rounded ${tpl.available ? "bg-primary/30" : "bg-muted-foreground/20"}`} />
+                        <div className={`h-1.5 w-1/2 rounded ${tpl.available ? "bg-primary/30" : "bg-muted-foreground/20"}`} />
+                      </div>
+                    </div>
+                    <div className="mt-4 flex items-center justify-between">
+                      <p className={`font-serif text-lg ${tpl.available ? "text-foreground" : "text-muted-foreground"}`}>
+                        {tpl.name}
+                      </p>
+                      {tpl.available ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                          <Check className="h-3 w-3" /> Free
                         </span>
-                      ))}
+                      ) : (
+                        <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                          Coming Soon
+                        </span>
+                      )}
                     </div>
-                  </div>
+                  </button>
+                ))}
+              </div>
+            </Reveal>
 
-                  {/* Education */}
-                  <div className="mt-5">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Education</h4>
-                    <div className="mt-2">
-                      <p className="text-sm font-semibold text-foreground">NVQ Level 2 in Health and Social Care</p>
-                      <p className="text-xs text-muted-foreground">Birmingham Adult Education, 2019</p>
-                    </div>
+            {/* VIDEO SECTION */}
+            <Reveal delay={220} className="mx-auto mt-20 max-w-4xl text-center">
+              <span className="text-xs font-semibold uppercase tracking-widest text-accent">Watch</span>
+              <h3 className="mt-2 font-serif text-3xl text-foreground md:text-4xl">Build your CV in under 2 minutes</h3>
+              <p className="mt-3 text-muted-foreground">See how CVLingo works</p>
+              <div
+                className="relative mx-auto mt-8 w-full max-w-[720px] overflow-hidden rounded-2xl shadow-2xl"
+                style={{ aspectRatio: "16 / 9", backgroundColor: "#0D6E6E" }}
+              >
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-white">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/15 backdrop-blur-sm ring-1 ring-white/30">
+                    <Play className="h-9 w-9 translate-x-0.5 fill-white text-white" />
                   </div>
-
-                  {/* Languages */}
-                  <div className="mt-5">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Languages</h4>
-                    <p className="mt-2 text-sm text-foreground">English (Fluent) · Urdu (Native)</p>
-                  </div>
-                </div>
-
-                {/* Watermark footer */}
-                <div className="border-t border-border bg-secondary/50 px-8 py-3 text-center text-xs text-muted-foreground">
-                  Created with CVLingo · cvlingo.com
+                  <p className="text-sm font-medium uppercase tracking-widest text-white/90">Video coming soon</p>
                 </div>
               </div>
             </Reveal>
           </div>
         </section>
+
+        {/* COMING SOON MODAL */}
+        {comingSoonOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+            onClick={() => setComingSoonOpen(false)}
+          >
+            <div
+              className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={() => setComingSoonOpen(false)}
+                className="absolute right-3 top-3 rounded-full p-1 text-muted-foreground hover:bg-muted"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <h4 className="font-serif text-xl text-foreground">Premium templates coming soon</h4>
+              <p className="mt-2 text-sm text-muted-foreground">Start free — no sign up needed.</p>
+              <Link
+                to="/build"
+                onClick={() => setComingSoonOpen(false)}
+                className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+              >
+                Start with Classic
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* ATS BANNER */}
         <section className="bg-primary py-10">
