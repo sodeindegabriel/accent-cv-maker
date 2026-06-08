@@ -532,6 +532,17 @@ function Step2JobType({ data, update, displayLang, originalLang, onToggleLang, o
   );
 }
 
+function isValidUKPhone(phone: string): boolean {
+  const cleaned = phone.replace(/[\s-]/g, "");
+  if (/^07\d{9}$/.test(cleaned)) return true;
+  if (/^\+44\d{10}$/.test(cleaned)) return true;
+  return false;
+}
+
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
 function Step3PersonalDetails({ data, update, displayLang, originalLang, onToggleLang, onBack, onNext }: StepProps) {
   const personal = data.personalDetails;
   const setPersonal = (key: keyof PersonalDetails, value: string) => {
@@ -539,9 +550,12 @@ function Step3PersonalDetails({ data, update, displayLang, originalLang, onToggl
   };
   const isOther = personal.rightToWork.startsWith("Other:") || personal.rightToWork === "Other / not sure";
   const otherDetail = personal.rightToWork.startsWith("Other:") ? personal.rightToWork.slice(6).trim() : "";
+  const phoneValid = isValidUKPhone(personal.phone);
+  const emailValid = isValidEmail(personal.email);
   const valid = Boolean(
     personal.name &&
-      personal.phone &&
+      phoneValid &&
+      emailValid &&
       personal.city &&
       personal.rightToWork &&
       (!isOther || otherDetail.length > 0),
@@ -561,8 +575,35 @@ function Step3PersonalDetails({ data, update, displayLang, originalLang, onToggl
     >
       <div className="space-y-4">
         <TextField label={t(displayLang, "fullName")} value={personal.name} onChange={(value) => setPersonal("name", value)} placeholder={t(displayLang, "namePlaceholder")} />
-        <TextField label={t(displayLang, "phoneNumber")} value={personal.phone} onChange={(value) => setPersonal("phone", value)} placeholder="07…" type="tel" />
-        <TextField label={t(displayLang, "email")} value={personal.email} onChange={(value) => setPersonal("email", value)} placeholder="you@example.com" type="email" />
+        <div>
+          <label className="mb-2 block text-sm font-medium text-foreground">{t(displayLang, "phoneNumber")}</label>
+          <div className={`flex items-center rounded-xl border bg-background focus-within:ring-2 focus-within:ring-primary/30 ${personal.phone && !phoneValid ? "border-destructive" : "border-border focus-within:border-primary"}`}>
+            <span className="pl-4 pr-2 text-lg select-none" aria-hidden="true">🇬🇧</span>
+            <input
+              type="tel"
+              value={personal.phone}
+              onChange={(e) => setPersonal("phone", e.target.value)}
+              placeholder="07… or +44…"
+              className="w-full bg-transparent py-3 pr-4 text-foreground outline-none"
+            />
+          </div>
+          {personal.phone && !phoneValid && (
+            <p className="mt-1 text-sm text-destructive">Please enter a valid UK phone number</p>
+          )}
+        </div>
+        <div>
+          <label className="mb-2 block text-sm font-medium text-foreground">{t(displayLang, "email")}</label>
+          <input
+            type="email"
+            value={personal.email}
+            onChange={(e) => setPersonal("email", e.target.value)}
+            placeholder="you@example.com"
+            className={`w-full rounded-xl border bg-background px-4 py-3 text-foreground outline-none focus:ring-2 focus:ring-primary/30 ${personal.email && !emailValid ? "border-destructive" : "border-border focus:border-primary"}`}
+          />
+          {personal.email && !emailValid && (
+            <p className="mt-1 text-sm text-destructive">Please enter a valid email address</p>
+          )}
+        </div>
         <TextField label={t(displayLang, "cityUk")} value={personal.city} onChange={(value) => setPersonal("city", value)} placeholder={t(displayLang, "cityPlaceholder")} />
         <div>
           <label className="mb-2 block text-sm font-medium text-foreground">{t(displayLang, "rightToWork")}</label>
