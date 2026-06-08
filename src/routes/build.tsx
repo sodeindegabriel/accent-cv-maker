@@ -94,8 +94,11 @@ const jobs: { id: string; tKey: TKey; emoji: string }[] = [
   { id: "warehouse", tKey: "job_warehouse", emoji: "📦" },
   { id: "office", tKey: "job_office", emoji: "💼" },
   { id: "beauty", tKey: "job_beauty", emoji: "💇" },
+  { id: "security", tKey: "job_security", emoji: "🔒" },
+  { id: "agriculture", tKey: "job_agriculture", emoji: "🌱" },
   { id: "other", tKey: "job_other", emoji: "✨" },
 ];
+
 
 const rightToWorkOptions: { value: string; tKey: TKey }[] = [
   { value: "British citizen", tKey: "rtw_british" },
