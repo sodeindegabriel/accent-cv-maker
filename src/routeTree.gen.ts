@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ResultRouteImport } from './routes/result'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as EmployerRouteImport } from './routes/employer'
 import { Route as BuildRouteImport } from './routes/build'
 import { Route as IndexRouteImport } from './routes/index'
@@ -17,6 +18,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const ResultRoute = ResultRouteImport.update({
   id: '/result',
   path: '/result',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EmployerRoute = EmployerRouteImport.update({
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/build': typeof BuildRoute
   '/employer': typeof EmployerRoute
+  '/privacy': typeof PrivacyRoute
   '/result': typeof ResultRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/build': typeof BuildRoute
   '/employer': typeof EmployerRoute
+  '/privacy': typeof PrivacyRoute
   '/result': typeof ResultRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/build': typeof BuildRoute
   '/employer': typeof EmployerRoute
+  '/privacy': typeof PrivacyRoute
   '/result': typeof ResultRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/build' | '/employer' | '/result'
+  fullPaths: '/' | '/build' | '/employer' | '/privacy' | '/result'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/build' | '/employer' | '/result'
-  id: '__root__' | '/' | '/build' | '/employer' | '/result'
+  to: '/' | '/build' | '/employer' | '/privacy' | '/result'
+  id: '__root__' | '/' | '/build' | '/employer' | '/privacy' | '/result'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BuildRoute: typeof BuildRoute
   EmployerRoute: typeof EmployerRoute
+  PrivacyRoute: typeof PrivacyRoute
   ResultRoute: typeof ResultRoute
 }
 
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/result'
       fullPath: '/result'
       preLoaderRoute: typeof ResultRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/employer': {
@@ -106,6 +123,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BuildRoute: BuildRoute,
   EmployerRoute: EmployerRoute,
+  PrivacyRoute: PrivacyRoute,
   ResultRoute: ResultRoute,
 }
 export const routeTree = rootRouteImport
