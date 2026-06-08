@@ -180,7 +180,9 @@ function ResultPage() {
           >
             <div id="cv-print">
               <div dangerouslySetInnerHTML={{ __html: activeHtml }} />
-              <div className="cv-watermark">Created with CVLingo · cvlingo.com</div>
+              <div className="cv-watermark">
+                Created with <a href="https://cvlingo.com" target="_blank" rel="noreferrer">CVLingo · cvlingo.com</a>
+              </div>
             </div>
           </article>
 
