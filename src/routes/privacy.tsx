@@ -18,32 +18,40 @@ function PrivacyPage() {
       <section className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-semibold sm:text-4xl">Privacy Policy</h1>
         <p className="mt-2 text-sm text-muted-foreground">Last updated: June 2026</p>
-        <div className="prose mt-6 max-w-none space-y-5 text-foreground">
+        <div className="prose mt-6 max-w-none space-y-6 text-foreground">
           <p>
-            CVLingo helps you build a UK-format CV in your own language. We respect your privacy and
-            keep your data handling simple.
+            CVLingo is operated by Jebaco Global. We are committed to protecting your personal information.
           </p>
-          <h2 className="text-xl font-semibold">What we collect</h2>
+
+          <h2 className="text-xl font-semibold">Information We Collect</h2>
           <p>
-            We collect only the information you enter into the CV builder — your name, contact
-            details, work experience, skills, and language preference. This is used solely to
-            generate your CV.
+            We collect information you provide when building your CV, including your name, contact details, work experience, and skills. We do not collect payment information at this time.
           </p>
-          <h2 className="text-xl font-semibold">How we use your data</h2>
+
+          <h2 className="text-xl font-semibold">How We Use Your Information</h2>
           <p>
-            Your information is sent to our AI provider to generate your CV in both your chosen
-            language and English. We do not sell, rent, or share your data with any third parties
-            for marketing.
+            Your information is used solely to generate your CV. We do not sell, share, or transfer your personal data to third parties without your consent.
           </p>
-          <h2 className="text-xl font-semibold">Storage</h2>
+
+          <h2 className="text-xl font-semibold">Data Storage</h2>
           <p>
-            Your answers are stored in your browser session and cleared when you close the tab. We
-            do not keep a copy of your finished CV on our servers.
+            CV data is processed in real time and is not permanently stored on our servers unless you create an account (coming soon).
           </p>
-          <h2 className="text-xl font-semibold">Your rights</h2>
+
+          <h2 className="text-xl font-semibold">Your Rights</h2>
           <p>
-            You can stop using CVLingo at any time. If you have questions about your data, contact
-            us at <a href="mailto:hello@cvlingo.com" className="text-primary underline">hello@cvlingo.com</a>.
+            Under UK GDPR you have the right to access, correct, or delete your personal data at any time. Contact us at{" "}
+            <a href="mailto:privacy@cvlingo.com" className="text-primary underline">privacy@cvlingo.com</a>
+          </p>
+
+          <h2 className="text-xl font-semibold">Cookies</h2>
+          <p>
+            We use essential cookies only to keep the platform functioning. No tracking or advertising cookies are used.
+          </p>
+
+          <h2 className="text-xl font-semibold">Changes to This Policy</h2>
+          <p>
+            We may update this policy as the platform grows. Changes will be posted on this page.
           </p>
         </div>
       </section>
