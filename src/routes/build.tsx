@@ -14,11 +14,19 @@ type Experience = {
   description: string;
 };
 
+type Education = {
+  qualification: string;
+  institution: string;
+  country: string;
+  year: string;
+};
+
 type PersonalDetails = {
   name: string;
   phone: string;
   email: string;
   city: string;
+  postcode: string;
   rightToWork: string;
 };
 
@@ -32,6 +40,7 @@ type CVData = {
   personalDetails: PersonalDetails;
   experienceType: string;
   experience: Experience[];
+  education: Education[];
   skills: string[];
   availability: string[];
 };
@@ -42,12 +51,14 @@ const initialData: CVData = {
   questionLanguageCode: "en",
   jobTypes: [],
   otherJobType: "",
-  personalDetails: { name: "", phone: "", email: "", city: "", rightToWork: "" },
+  personalDetails: { name: "", phone: "", email: "", city: "", postcode: "", rightToWork: "" },
   experienceType: "",
   experience: [],
+  education: [],
   skills: [],
   availability: [],
 };
+
 
 const languages = [
   { code: "en", name: "English", native: "English", flag: "🇬🇧" },
@@ -83,8 +94,11 @@ const jobs: { id: string; tKey: TKey; emoji: string }[] = [
   { id: "warehouse", tKey: "job_warehouse", emoji: "📦" },
   { id: "office", tKey: "job_office", emoji: "💼" },
   { id: "beauty", tKey: "job_beauty", emoji: "💇" },
+  { id: "security", tKey: "job_security", emoji: "🔒" },
+  { id: "agriculture", tKey: "job_agriculture", emoji: "🌱" },
   { id: "other", tKey: "job_other", emoji: "✨" },
 ];
+
 
 const rightToWorkOptions: { value: string; tKey: TKey }[] = [
   { value: "British citizen", tKey: "rtw_british" },
@@ -605,6 +619,8 @@ function Step3PersonalDetails({ data, update, displayLang, originalLang, onToggl
           )}
         </div>
         <TextField label={t(displayLang, "cityUk")} value={personal.city} onChange={(value) => setPersonal("city", value)} placeholder={t(displayLang, "cityPlaceholder")} />
+        <TextField label={t(displayLang, "postcodeOptional")} value={personal.postcode} onChange={(value) => setPersonal("postcode", value)} placeholder={t(displayLang, "postcodePlaceholder")} />
+
         <div>
           <label className="mb-2 block text-sm font-medium text-foreground">{t(displayLang, "rightToWork")}</label>
           <div className="grid gap-2 sm:grid-cols-2">
@@ -800,7 +816,62 @@ function Step5Skills({ data, update, displayLang, originalLang, onToggleLang, on
             ))}
           </div>
         </div>
+
+        <div>
+          <h2 className="font-medium text-foreground">{t(displayLang, "educationTitle")}</h2>
+          <p className="mb-3 text-sm text-muted-foreground">{t(displayLang, "educationSubtitle")}</p>
+          <div className="space-y-4">
+            {data.education.map((edu, index) => (
+              <div key={index} className="rounded-xl border border-border bg-background p-4">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <h3 className="font-medium text-foreground">{t(displayLang, "educationN", { n: index + 1 })}</h3>
+                  <button
+                    type="button"
+                    onClick={() => update("education", data.education.filter((_, i) => i !== index))}
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground"
+                  >
+                    {t(displayLang, "remove")}
+                  </button>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <TextField
+                    label={t(displayLang, "qualificationName")}
+                    value={edu.qualification}
+                    onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, qualification: v } : e))}
+                    placeholder="e.g. GCSE Maths, Diploma in Care"
+                  />
+                  <TextField
+                    label={t(displayLang, "institution")}
+                    value={edu.institution}
+                    onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, institution: v } : e))}
+                    placeholder="e.g. City College"
+                  />
+                  <TextField
+                    label="Country"
+                    value={edu.country}
+                    onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, country: v } : e))}
+                    placeholder="e.g. UK, Poland"
+                  />
+                  <TextField
+                    label={t(displayLang, "yearCompleted")}
+                    value={edu.year}
+                    onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, year: v } : e))}
+                    placeholder={t(displayLang, "yearPlaceholder")}
+                  />
+                </div>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => update("education", [...data.education, { qualification: "", institution: "", country: "", year: "" }])}
+              className="rounded-xl border border-border bg-background px-4 py-3 font-medium text-foreground transition hover:bg-muted"
+            >
+              {t(displayLang, "addQualification")}
+            </button>
+          </div>
+        </div>
       </div>
+
     </StepShell>
   );
 }
@@ -944,6 +1015,24 @@ function Step6Review({ data, update, displayLang, originalLang, onToggleLang, on
             <p>{skillLabels || t(displayLang, "noSkills")}</p>
             <p>{availabilityLabels || t(displayLang, "noAvailability")}</p>
           </ReviewSection>
+          <ReviewSection title={t(displayLang, "education")} editLabel={t(displayLang, "edit")} onEdit={() => onEdit(5)}>
+            {data.education.length === 0 ? (
+              <p>{t(displayLang, "noEducation")}</p>
+            ) : (
+              <ul className="space-y-1">
+                {data.education.map((e, i) => (
+                  <li key={i}>
+                    <span className="font-medium text-foreground">{e.qualification || t(displayLang, "qualificationName")}</span>
+                    {e.institution && ` — ${e.institution}`}
+                    {e.country && `, ${e.country}`}
+                    {e.year && ` (${e.year})`}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </ReviewSection>
+
+
         </div>
         {error && (
           <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
@@ -989,7 +1078,7 @@ function Step6Review({ data, update, displayLang, originalLang, onToggleLang, on
           </button>
         </div>
       </div>
-      {generating && <GeneratingOverlay />}
+      {generating && <GeneratingOverlay lang={displayLang} />}
     </section>
   );
 }

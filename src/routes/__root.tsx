@@ -1,6 +1,8 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import faviconAsset from "../assets/cvlingo-favicon.png.asset.json";
+
 
 function NotFoundComponent() {
   return (
@@ -53,7 +55,11 @@ export const Route = createRootRoute({
       { name: "twitter:image", content: "https://cvlingo.com/__l5e/assets-v1/29ac1884-adaf-4a86-b8bb-b8f27ea8b8c0/cvlingo-og.png" },
     ],
     links: [
+      { rel: "icon", type: "image/png", href: faviconAsset.url },
+      { rel: "shortcut icon", type: "image/png", href: faviconAsset.url },
+      { rel: "apple-touch-icon", href: faviconAsset.url },
       { rel: "stylesheet", href: appCss },
+
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {

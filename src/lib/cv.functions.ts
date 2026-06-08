@@ -10,13 +10,16 @@ export type CVData = {
     phone: string;
     email: string;
     city: string;
+    postcode?: string;
     rightToWork: string;
   };
   experienceType: string;
   experience: { title: string; place: string; country?: string; duration: string; description: string }[];
+  education?: { qualification: string; institution: string; country: string; year: string }[];
   skills: string[];
   availability: string[];
 };
+
 
 export type GeneratedCV = {
   native: string;
@@ -26,7 +29,8 @@ export type GeneratedCV = {
 };
 
 function buildPrompt(cvData: CVData) {
-  const { language, jobTypes, personalDetails, experience, skills, availability } = cvData;
+  const { language, jobTypes, personalDetails, experience, education, skills, availability } = cvData;
+  const hasEducation = Array.isArray(education) && education.length > 0;
 
   return `You are a professional UK CV writer. Generate a complete, well-formatted UK CV as clean HTML only.
 
@@ -38,7 +42,7 @@ STRICT RULES:
 CV STRUCTURE (follow this exact order):
 <div class="cv-header">
   <h1 class="cv-name">[Full Name]</h1>
-  <p class="cv-contact">[Town/City] · [Phone] · [Email]</p>
+  <p class="cv-contact">[Town/City${personalDetails.postcode ? ", Postcode" : ""}] · [Phone] · [Email]</p>
 </div>
 <div class="cv-section">
   <h2>Personal Statement</h2>
@@ -55,7 +59,15 @@ CV STRUCTURE (follow this exact order):
     </ul>
   </div>
 </div>
-<div class="cv-section">
+${hasEducation ? `<div class="cv-section">
+  <h2>Education</h2>
+  [For each qualification:]
+  <div class="cv-edu">
+    <p><strong>[Qualification]</strong> — [Institution, Country] <span class="cv-date">[Year]</span></p>
+  </div>
+</div>
+` : `[OMIT the Education section entirely — no education has been provided.]
+`}<div class="cv-section">
   <h2>Skills</h2>
   <ul>
     <li><strong>[Skill name]:</strong> [Brief description of that skill]</li>
@@ -86,7 +98,7 @@ QUALITY STANDARDS:
 
 USER INFORMATION:
 Name: ${personalDetails.name}
-Location: ${personalDetails.city}
+Location: ${personalDetails.city}${personalDetails.postcode ? `, ${personalDetails.postcode}` : ""}
 Phone: ${personalDetails.phone}
 Email: ${personalDetails.email || "Not provided"}
 Right to work: ${personalDetails.rightToWork}
@@ -103,8 +115,17 @@ ${
         .join("\n")
 }
 
+Education:
+${hasEducation
+  ? education!
+      .map((e) => `- ${e.qualification} at ${e.institution}${e.country ? `, ${e.country}` : ""} (${e.year || "year not given"})`)
+      .join("\n")
+  : "None provided — DO NOT include an Education section in the CV."}
+
 Skills: ${skills.join(", ")}
 Availability: ${availability.join(", ")}
+
+
 
 Generate TWO versions of the CV using the exact structure above:
 1. One written entirely in ${language}

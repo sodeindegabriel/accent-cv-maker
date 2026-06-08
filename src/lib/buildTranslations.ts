@@ -7,8 +7,10 @@ export type TKey =
   | "continue" | "back" | "modalQuestion" | "stepOf"
   | "job_hospitality" | "job_construction" | "job_care" | "job_delivery"
   | "job_cleaning" | "job_retail" | "job_warehouse" | "job_office"
-  | "job_beauty" | "job_other" | "otherWorkType" | "otherWorkPlaceholder"
-  | "fullName" | "phoneNumber" | "email" | "cityUk" | "rightToWork"
+  | "job_beauty" | "job_security" | "job_agriculture" | "job_other"
+  | "otherWorkType" | "otherWorkPlaceholder"
+  | "fullName" | "phoneNumber" | "email" | "cityUk" | "postcodeOptional"
+  | "postcodePlaceholder" | "rightToWork"
   | "rtw_british" | "rtw_settled" | "rtw_skilled" | "rtw_student"
   | "rtw_refugee" | "rtw_other" | "describeStatus" | "describeStatusPlaceholder"
   | "namePlaceholder" | "cityPlaceholder"
@@ -23,11 +25,15 @@ export type TKey =
   | "skill_care" | "skill_office" | "skill_problem" | "skill_english"
   | "avail_weekdays" | "avail_weekends" | "avail_evenings" | "avail_mornings"
   | "avail_full" | "avail_part"
+  | "educationTitle" | "educationSubtitle" | "qualificationName" | "institution"
+  | "yearCompleted" | "yearPlaceholder" | "addQualification" | "educationN"
+  | "education" | "noEducation"
   | "language" | "workWanted" | "personalDetails" | "experience"
   | "skillsAndAvailability" | "edit" | "close" | "notSelected"
   | "nameMissing" | "phoneMissing" | "emailMissing" | "cityMissing" | "rtwMissing"
   | "noExperienceYet" | "notAdded" | "noSkills" | "noAvailability"
   | "generateCv" | "generating" | "somethingWrong" | "retry";
+
 
 type Dict = Partial<Record<TKey, string>>;
 
@@ -49,11 +55,18 @@ const en: Record<TKey, string> = {
   job_care: "Care work", job_delivery: "Delivery & driving",
   job_cleaning: "Cleaning", job_retail: "Retail",
   job_warehouse: "Warehouse", job_office: "Office work",
-  job_beauty: "Beauty & salon", job_other: "Something else",
+  job_beauty: "Beauty & salon",
+  job_security: "Security",
+  job_agriculture: "Agriculture & farming",
+  job_other: "Something else",
   otherWorkType: "Other work type",
   otherWorkPlaceholder: "Tell us what kind of work",
   fullName: "Full name", phoneNumber: "Phone number", email: "Email",
-  cityUk: "City in the UK", rightToWork: "Right to work",
+  cityUk: "City in the UK",
+  postcodeOptional: "Postcode (optional)",
+  postcodePlaceholder: "e.g. SW1A 1AA",
+  rightToWork: "Right to work",
+
   rtw_british: "British citizen",
   rtw_settled: "Settled / pre-settled status",
   rtw_skilled: "Skilled worker visa",
@@ -89,6 +102,17 @@ const en: Record<TKey, string> = {
   avail_weekdays: "Weekdays", avail_weekends: "Weekends",
   avail_evenings: "Evenings", avail_mornings: "Early mornings",
   avail_full: "Full-time", avail_part: "Part-time",
+  educationTitle: "Any education or training?",
+  educationSubtitle: "Include anything — school, college, courses, certificates",
+  qualificationName: "Qualification or course name",
+  institution: "School, college or institution",
+  yearCompleted: "Year completed (or “In progress”)",
+  yearPlaceholder: "e.g. 2021 or In progress",
+  addQualification: "+ Add qualification",
+  educationN: "Qualification {n}",
+  education: "Education",
+  noEducation: "None added",
+
   language: "Language", workWanted: "Work wanted",
   personalDetails: "Personal details", experience: "Experience",
   skillsAndAvailability: "Skills and availability",
