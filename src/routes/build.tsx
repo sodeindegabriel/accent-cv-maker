@@ -40,6 +40,7 @@ type CVData = {
   personalDetails: PersonalDetails;
   experienceType: string;
   experience: Experience[];
+  hasEducation: "" | "yes" | "no";
   education: Education[];
   skills: string[];
   availability: string[];
@@ -54,6 +55,7 @@ const initialData: CVData = {
   personalDetails: { name: "", phone: "", email: "", city: "", postcode: "", rightToWork: "" },
   experienceType: "",
   experience: [],
+  hasEducation: "",
   education: [],
   skills: [],
   availability: [],
@@ -665,6 +667,16 @@ function Step3PersonalDetails({ data, update, displayLang, originalLang, onToggl
 }
 
 function Step4Experience({ data, update, displayLang, originalLang, onToggleLang, onBack, onNext }: StepProps) {
+  const [showError, setShowError] = useState(false);
+  const requiresEntries = data.experienceType && data.experienceType !== "none";
+
+  useEffect(() => {
+    if (requiresEntries && data.experience.length === 0) {
+      update("experience", [{ title: "", place: "", country: "", duration: "", description: "" }]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.experienceType]);
+
   const addExperience = () => {
     update("experience", [...data.experience, { title: "", place: "", country: "", duration: "", description: "" }]);
   };
@@ -677,7 +689,20 @@ function Step4Experience({ data, update, displayLang, originalLang, onToggleLang
   const removeExperience = (index: number) => {
     update("experience", data.experience.filter((_, itemIndex) => itemIndex !== index));
   };
-  const valid = Boolean(data.experienceType && (data.experienceType === "none" || data.experience.length > 0));
+
+  const hasValidEntry = data.experience.some((e) => e.title.trim() && e.duration.trim());
+  const valid = Boolean(
+    data.experienceType && (data.experienceType === "none" || hasValidEntry),
+  );
+
+  const handleNext = () => {
+    if (!valid) {
+      setShowError(true);
+      return;
+    }
+    setShowError(false);
+    onNext();
+  };
 
   return (
     <StepShell
@@ -688,7 +713,7 @@ function Step4Experience({ data, update, displayLang, originalLang, onToggleLang
       title={t(displayLang, "step4Title")}
       subtitle={t(displayLang, "step4Subtitle")}
       onBack={onBack}
-      onNext={onNext}
+      onNext={handleNext}
       nextDisabled={!valid}
     >
       <div className="space-y-5">
@@ -700,6 +725,7 @@ function Step4Experience({ data, update, displayLang, originalLang, onToggleLang
               onClick={() => {
                 update("experienceType", type.id);
                 if (type.id === "none") update("experience", []);
+                setShowError(false);
               }}
               className={`rounded-xl border p-4 text-left transition ${
                 data.experienceType === type.id
@@ -713,7 +739,7 @@ function Step4Experience({ data, update, displayLang, originalLang, onToggleLang
           ))}
         </div>
 
-        {data.experienceType && data.experienceType !== "none" && (
+        {requiresEntries && (
           <div className="space-y-4">
             {data.experience.map((experience, index) => (
               <div key={index} className="rounded-xl border border-border bg-background p-4">
@@ -732,6 +758,9 @@ function Step4Experience({ data, update, displayLang, originalLang, onToggleLang
                 </div>
               </div>
             ))}
+            {showError && !valid && (
+              <p className="text-sm font-medium text-destructive">{t(displayLang, "pleaseAddExperience")}</p>
+            )}
             <button type="button" onClick={addExperience} className="rounded-xl border border-border bg-background px-4 py-3 font-medium text-foreground transition hover:bg-muted">
               {t(displayLang, "addExperience")}
             </button>
@@ -772,6 +801,94 @@ function Step5Skills({ data, update, displayLang, originalLang, onToggleLang, on
       nextDisabled={data.skills.length === 0 || data.availability.length === 0}
     >
       <div className="space-y-6">
+        <div>
+          <h2 className="font-medium text-foreground">{t(displayLang, "educationQuestion")}</h2>
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:max-w-xs">
+            <button
+              type="button"
+              onClick={() => {
+                update("hasEducation", "yes");
+                if (data.education.length === 0) {
+                  update("education", [{ qualification: "", institution: "", country: "", year: "" }]);
+                }
+              }}
+              className={`rounded-xl border p-3 text-center font-medium transition ${
+                data.hasEducation === "yes"
+                  ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary/30"
+                  : "border-border bg-background text-foreground hover:bg-muted"
+              }`}
+            >
+              {t(displayLang, "yes")}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                update("hasEducation", "no");
+                update("education", []);
+              }}
+              className={`rounded-xl border p-3 text-center font-medium transition ${
+                data.hasEducation === "no"
+                  ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary/30"
+                  : "border-border bg-background text-foreground hover:bg-muted"
+              }`}
+            >
+              {t(displayLang, "no")}
+            </button>
+          </div>
+
+          {data.hasEducation === "yes" && (
+            <div className="mt-4 space-y-4">
+              {data.education.map((edu, index) => (
+                <div key={index} className="rounded-xl border border-border bg-background p-4">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <h3 className="font-medium text-foreground">{t(displayLang, "educationN", { n: index + 1 })}</h3>
+                    <button
+                      type="button"
+                      onClick={() => update("education", data.education.filter((_, i) => i !== index))}
+                      className="text-sm font-medium text-muted-foreground hover:text-foreground"
+                    >
+                      {t(displayLang, "remove")}
+                    </button>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <TextField
+                      label={t(displayLang, "qualificationName")}
+                      value={edu.qualification}
+                      onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, qualification: v } : e))}
+                      placeholder="e.g. GCSE Maths, Diploma in Care"
+                    />
+                    <TextField
+                      label={t(displayLang, "institution")}
+                      value={edu.institution}
+                      onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, institution: v } : e))}
+                      placeholder="e.g. City College"
+                    />
+                    <TextField
+                      label={t(displayLang, "country")}
+                      value={edu.country}
+                      onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, country: v } : e))}
+                      placeholder={t(displayLang, "countryPlaceholder")}
+                    />
+                    <TextField
+                      label={t(displayLang, "yearCompleted")}
+                      value={edu.year}
+                      onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, year: v } : e))}
+                      placeholder={t(displayLang, "yearPlaceholder")}
+                    />
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => update("education", [...data.education, { qualification: "", institution: "", country: "", year: "" }])}
+                className="rounded-xl border border-border bg-background px-4 py-3 font-medium text-foreground transition hover:bg-muted"
+              >
+                {t(displayLang, "addQualification")}
+              </button>
+            </div>
+          )}
+        </div>
+
         <div>
           <h2 className="mb-3 font-medium text-foreground">{t(displayLang, "skills")}</h2>
           <div className="flex flex-wrap gap-2">
@@ -816,61 +933,8 @@ function Step5Skills({ data, update, displayLang, originalLang, onToggleLang, on
             ))}
           </div>
         </div>
-
-        <div>
-          <h2 className="font-medium text-foreground">{t(displayLang, "educationTitle")}</h2>
-          <p className="mb-3 text-sm text-muted-foreground">{t(displayLang, "educationSubtitle")}</p>
-          <div className="space-y-4">
-            {data.education.map((edu, index) => (
-              <div key={index} className="rounded-xl border border-border bg-background p-4">
-                <div className="mb-4 flex items-center justify-between gap-3">
-                  <h3 className="font-medium text-foreground">{t(displayLang, "educationN", { n: index + 1 })}</h3>
-                  <button
-                    type="button"
-                    onClick={() => update("education", data.education.filter((_, i) => i !== index))}
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground"
-                  >
-                    {t(displayLang, "remove")}
-                  </button>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <TextField
-                    label={t(displayLang, "qualificationName")}
-                    value={edu.qualification}
-                    onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, qualification: v } : e))}
-                    placeholder="e.g. GCSE Maths, Diploma in Care"
-                  />
-                  <TextField
-                    label={t(displayLang, "institution")}
-                    value={edu.institution}
-                    onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, institution: v } : e))}
-                    placeholder="e.g. City College"
-                  />
-                  <TextField
-                    label={t(displayLang, "country")}
-                    value={edu.country}
-                    onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, country: v } : e))}
-                    placeholder={t(displayLang, "countryPlaceholder")}
-                  />
-                  <TextField
-                    label={t(displayLang, "yearCompleted")}
-                    value={edu.year}
-                    onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, year: v } : e))}
-                    placeholder={t(displayLang, "yearPlaceholder")}
-                  />
-                </div>
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={() => update("education", [...data.education, { qualification: "", institution: "", country: "", year: "" }])}
-              className="rounded-xl border border-border bg-background px-4 py-3 font-medium text-foreground transition hover:bg-muted"
-            >
-              {t(displayLang, "addQualification")}
-            </button>
-          </div>
-        </div>
       </div>
+
 
     </StepShell>
   );

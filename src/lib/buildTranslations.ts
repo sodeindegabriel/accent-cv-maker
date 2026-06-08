@@ -33,6 +33,7 @@ export type TKey =
   | "nameMissing" | "phoneMissing" | "emailMissing" | "cityMissing" | "rtwMissing"
   | "noExperienceYet" | "notAdded" | "noSkills" | "noAvailability"
   | "company" | "country" | "countryPlaceholder"
+  | "yes" | "no" | "educationQuestion" | "pleaseAddExperience"
   | "generateCv" | "generating" | "somethingWrong" | "retry";
 
 
@@ -127,6 +128,9 @@ const en: Record<TKey, string> = {
   countryPlaceholder: "e.g. UK, Poland, Romania",
   generateCv: "Generate My CV", generating: "Generating…",
   somethingWrong: "Something went wrong. Please try again.", retry: "Retry",
+  yes: "Yes", no: "No",
+  educationQuestion: "Do you have any education or training?",
+  pleaseAddExperience: "Please add at least one experience",
 };
 
 const pl: Dict = {
