@@ -237,6 +237,8 @@ function Index() {
   const navigate = useNavigate();
   const location = useLocation();
   const [phraseIndex, setPhraseIndex] = useState(0);
+  const [previewLang, setPreviewLang] = useState<string>("en");
+  const [comingSoonOpen, setComingSoonOpen] = useState(false);
   useEffect(() => {
     const id = setInterval(() => {
       setPhraseIndex((i) => (i + 1) % chooseLangPhrases.length);
