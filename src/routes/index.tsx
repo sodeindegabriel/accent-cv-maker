@@ -4,7 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Reveal } from "@/components/Reveal";
 import { CountUp } from "@/components/CountUp";
-import { Globe, MessageCircle, FileDown, Check, ArrowRight, Clock } from "lucide-react";
+import { Globe, MessageCircle, FileDown, Check, ArrowRight, Clock, Lock } from "lucide-react";
 
 const chooseLangPhrases: { text: string; dir: "ltr" | "rtl"; lang: string }[] = [
   { text: "اختر لغتك", dir: "rtl", lang: "ar" },
@@ -183,6 +183,14 @@ function Index() {
               </div>
 
               <div
+                className="mt-4 flex animate-fade-in items-center justify-center gap-2 text-sm text-muted-foreground"
+                style={{ animationDelay: "450ms" }}
+              >
+                <Lock className="h-3.5 w-3.5" />
+                <span>Your information is private and never shared without your permission.</span>
+              </div>
+
+              <div
                 className="mt-12 animate-fade-in"
                 style={{ animationDelay: "500ms" }}
               >
@@ -204,6 +212,28 @@ function Index() {
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* TRUST STRIP */}
+        <section className="border-y border-border bg-white">
+          <div className="mx-auto grid max-w-6xl gap-6 px-5 py-8 text-center sm:grid-cols-2 md:grid-cols-4">
+            <div className="flex flex-col items-center gap-1">
+              <Globe className="h-5 w-5 text-primary" />
+              <p className="font-semibold text-foreground">20 Languages Supported</p>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <Check className="h-5 w-5 text-primary" />
+              <p className="font-semibold text-foreground">100% Free for Job Seekers</p>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <FileDown className="h-5 w-5 text-primary" />
+              <p className="font-semibold text-foreground">UK-Format CVs</p>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <MessageCircle className="h-5 w-5 text-primary" />
+              <p className="font-semibold text-foreground">ATS-Friendly</p>
             </div>
           </div>
         </section>
@@ -242,24 +272,127 @@ function Index() {
           </div>
         </section>
 
+        {/* SAMPLE CV PREVIEW */}
+        <section className="bg-secondary/40 py-20 md:py-28">
+          <div className="mx-auto max-w-6xl px-5">
+            <Reveal className="mx-auto max-w-2xl text-center">
+              <span className="text-xs font-semibold uppercase tracking-widest text-accent">Preview</span>
+              <h2 className="mt-3 font-serif text-4xl text-foreground md:text-5xl">
+                See what your CV will look like
+              </h2>
+              <p className="mt-4 text-muted-foreground">
+                Professional UK format, ready to send
+              </p>
+            </Reveal>
+
+            <Reveal delay={120} className="mx-auto mt-14 max-w-3xl">
+              <div className="overflow-hidden rounded-xl border border-border bg-white shadow-2xl">
+                {/* Mock CV Document */}
+                <div className="bg-white p-8 md:p-12">
+                  {/* Header */}
+                  <div className="border-b-2 border-primary pb-4">
+                    <h3 className="font-serif text-2xl font-bold text-foreground md:text-3xl">Amina Hussain</h3>
+                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                      <span>+44 7700 900123</span>
+                      <span>amina.hussain@email.com</span>
+                      <span>Birmingham, UK</span>
+                    </div>
+                  </div>
+
+                  {/* Profile */}
+                  <div className="mt-5">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Professional Summary</h4>
+                    <p className="mt-2 text-sm leading-relaxed text-foreground">
+                      Dedicated healthcare assistant with 4+ years of experience in residential and hospital care settings. 
+                      Compassionate, reliable, and committed to delivering high-quality patient support. 
+                      Seeking a new opportunity to grow within the UK healthcare sector.
+                    </p>
+                  </div>
+
+                  {/* Experience */}
+                  <div className="mt-5">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Work Experience</h4>
+                    <div className="mt-3">
+                      <div className="flex justify-between items-baseline">
+                        <p className="text-sm font-semibold text-foreground">Healthcare Assistant</p>
+                        <p className="text-xs text-muted-foreground">2020 – Present</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Greenwood Care Home, Birmingham, UK</p>
+                      <ul className="mt-2 space-y-1 text-sm text-foreground">
+                        <li>• Provided daily personal care to 8+ residents, maintaining dignity and comfort</li>
+                        <li>• Assisted with medication reminders and mobility support</li>
+                        <li>• Collaborated with nurses and families to update care plans</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Skills */}
+                  <div className="mt-5">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Key Skills</h4>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {["Patient Care", "Teamwork", "Communication", "First Aid", "Time Management"].map((skill) => (
+                        <span key={skill} className="rounded-full bg-primary-soft px-3 py-1 text-xs font-medium text-primary">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Education */}
+                  <div className="mt-5">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Education</h4>
+                    <div className="mt-2">
+                      <p className="text-sm font-semibold text-foreground">NVQ Level 2 in Health and Social Care</p>
+                      <p className="text-xs text-muted-foreground">Birmingham Adult Education, 2019</p>
+                    </div>
+                  </div>
+
+                  {/* Languages */}
+                  <div className="mt-5">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Languages</h4>
+                    <p className="mt-2 text-sm text-foreground">English (Fluent) · Urdu (Native)</p>
+                  </div>
+                </div>
+
+                {/* Watermark footer */}
+                <div className="border-t border-border bg-secondary/50 px-8 py-3 text-center text-xs text-muted-foreground">
+                  Created with CVLingo · cvlingo.com
+                </div>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* ATS BANNER */}
+        <section className="bg-primary py-10">
+          <div className="mx-auto max-w-4xl px-5 text-center">
+            <p className="text-lg font-medium text-primary-foreground md:text-xl">
+              Every CV is ATS-friendly and formatted for UK employers
+            </p>
+            <p className="mt-2 text-sm text-primary-foreground/80">
+              Our templates use clean layouts and standard headings that pass Applicant Tracking Systems and impress hiring managers.
+            </p>
+          </div>
+        </section>
+
         {/* STATS */}
-        <section className="bg-primary py-16">
+        <section className="bg-background py-16">
           <div className="mx-auto grid max-w-6xl gap-10 px-5 text-center md:grid-cols-3">
             <div>
-              <div className="font-serif text-5xl text-white md:text-6xl">
+              <div className="font-serif text-5xl text-foreground md:text-6xl">
                 <CountUp value={20} />
               </div>
-              <p className="mt-2 text-sm uppercase tracking-widest text-white/70">Languages Supported</p>
+              <p className="mt-2 text-sm uppercase tracking-widest text-muted-foreground">Languages Supported</p>
             </div>
             <div>
-              <div className="font-serif text-5xl text-white md:text-6xl">
+              <div className="font-serif text-5xl text-foreground md:text-6xl">
                 <CountUp value={100} suffix="%" />
               </div>
-              <p className="mt-2 text-sm uppercase tracking-widest text-white/70">Free for Jobseekers</p>
+              <p className="mt-2 text-sm uppercase tracking-widest text-muted-foreground">Free for Jobseekers</p>
             </div>
             <div>
-              <div className="font-serif text-5xl text-white md:text-6xl">UK Format</div>
-              <p className="mt-2 text-sm uppercase tracking-widest text-white/70">Job Market Ready</p>
+              <div className="font-serif text-5xl text-foreground md:text-6xl">UK Format</div>
+              <p className="mt-2 text-sm uppercase tracking-widest text-muted-foreground">Job Market Ready</p>
             </div>
           </div>
         </section>
