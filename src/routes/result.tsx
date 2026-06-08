@@ -226,18 +226,36 @@ function ResultPage() {
           </div>
 
           <section className="no-print mt-10 rounded-2xl border border-border bg-card p-6">
-            <h2 className="text-lg font-semibold">Help a friend</h2>
+            <h2 className="text-lg font-semibold">Share CVLingo</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Know someone who needs a CV? Send them this link.
+              Know someone who needs a CV? Spread the word.
             </p>
-            <a
-              href={friendShareHref}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-3 inline-flex rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground transition hover:opacity-90"
-            >
-              Share CVLingo
-            </a>
+            <div className="mt-3 flex flex-wrap gap-3">
+              <a
+                href={whatsappShareHref}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground transition hover:opacity-90"
+              >
+                Share on WhatsApp
+              </a>
+              <a
+                href={facebookShareHref}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-xl bg-secondary px-5 py-3 font-semibold text-secondary-foreground transition hover:opacity-90"
+              >
+                Share on Facebook
+              </a>
+              <a
+                href={twitterShareHref}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-xl border border-border bg-background px-5 py-3 font-semibold text-foreground transition hover:bg-muted"
+              >
+                Share on X
+              </a>
+            </div>
           </section>
         </div>
       </section>
