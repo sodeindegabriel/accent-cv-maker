@@ -14,11 +14,19 @@ type Experience = {
   description: string;
 };
 
+type Education = {
+  qualification: string;
+  institution: string;
+  country: string;
+  year: string;
+};
+
 type PersonalDetails = {
   name: string;
   phone: string;
   email: string;
   city: string;
+  postcode: string;
   rightToWork: string;
 };
 
@@ -32,6 +40,7 @@ type CVData = {
   personalDetails: PersonalDetails;
   experienceType: string;
   experience: Experience[];
+  education: Education[];
   skills: string[];
   availability: string[];
 };
@@ -42,12 +51,14 @@ const initialData: CVData = {
   questionLanguageCode: "en",
   jobTypes: [],
   otherJobType: "",
-  personalDetails: { name: "", phone: "", email: "", city: "", rightToWork: "" },
+  personalDetails: { name: "", phone: "", email: "", city: "", postcode: "", rightToWork: "" },
   experienceType: "",
   experience: [],
+  education: [],
   skills: [],
   availability: [],
 };
+
 
 const languages = [
   { code: "en", name: "English", native: "English", flag: "🇬🇧" },
