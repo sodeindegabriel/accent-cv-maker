@@ -667,6 +667,16 @@ function Step3PersonalDetails({ data, update, displayLang, originalLang, onToggl
 }
 
 function Step4Experience({ data, update, displayLang, originalLang, onToggleLang, onBack, onNext }: StepProps) {
+  const [showError, setShowError] = useState(false);
+  const requiresEntries = data.experienceType && data.experienceType !== "none";
+
+  useEffect(() => {
+    if (requiresEntries && data.experience.length === 0) {
+      update("experience", [{ title: "", place: "", country: "", duration: "", description: "" }]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.experienceType]);
+
   const addExperience = () => {
     update("experience", [...data.experience, { title: "", place: "", country: "", duration: "", description: "" }]);
   };
@@ -679,7 +689,20 @@ function Step4Experience({ data, update, displayLang, originalLang, onToggleLang
   const removeExperience = (index: number) => {
     update("experience", data.experience.filter((_, itemIndex) => itemIndex !== index));
   };
-  const valid = Boolean(data.experienceType && (data.experienceType === "none" || data.experience.length > 0));
+
+  const hasValidEntry = data.experience.some((e) => e.title.trim() && e.duration.trim());
+  const valid = Boolean(
+    data.experienceType && (data.experienceType === "none" || hasValidEntry),
+  );
+
+  const handleNext = () => {
+    if (!valid) {
+      setShowError(true);
+      return;
+    }
+    setShowError(false);
+    onNext();
+  };
 
   return (
     <StepShell
@@ -690,7 +713,7 @@ function Step4Experience({ data, update, displayLang, originalLang, onToggleLang
       title={t(displayLang, "step4Title")}
       subtitle={t(displayLang, "step4Subtitle")}
       onBack={onBack}
-      onNext={onNext}
+      onNext={handleNext}
       nextDisabled={!valid}
     >
       <div className="space-y-5">
@@ -702,6 +725,7 @@ function Step4Experience({ data, update, displayLang, originalLang, onToggleLang
               onClick={() => {
                 update("experienceType", type.id);
                 if (type.id === "none") update("experience", []);
+                setShowError(false);
               }}
               className={`rounded-xl border p-4 text-left transition ${
                 data.experienceType === type.id
@@ -715,7 +739,7 @@ function Step4Experience({ data, update, displayLang, originalLang, onToggleLang
           ))}
         </div>
 
-        {data.experienceType && data.experienceType !== "none" && (
+        {requiresEntries && (
           <div className="space-y-4">
             {data.experience.map((experience, index) => (
               <div key={index} className="rounded-xl border border-border bg-background p-4">
@@ -734,6 +758,9 @@ function Step4Experience({ data, update, displayLang, originalLang, onToggleLang
                 </div>
               </div>
             ))}
+            {showError && !valid && (
+              <p className="text-sm font-medium text-destructive">{t(displayLang, "pleaseAddExperience")}</p>
+            )}
             <button type="button" onClick={addExperience} className="rounded-xl border border-border bg-background px-4 py-3 font-medium text-foreground transition hover:bg-muted">
               {t(displayLang, "addExperience")}
             </button>
