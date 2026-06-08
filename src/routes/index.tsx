@@ -4,7 +4,152 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Reveal } from "@/components/Reveal";
 import { CountUp } from "@/components/CountUp";
-import { Globe, MessageCircle, FileDown, Check, ArrowRight, Clock, Lock } from "lucide-react";
+import { Globe, MessageCircle, FileDown, Check, ArrowRight, Clock, Lock, Play, X } from "lucide-react";
+
+type CVTranslation = {
+  dir: "ltr" | "rtl";
+  contact: { phone: string; email: string; location: string };
+  summaryHeading: string;
+  summary: string;
+  experienceHeading: string;
+  jobTitle: string;
+  jobDates: string;
+  employer: string;
+  bullets: string[];
+  skillsHeading: string;
+  skills: string[];
+  educationHeading: string;
+  degree: string;
+  school: string;
+  languagesHeading: string;
+  languagesText: string;
+};
+
+const cvTranslations: Record<string, CVTranslation> = {
+  en: {
+    dir: "ltr",
+    contact: { phone: "+44 7700 900123", email: "amina.hussain@email.com", location: "Birmingham, UK" },
+    summaryHeading: "Professional Summary",
+    summary:
+      "Dedicated healthcare assistant with 4+ years of experience in residential and hospital care settings. Compassionate, reliable, and committed to delivering high-quality patient support. Seeking a new opportunity to grow within the UK healthcare sector.",
+    experienceHeading: "Work Experience",
+    jobTitle: "Healthcare Assistant",
+    jobDates: "2020 – Present",
+    employer: "Greenwood Care Home, Birmingham, UK",
+    bullets: [
+      "Provided daily personal care to 8+ residents, maintaining dignity and comfort",
+      "Assisted with medication reminders and mobility support",
+      "Collaborated with nurses and families to update care plans",
+    ],
+    skillsHeading: "Key Skills",
+    skills: ["Patient Care", "Teamwork", "Communication", "First Aid", "Time Management"],
+    educationHeading: "Education",
+    degree: "NVQ Level 2 in Health and Social Care",
+    school: "Birmingham Adult Education, 2019",
+    languagesHeading: "Languages",
+    languagesText: "English (Fluent) · Urdu (Native)",
+  },
+  pl: {
+    dir: "ltr",
+    contact: { phone: "+44 7700 900123", email: "amina.hussain@email.com", location: "Birmingham, Wielka Brytania" },
+    summaryHeading: "Profil zawodowy",
+    summary:
+      "Zaangażowana asystentka opieki zdrowotnej z ponad 4-letnim doświadczeniem w domach opieki i szpitalach. Wyrozumiała, niezawodna i oddana wysokiej jakości opiece nad pacjentami. Poszukuję nowej szansy rozwoju w brytyjskim sektorze opieki zdrowotnej.",
+    experienceHeading: "Doświadczenie zawodowe",
+    jobTitle: "Asystentka opieki zdrowotnej",
+    jobDates: "2020 – obecnie",
+    employer: "Greenwood Care Home, Birmingham, Wielka Brytania",
+    bullets: [
+      "Zapewniałam codzienną opiekę osobistą ponad 8 pensjonariuszom, dbając o ich godność i komfort",
+      "Pomagałam w przypomnieniach o lekach i wsparciu w poruszaniu się",
+      "Współpracowałam z pielęgniarkami i rodzinami przy aktualizacji planów opieki",
+    ],
+    skillsHeading: "Kluczowe umiejętności",
+    skills: ["Opieka nad pacjentem", "Praca w zespole", "Komunikacja", "Pierwsza pomoc", "Zarządzanie czasem"],
+    educationHeading: "Wykształcenie",
+    degree: "NVQ Poziom 2 w zakresie opieki zdrowotnej i społecznej",
+    school: "Birmingham Adult Education, 2019",
+    languagesHeading: "Języki",
+    languagesText: "Angielski (biegle) · Urdu (ojczysty)",
+  },
+  ar: {
+    dir: "rtl",
+    contact: { phone: "+44 7700 900123", email: "amina.hussain@email.com", location: "برمنغهام، المملكة المتحدة" },
+    summaryHeading: "الملخص المهني",
+    summary:
+      "مساعدة رعاية صحية متفانية تتمتع بخبرة تزيد عن 4 سنوات في دور الرعاية والمستشفيات. متعاطفة، موثوقة، وملتزمة بتقديم دعم عالي الجودة للمرضى. أبحث عن فرصة جديدة للنمو في قطاع الرعاية الصحية بالمملكة المتحدة.",
+    experienceHeading: "الخبرة العملية",
+    jobTitle: "مساعدة رعاية صحية",
+    jobDates: "2020 – حتى الآن",
+    employer: "دار رعاية غرينوود، برمنغهام، المملكة المتحدة",
+    bullets: [
+      "تقديم الرعاية الشخصية اليومية لأكثر من 8 مقيمين مع الحفاظ على كرامتهم وراحتهم",
+      "المساعدة في تذكير الأدوية ودعم التنقل",
+      "التعاون مع الممرضات والعائلات لتحديث خطط الرعاية",
+    ],
+    skillsHeading: "المهارات الرئيسية",
+    skills: ["رعاية المرضى", "العمل الجماعي", "التواصل", "الإسعافات الأولية", "إدارة الوقت"],
+    educationHeading: "التعليم",
+    degree: "NVQ المستوى 2 في الصحة والرعاية الاجتماعية",
+    school: "تعليم الكبار في برمنغهام، 2019",
+    languagesHeading: "اللغات",
+    languagesText: "الإنجليزية (بطلاقة) · الأردية (اللغة الأم)",
+  },
+  ur: {
+    dir: "rtl",
+    contact: { phone: "+44 7700 900123", email: "amina.hussain@email.com", location: "برمنگھم، برطانیہ" },
+    summaryHeading: "پیشہ ورانہ خلاصہ",
+    summary:
+      "رہائشی اور ہسپتال کی نگہداشت میں 4 سال سے زائد تجربہ رکھنے والی پُرعزم ہیلتھ کیئر اسسٹنٹ۔ ہمدرد، قابلِ بھروسہ اور اعلیٰ معیار کی مریضوں کی دیکھ بھال فراہم کرنے کے لیے پُرعزم۔ برطانیہ کے ہیلتھ کیئر سیکٹر میں ترقی کے نئے مواقع کی تلاش میں۔",
+    experienceHeading: "کام کا تجربہ",
+    jobTitle: "ہیلتھ کیئر اسسٹنٹ",
+    jobDates: "2020 – تاحال",
+    employer: "گرین ووڈ کیئر ہوم، برمنگھم، برطانیہ",
+    bullets: [
+      "8 سے زائد رہائشیوں کو روزانہ ذاتی نگہداشت فراہم کی، عزت اور آرام کو برقرار رکھا",
+      "ادویات کی یاد دہانی اور نقل و حرکت میں مدد کی",
+      "نگہداشت کے منصوبوں کو اپ ڈیٹ کرنے کے لیے نرسوں اور خاندانوں کے ساتھ تعاون کیا",
+    ],
+    skillsHeading: "اہم مہارتیں",
+    skills: ["مریضوں کی دیکھ بھال", "ٹیم ورک", "گفتگو", "ابتدائی طبی امداد", "وقت کا انتظام"],
+    educationHeading: "تعلیم",
+    degree: "صحت اور سماجی نگہداشت میں NVQ لیول 2",
+    school: "برمنگھم اڈلٹ ایجوکیشن، 2019",
+    languagesHeading: "زبانیں",
+    languagesText: "انگریزی (روانی) · اردو (مادری)",
+  },
+  ro: {
+    dir: "ltr",
+    contact: { phone: "+44 7700 900123", email: "amina.hussain@email.com", location: "Birmingham, Marea Britanie" },
+    summaryHeading: "Profil profesional",
+    summary:
+      "Asistentă medicală dedicată cu peste 4 ani de experiență în centre rezidențiale și spitale. Empatică, de încredere și dedicată oferirii unui sprijin de înaltă calitate pacienților. Caut o nouă oportunitate de dezvoltare în sectorul medical din Marea Britanie.",
+    experienceHeading: "Experiență profesională",
+    jobTitle: "Asistentă medicală",
+    jobDates: "2020 – prezent",
+    employer: "Greenwood Care Home, Birmingham, Marea Britanie",
+    bullets: [
+      "Am oferit îngrijire personală zilnică pentru peste 8 rezidenți, păstrând demnitatea și confortul",
+      "Am asistat la administrarea reamintirilor de medicație și la sprijinul pentru mobilitate",
+      "Am colaborat cu asistentele și familiile pentru actualizarea planurilor de îngrijire",
+    ],
+    skillsHeading: "Abilități cheie",
+    skills: ["Îngrijirea pacienților", "Lucru în echipă", "Comunicare", "Prim ajutor", "Gestionarea timpului"],
+    educationHeading: "Educație",
+    degree: "NVQ Nivel 2 în Sănătate și Îngrijire Socială",
+    school: "Birmingham Adult Education, 2019",
+    languagesHeading: "Limbi",
+    languagesText: "Engleză (fluent) · Urdu (nativ)",
+  },
+};
+
+const previewLanguages: { code: keyof typeof cvTranslations | string; label: string }[] = [
+  { code: "en", label: "English" },
+  { code: "pl", label: "Polski" },
+  { code: "ar", label: "العربية" },
+  { code: "ur", label: "اردو" },
+  { code: "ro", label: "Română" },
+];
 
 const chooseLangPhrases: { text: string; dir: "ltr" | "rtl"; lang: string }[] = [
   { text: "اختر لغتك", dir: "rtl", lang: "ar" },
@@ -92,6 +237,8 @@ function Index() {
   const navigate = useNavigate();
   const location = useLocation();
   const [phraseIndex, setPhraseIndex] = useState(0);
+  const [previewLang, setPreviewLang] = useState<string>("en");
+  const [comingSoonOpen, setComingSoonOpen] = useState(false);
   useEffect(() => {
     const id = setInterval(() => {
       setPhraseIndex((i) => (i + 1) % chooseLangPhrases.length);
@@ -221,7 +368,7 @@ function Index() {
           <div className="mx-auto grid max-w-6xl gap-6 px-5 py-8 text-center sm:grid-cols-2 md:grid-cols-4">
             <div className="flex flex-col items-center gap-1">
               <Globe className="h-5 w-5 text-primary" />
-              <p className="font-semibold text-foreground">20 Languages Supported</p>
+              <p className="font-semibold text-foreground">Build in Your Language</p>
             </div>
             <div className="flex flex-col items-center gap-1">
               <Check className="h-5 w-5 text-primary" />
@@ -285,83 +432,198 @@ function Index() {
               </p>
             </Reveal>
 
-            <Reveal delay={120} className="mx-auto mt-14 max-w-3xl">
-              <div className="overflow-hidden rounded-xl border border-border bg-white shadow-2xl">
-                {/* Mock CV Document */}
-                <div className="bg-white p-8 md:p-12">
-                  {/* Header */}
-                  <div className="border-b-2 border-primary pb-4">
-                    <h3 className="font-serif text-2xl font-bold text-foreground md:text-3xl">Amina Hussain</h3>
-                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                      <span>+44 7700 900123</span>
-                      <span>amina.hussain@email.com</span>
-                      <span>Birmingham, UK</span>
-                    </div>
-                  </div>
+            <Reveal delay={120} className="mx-auto mt-10 max-w-3xl">
+              <div className="mb-5 flex flex-wrap items-center justify-center gap-2">
+                {previewLanguages.map((l) => {
+                  const active = previewLang === l.code;
+                  return (
+                    <button
+                      key={l.code}
+                      type="button"
+                      onClick={() => setPreviewLang(l.code)}
+                      className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all ${
+                        active
+                          ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                          : "border-border bg-white text-foreground hover:border-primary/40"
+                      }`}
+                    >
+                      {l.label}
+                    </button>
+                  );
+                })}
+              </div>
 
-                  {/* Profile */}
-                  <div className="mt-5">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Professional Summary</h4>
-                    <p className="mt-2 text-sm leading-relaxed text-foreground">
-                      Dedicated healthcare assistant with 4+ years of experience in residential and hospital care settings. 
-                      Compassionate, reliable, and committed to delivering high-quality patient support. 
-                      Seeking a new opportunity to grow within the UK healthcare sector.
-                    </p>
-                  </div>
-
-                  {/* Experience */}
-                  <div className="mt-5">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Work Experience</h4>
-                    <div className="mt-3">
-                      <div className="flex justify-between items-baseline">
-                        <p className="text-sm font-semibold text-foreground">Healthcare Assistant</p>
-                        <p className="text-xs text-muted-foreground">2020 – Present</p>
+              {(() => {
+                const cv = cvTranslations[previewLang] ?? cvTranslations.en;
+                return (
+                  <div
+                    className="overflow-hidden rounded-xl border border-border bg-white shadow-2xl"
+                    dir={cv.dir}
+                    lang={previewLang}
+                  >
+                    <div className="bg-white p-8 md:p-12">
+                      <div className="border-b-2 border-primary pb-4">
+                        <h3 className="font-serif text-2xl font-bold text-foreground md:text-3xl">Amina Hussain</h3>
+                        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                          <span>{cv.contact.phone}</span>
+                          <span>{cv.contact.email}</span>
+                          <span>{cv.contact.location}</span>
+                        </div>
                       </div>
-                      <p className="text-xs text-muted-foreground">Greenwood Care Home, Birmingham, UK</p>
-                      <ul className="mt-2 space-y-1 text-sm text-foreground">
-                        <li>• Provided daily personal care to 8+ residents, maintaining dignity and comfort</li>
-                        <li>• Assisted with medication reminders and mobility support</li>
-                        <li>• Collaborated with nurses and families to update care plans</li>
-                      </ul>
+
+                      <div className="mt-5">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary">{cv.summaryHeading}</h4>
+                        <p className="mt-2 text-sm leading-relaxed text-foreground">{cv.summary}</p>
+                      </div>
+
+                      <div className="mt-5">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary">{cv.experienceHeading}</h4>
+                        <div className="mt-3">
+                          <div className="flex items-baseline justify-between">
+                            <p className="text-sm font-semibold text-foreground">{cv.jobTitle}</p>
+                            <p className="text-xs text-muted-foreground">{cv.jobDates}</p>
+                          </div>
+                          <p className="text-xs text-muted-foreground">{cv.employer}</p>
+                          <ul className="mt-2 space-y-1 text-sm text-foreground">
+                            {cv.bullets.map((b) => (
+                              <li key={b}>• {b}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div className="mt-5">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary">{cv.skillsHeading}</h4>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {cv.skills.map((skill) => (
+                            <span key={skill} className="rounded-full bg-primary-soft px-3 py-1 text-xs font-medium text-primary">
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="mt-5">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary">{cv.educationHeading}</h4>
+                        <div className="mt-2">
+                          <p className="text-sm font-semibold text-foreground">{cv.degree}</p>
+                          <p className="text-xs text-muted-foreground">{cv.school}</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-5">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary">{cv.languagesHeading}</h4>
+                        <p className="mt-2 text-sm text-foreground">{cv.languagesText}</p>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-border bg-secondary/50 px-8 py-3 text-center text-xs text-muted-foreground">
+                      Created with CVLingo · cvlingo.com
                     </div>
                   </div>
+                );
+              })()}
+            </Reveal>
 
-                  {/* Skills */}
-                  <div className="mt-5">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Key Skills</h4>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {["Patient Care", "Teamwork", "Communication", "First Aid", "Time Management"].map((skill) => (
-                        <span key={skill} className="rounded-full bg-primary-soft px-3 py-1 text-xs font-medium text-primary">
-                          {skill}
+            {/* TEMPLATE CARDS */}
+            <Reveal delay={180} className="mx-auto mt-12 max-w-4xl">
+              <p className="text-center text-xs font-semibold uppercase tracking-widest text-accent">Templates</p>
+              <h3 className="mt-2 text-center font-serif text-2xl text-foreground md:text-3xl">Choose your style</h3>
+              <div className="mt-8 grid gap-5 sm:grid-cols-3">
+                {[
+                  { name: "Classic", available: true },
+                  { name: "Modern", available: false },
+                  { name: "Executive", available: false },
+                ].map((tpl) => (
+                  <button
+                    key={tpl.name}
+                    type="button"
+                    onClick={() => {
+                      if (!tpl.available) setComingSoonOpen(true);
+                    }}
+                    className={`group relative flex flex-col items-stretch overflow-hidden rounded-2xl border bg-white p-5 text-left transition-all ${
+                      tpl.available
+                        ? "border-primary/30 hover:-translate-y-0.5 hover:shadow-lg"
+                        : "border-border opacity-70 hover:opacity-90"
+                    }`}
+                  >
+                    <div className={`h-28 rounded-lg ${tpl.available ? "bg-primary-soft" : "bg-muted"}`}>
+                      <div className="flex h-full flex-col justify-center gap-1.5 p-3">
+                        <div className={`h-2 w-1/2 rounded ${tpl.available ? "bg-primary/60" : "bg-muted-foreground/30"}`} />
+                        <div className={`h-1.5 w-3/4 rounded ${tpl.available ? "bg-primary/30" : "bg-muted-foreground/20"}`} />
+                        <div className={`h-1.5 w-2/3 rounded ${tpl.available ? "bg-primary/30" : "bg-muted-foreground/20"}`} />
+                        <div className={`h-1.5 w-1/2 rounded ${tpl.available ? "bg-primary/30" : "bg-muted-foreground/20"}`} />
+                      </div>
+                    </div>
+                    <div className="mt-4 flex items-center justify-between">
+                      <p className={`font-serif text-lg ${tpl.available ? "text-foreground" : "text-muted-foreground"}`}>
+                        {tpl.name}
+                      </p>
+                      {tpl.available ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                          <Check className="h-3 w-3" /> Free
                         </span>
-                      ))}
+                      ) : (
+                        <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                          Coming Soon
+                        </span>
+                      )}
                     </div>
-                  </div>
+                  </button>
+                ))}
+              </div>
+            </Reveal>
 
-                  {/* Education */}
-                  <div className="mt-5">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Education</h4>
-                    <div className="mt-2">
-                      <p className="text-sm font-semibold text-foreground">NVQ Level 2 in Health and Social Care</p>
-                      <p className="text-xs text-muted-foreground">Birmingham Adult Education, 2019</p>
-                    </div>
+            {/* VIDEO SECTION */}
+            <Reveal delay={220} className="mx-auto mt-20 max-w-4xl text-center">
+              <span className="text-xs font-semibold uppercase tracking-widest text-accent">Watch</span>
+              <h3 className="mt-2 font-serif text-3xl text-foreground md:text-4xl">Build your CV in under 2 minutes</h3>
+              <p className="mt-3 text-muted-foreground">See how CVLingo works</p>
+              <div
+                className="relative mx-auto mt-8 w-full max-w-[720px] overflow-hidden rounded-2xl shadow-2xl"
+                style={{ aspectRatio: "16 / 9", backgroundColor: "#0D6E6E" }}
+              >
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-white">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/15 backdrop-blur-sm ring-1 ring-white/30">
+                    <Play className="h-9 w-9 translate-x-0.5 fill-white text-white" />
                   </div>
-
-                  {/* Languages */}
-                  <div className="mt-5">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-primary">Languages</h4>
-                    <p className="mt-2 text-sm text-foreground">English (Fluent) · Urdu (Native)</p>
-                  </div>
-                </div>
-
-                {/* Watermark footer */}
-                <div className="border-t border-border bg-secondary/50 px-8 py-3 text-center text-xs text-muted-foreground">
-                  Created with CVLingo · cvlingo.com
+                  <p className="text-sm font-medium uppercase tracking-widest text-white/90">Video coming soon</p>
                 </div>
               </div>
             </Reveal>
           </div>
         </section>
+
+        {/* COMING SOON MODAL */}
+        {comingSoonOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+            onClick={() => setComingSoonOpen(false)}
+          >
+            <div
+              className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={() => setComingSoonOpen(false)}
+                className="absolute right-3 top-3 rounded-full p-1 text-muted-foreground hover:bg-muted"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <h4 className="font-serif text-xl text-foreground">Premium templates coming soon</h4>
+              <p className="mt-2 text-sm text-muted-foreground">Start free — no sign up needed.</p>
+              <Link
+                to="/build"
+                onClick={() => setComingSoonOpen(false)}
+                className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+              >
+                Start with Classic
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* ATS BANNER */}
         <section className="bg-primary py-10">
