@@ -13,7 +13,7 @@ export type CVData = {
     rightToWork: string;
   };
   experienceType: string;
-  experience: { title: string; place: string; duration: string; description: string }[];
+  experience: { title: string; place: string; country?: string; duration: string; description: string }[];
   skills: string[];
   availability: string[];
 };
@@ -98,7 +98,7 @@ ${
     ? "No previous formal employment"
     : experience
         .map(
-          (e) => `- ${e.title} at ${e.place || "unlisted"} for ${e.duration}: ${e.description}`,
+          (e) => `- ${e.title} at ${e.place || "unlisted"}${e.country ? ` (${e.country})` : ""} for ${e.duration}: ${e.description}`,
         )
         .join("\n")
 }

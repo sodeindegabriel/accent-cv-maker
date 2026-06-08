@@ -1,9 +1,10 @@
 export function GeneratingOverlay() {
   const messages = [
-    "Reading your experience...",
-    "Writing your personal statement...",
-    "Formatting your CV...",
-    "Almost ready...",
+    "Reading your story and crafting your words...",
+    "Every great career starts with one good CV...",
+    "Building something you'll be proud to send...",
+    "Turning your experience into opportunity...",
+    "Almost there — your CV is taking shape...",
   ];
 
   return (

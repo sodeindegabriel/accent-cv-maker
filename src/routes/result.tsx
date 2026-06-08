@@ -38,7 +38,11 @@ function ResultPage() {
   if (!result) return null;
 
   const plainText = htmlToPlainText(activeHtml);
-  const whatsappHref = `https://wa.me/?text=${encodeURIComponent(`Here is my CV:\n\n${plainText}`)}`;
+  const footer = "CV built with CVLingo — cvlingo.com";
+  const whatsappHref = `https://wa.me/?text=${encodeURIComponent(`Here is my CV:\n\n${plainText}\n\n${footer}`)}`;
+  const emailSubject = `My CV — ${name || "CVLingo"}`;
+  const emailBody = `${plainText}\n\n${footer}`;
+  const emailHref = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
   const shareLink = typeof window !== "undefined" ? `${window.location.origin}/build` : "/build";
   const friendShareHref = `https://wa.me/?text=${encodeURIComponent(
     `Know someone who needs a CV? CVLingo helps you build a UK CV in your own language. ${shareLink}`,
@@ -203,6 +207,12 @@ function ResultPage() {
               className="rounded-xl bg-secondary px-5 py-3 font-semibold text-secondary-foreground transition hover:opacity-90"
             >
               Share via WhatsApp
+            </a>
+            <a
+              href={emailHref}
+              className="rounded-xl border border-border bg-background px-5 py-3 font-semibold text-foreground transition hover:bg-muted"
+            >
+              Share via Email
             </a>
           </div>
 
