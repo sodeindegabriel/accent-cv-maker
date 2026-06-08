@@ -619,6 +619,8 @@ function Step3PersonalDetails({ data, update, displayLang, originalLang, onToggl
           )}
         </div>
         <TextField label={t(displayLang, "cityUk")} value={personal.city} onChange={(value) => setPersonal("city", value)} placeholder={t(displayLang, "cityPlaceholder")} />
+        <TextField label={t(displayLang, "postcodeOptional")} value={personal.postcode} onChange={(value) => setPersonal("postcode", value)} placeholder={t(displayLang, "postcodePlaceholder")} />
+
         <div>
           <label className="mb-2 block text-sm font-medium text-foreground">{t(displayLang, "rightToWork")}</label>
           <div className="grid gap-2 sm:grid-cols-2">
