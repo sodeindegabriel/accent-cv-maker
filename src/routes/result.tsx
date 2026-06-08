@@ -56,7 +56,7 @@ function ResultPage() {
         #cv-print {
           max-width: 680px;
           margin: 0 auto;
-          padding: 40px;
+          padding: 48px 48px 40px;
           background: #ffffff;
           color: #111827;
           font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
