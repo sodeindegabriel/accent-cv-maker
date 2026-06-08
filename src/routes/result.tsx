@@ -43,10 +43,13 @@ function ResultPage() {
   const emailSubject = `My CV — ${name || "CVLingo"}`;
   const emailBody = `${plainText}\n\n${footer}`;
   const emailHref = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-  const shareLink = typeof window !== "undefined" ? `${window.location.origin}/build` : "/build";
-  const friendShareHref = `https://wa.me/?text=${encodeURIComponent(
-    `Know someone who needs a CV? CVLingo helps you build a UK CV in your own language. ${shareLink}`,
-  )}`;
+  const shareMessage =
+    "I just built my CV using CVLingo — it translated it into English for me. If you need a UK CV, try it free: https://cvlingo.com";
+  const whatsappShareHref = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
+  const facebookShareHref = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+    "https://cvlingo.com",
+  )}&quote=${encodeURIComponent(shareMessage)}`;
+  const twitterShareHref = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}`;
 
   const nativeLabel = result.language ? `${result.language} CV` : "Native CV";
 
