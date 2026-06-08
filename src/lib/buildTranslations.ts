@@ -32,6 +32,7 @@ export type TKey =
   | "skillsAndAvailability" | "edit" | "close" | "notSelected"
   | "nameMissing" | "phoneMissing" | "emailMissing" | "cityMissing" | "rtwMissing"
   | "noExperienceYet" | "notAdded" | "noSkills" | "noAvailability"
+  | "company" | "country" | "countryPlaceholder"
   | "generateCv" | "generating" | "somethingWrong" | "retry";
 
 
