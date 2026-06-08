@@ -33,23 +33,23 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "CVLingo helps non-English speaking immigrants in the UK create professional CVs by answering simple questions in their own language. Free, AI-powered, UK-format.",
+          "Free UK CV builder for immigrants and non-English speakers. Build your CV in your language, download in English.",
       },
       { name: "author", content: "CVLingo" },
+      { property: "og:site_name", content: "CVLingo" },
       { property: "og:title", content: "CVLingo — Build Your CV in Your Language" },
       {
         property: "og:description",
         content:
-          "Answer simple questions in your language. We create a professional UK CV for you — free, in minutes.",
+          "Free UK CV builder for immigrants and non-English speakers. Build your CV in your language, download in English.",
       },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
+      { property: "og:url", content: "https://cvlingo.com" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/3307bccf-ba6d-40f9-aaed-c652371f10d1/id-preview-a066dbf5--0541e4a6-ece3-4c39-93b4-ee543be54aca.lovable.app-1777476165883.png" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@CVLingo" },
       { name: "twitter:title", content: "CVLingo — Build Your CV in Your Language" },
-      { name: "description", content: "CVLingo is an AI-powered web app that helps non-English speaking immigrants in the UK build professional CVs." },
-      { property: "og:description", content: "CVLingo is an AI-powered web app that helps non-English speaking immigrants in the UK build professional CVs." },
-      { name: "twitter:description", content: "CVLingo is an AI-powered web app that helps non-English speaking immigrants in the UK build professional CVs." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/3307bccf-ba6d-40f9-aaed-c652371f10d1/id-preview-a066dbf5--0541e4a6-ece3-4c39-93b4-ee543be54aca.lovable.app-1777476165883.png" },
+      { name: "twitter:description", content: "Free UK CV builder for immigrants and non-English speakers. Build your CV in your language, download in English." },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/3307bccf-ba6d-40f9-aaed-c652371f10d1/id-preview-a066dbf5--0541e4a6-ece3-4c39-93b4-ee543be54aca.lovable.app-1777476165883.png" },
     ],
     links: [
