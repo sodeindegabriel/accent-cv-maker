@@ -123,6 +123,8 @@ const en: Record<TKey, string> = {
   rtwMissing: "Right to work missing",
   noExperienceYet: "No experience yet", notAdded: "Not added",
   noSkills: "No skills selected", noAvailability: "No availability selected",
+  company: "Company", country: "Country",
+  countryPlaceholder: "e.g. UK, Poland, Romania",
   generateCv: "Generate My CV", generating: "Generating…",
   somethingWrong: "Something went wrong. Please try again.", retry: "Retry",
 };
