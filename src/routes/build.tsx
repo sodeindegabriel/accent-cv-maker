@@ -9,6 +9,7 @@ import { t, type TKey } from "@/lib/buildTranslations";
 type Experience = {
   title: string;
   place: string;
+  country: string;
   duration: string;
   description: string;
 };
@@ -608,7 +609,7 @@ function Step3PersonalDetails({ data, update, displayLang, originalLang, onToggl
 
 function Step4Experience({ data, update, displayLang, originalLang, onToggleLang, onBack, onNext }: StepProps) {
   const addExperience = () => {
-    update("experience", [...data.experience, { title: "", place: "", duration: "", description: "" }]);
+    update("experience", [...data.experience, { title: "", place: "", country: "", duration: "", description: "" }]);
   };
   const updateExperience = (index: number, key: keyof Experience, value: string) => {
     update(
@@ -668,6 +669,7 @@ function Step4Experience({ data, update, displayLang, originalLang, onToggleLang
                 <div className="grid gap-4 sm:grid-cols-2">
                   <TextField label={t(displayLang, "roleOrActivity")} value={experience.title} onChange={(value) => updateExperience(index, "title", value)} placeholder={t(displayLang, "rolePlaceholder")} />
                   <TextField label={t(displayLang, "companyOrPlace")} value={experience.place} onChange={(value) => updateExperience(index, "place", value)} placeholder={t(displayLang, "placePlaceholder")} />
+                  <TextField label="Country" value={experience.country} onChange={(value) => updateExperience(index, "country", value)} placeholder="e.g. UK, Poland, Nigeria" />
                   <TextField label={t(displayLang, "dates")} value={experience.duration} onChange={(value) => updateExperience(index, "duration", value)} placeholder="2022–2024" />
                   <TextField label={t(displayLang, "whatYouDid")} value={experience.description} onChange={(value) => updateExperience(index, "description", value)} placeholder={t(displayLang, "descriptionPlaceholder")} />
                 </div>
@@ -882,6 +884,7 @@ function Step6Review({ data, update, displayLang, originalLang, onToggleLang, on
                       <li key={index}>
                         <span className="font-medium text-foreground">{item.title || t(displayLang, "roleOrActivity")}</span>
                         {item.place && ` — ${item.place}`}
+                        {item.country && `, ${item.country}`}
                         {item.duration && ` (${item.duration})`}
                         {item.description && <span className="block text-sm text-muted-foreground">{item.description}</span>}
                       </li>
