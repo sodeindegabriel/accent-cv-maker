@@ -120,8 +120,12 @@ function ResultPage() {
           color: #9CA3AF;
           letter-spacing: 0.08em;
         }
+        #cv-print .cv-watermark a {
+          color: inherit;
+          text-decoration: none;
+        }
         @media print {
-          @page { size: A4; margin: 14mm; }
+          @page { size: A4; margin: 18mm; }
           html, body { background: #ffffff !important; }
           body * { visibility: hidden !important; }
           #cv-print, #cv-print * {
@@ -133,7 +137,7 @@ function ResultPage() {
             top: 0;
             width: 100%;
             max-width: 100%;
-            padding: 0;
+            padding: 12px 16px;
             margin: 0;
             box-shadow: none !important;
             border: none !important;
