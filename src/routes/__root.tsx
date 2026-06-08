@@ -33,7 +33,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Free UK CV builder for immigrants and non-English speakers. Build your CV in your language, download in English.",
+          "Free UK CV builder for immigrants and non-English speakers. Answer simple questions in your language, get a professional UK CV instantly.",
       },
       { name: "author", content: "CVLingo" },
       { property: "og:site_name", content: "CVLingo" },
@@ -41,16 +41,16 @@ export const Route = createRootRoute({
       {
         property: "og:description",
         content:
-          "Free UK CV builder for immigrants and non-English speakers. Build your CV in your language, download in English.",
+          "Free UK CV builder for immigrants and non-English speakers. Answer simple questions in your language, get a professional UK CV instantly.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://cvlingo.com" },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/3307bccf-ba6d-40f9-aaed-c652371f10d1/id-preview-a066dbf5--0541e4a6-ece3-4c39-93b4-ee543be54aca.lovable.app-1777476165883.png" },
+      { property: "og:image", content: "https://cvlingo.com/__l5e/assets-v1/29ac1884-adaf-4a86-b8bb-b8f27ea8b8c0/cvlingo-og.png" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@CVLingo" },
       { name: "twitter:title", content: "CVLingo — Build Your CV in Your Language" },
-      { name: "twitter:description", content: "Free UK CV builder for immigrants and non-English speakers. Build your CV in your language, download in English." },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/3307bccf-ba6d-40f9-aaed-c652371f10d1/id-preview-a066dbf5--0541e4a6-ece3-4c39-93b4-ee543be54aca.lovable.app-1777476165883.png" },
+      { name: "twitter:description", content: "Free UK CV builder for immigrants and non-English speakers. Answer simple questions in your language, get a professional UK CV instantly." },
+      { name: "twitter:image", content: "https://cvlingo.com/__l5e/assets-v1/29ac1884-adaf-4a86-b8bb-b8f27ea8b8c0/cvlingo-og.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
