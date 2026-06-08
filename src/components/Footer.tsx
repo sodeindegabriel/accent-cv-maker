@@ -57,19 +57,25 @@ export function Footer() {
         <div>
           <h4 className="font-sans text-sm font-semibold uppercase tracking-wider text-white/90">Company</h4>
           <ul className="mt-4 space-y-3 text-sm text-white/70">
-            <li><a href="#" className="hover:text-accent transition-colors">Privacy Policy</a></li>
+            <li><Link to="/privacy" className="hover:text-accent transition-colors">Privacy Policy</Link></li>
             <li><a href="#" className="hover:text-accent transition-colors">Terms of Service</a></li>
-            <li><a href="#" className="hover:text-accent transition-colors">Contact</a></li>
           </ul>
         </div>
       </div>
 
       <div className="border-t border-white/10">
-        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-5 py-6 text-xs text-white/50 md:flex-row md:items-center md:justify-between">
-          <span>© 2026 CVLingo. Built for UK immigrants.</span>
-          <a href="https://jebacoglobal.com/" target="_blank" rel="noreferrer" className="text-accent transition-colors hover:text-accent/80">
-            Built by Jebaco Global
-          </a>
+        <div className="mx-auto flex max-w-6xl flex-col gap-1 px-5 py-6 text-xs text-white/50 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-1">
+            <span>© 2026 CVLingo. Built for UK immigrants.</span>
+            <a
+              href="https://jebacoglobal.com"
+              target="_blank"
+              rel="noreferrer"
+              className="text-accent transition-colors hover:text-accent/80"
+            >
+              Built by Jebaco Global
+            </a>
+          </div>
         </div>
       </div>
     </footer>
