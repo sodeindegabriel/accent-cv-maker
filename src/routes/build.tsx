@@ -725,8 +725,8 @@ function Step4Experience({ data, update, displayLang, originalLang, onToggleLang
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <TextField label={t(displayLang, "roleOrActivity")} value={experience.title} onChange={(value) => updateExperience(index, "title", value)} placeholder={t(displayLang, "rolePlaceholder")} />
-                  <TextField label="Company" value={experience.place} onChange={(value) => updateExperience(index, "place", value)} placeholder={t(displayLang, "placePlaceholder")} />
-                  <TextField label="Country" value={experience.country} onChange={(value) => updateExperience(index, "country", value)} placeholder="e.g. UK, Poland, Romania" />
+                  <TextField label={t(displayLang, "company")} value={experience.place} onChange={(value) => updateExperience(index, "place", value)} placeholder={t(displayLang, "placePlaceholder")} />
+                  <TextField label={t(displayLang, "country")} value={experience.country} onChange={(value) => updateExperience(index, "country", value)} placeholder={t(displayLang, "countryPlaceholder")} />
                   <TextField label={t(displayLang, "dates")} value={experience.duration} onChange={(value) => updateExperience(index, "duration", value)} placeholder="2022–2024" />
                   <TextField label={t(displayLang, "whatYouDid")} value={experience.description} onChange={(value) => updateExperience(index, "description", value)} placeholder={t(displayLang, "descriptionPlaceholder")} />
                 </div>
@@ -847,10 +847,10 @@ function Step5Skills({ data, update, displayLang, originalLang, onToggleLang, on
                     placeholder="e.g. City College"
                   />
                   <TextField
-                    label="Country"
+                    label={t(displayLang, "country")}
                     value={edu.country}
                     onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, country: v } : e))}
-                    placeholder="e.g. UK, Poland"
+                    placeholder={t(displayLang, "countryPlaceholder")}
                   />
                   <TextField
                     label={t(displayLang, "yearCompleted")}
