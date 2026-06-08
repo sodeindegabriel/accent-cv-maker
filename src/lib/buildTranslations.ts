@@ -33,6 +33,7 @@ export type TKey =
   | "nameMissing" | "phoneMissing" | "emailMissing" | "cityMissing" | "rtwMissing"
   | "noExperienceYet" | "notAdded" | "noSkills" | "noAvailability"
   | "company" | "country" | "countryPlaceholder"
+  | "yes" | "no" | "educationQuestion" | "pleaseAddExperience"
   | "generateCv" | "generating" | "somethingWrong" | "retry";
 
 
