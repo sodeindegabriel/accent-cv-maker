@@ -10,13 +10,16 @@ export type CVData = {
     phone: string;
     email: string;
     city: string;
+    postcode?: string;
     rightToWork: string;
   };
   experienceType: string;
   experience: { title: string; place: string; country?: string; duration: string; description: string }[];
+  education?: { qualification: string; institution: string; country: string; year: string }[];
   skills: string[];
   availability: string[];
 };
+
 
 export type GeneratedCV = {
   native: string;
