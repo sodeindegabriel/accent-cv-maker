@@ -4,7 +4,152 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Reveal } from "@/components/Reveal";
 import { CountUp } from "@/components/CountUp";
-import { Globe, MessageCircle, FileDown, Check, ArrowRight, Clock, Lock } from "lucide-react";
+import { Globe, MessageCircle, FileDown, Check, ArrowRight, Clock, Lock, Play, X } from "lucide-react";
+
+type CVTranslation = {
+  dir: "ltr" | "rtl";
+  contact: { phone: string; email: string; location: string };
+  summaryHeading: string;
+  summary: string;
+  experienceHeading: string;
+  jobTitle: string;
+  jobDates: string;
+  employer: string;
+  bullets: string[];
+  skillsHeading: string;
+  skills: string[];
+  educationHeading: string;
+  degree: string;
+  school: string;
+  languagesHeading: string;
+  languagesText: string;
+};
+
+const cvTranslations: Record<string, CVTranslation> = {
+  en: {
+    dir: "ltr",
+    contact: { phone: "+44 7700 900123", email: "amina.hussain@email.com", location: "Birmingham, UK" },
+    summaryHeading: "Professional Summary",
+    summary:
+      "Dedicated healthcare assistant with 4+ years of experience in residential and hospital care settings. Compassionate, reliable, and committed to delivering high-quality patient support. Seeking a new opportunity to grow within the UK healthcare sector.",
+    experienceHeading: "Work Experience",
+    jobTitle: "Healthcare Assistant",
+    jobDates: "2020 – Present",
+    employer: "Greenwood Care Home, Birmingham, UK",
+    bullets: [
+      "Provided daily personal care to 8+ residents, maintaining dignity and comfort",
+      "Assisted with medication reminders and mobility support",
+      "Collaborated with nurses and families to update care plans",
+    ],
+    skillsHeading: "Key Skills",
+    skills: ["Patient Care", "Teamwork", "Communication", "First Aid", "Time Management"],
+    educationHeading: "Education",
+    degree: "NVQ Level 2 in Health and Social Care",
+    school: "Birmingham Adult Education, 2019",
+    languagesHeading: "Languages",
+    languagesText: "English (Fluent) · Urdu (Native)",
+  },
+  pl: {
+    dir: "ltr",
+    contact: { phone: "+44 7700 900123", email: "amina.hussain@email.com", location: "Birmingham, Wielka Brytania" },
+    summaryHeading: "Profil zawodowy",
+    summary:
+      "Zaangażowana asystentka opieki zdrowotnej z ponad 4-letnim doświadczeniem w domach opieki i szpitalach. Wyrozumiała, niezawodna i oddana wysokiej jakości opiece nad pacjentami. Poszukuję nowej szansy rozwoju w brytyjskim sektorze opieki zdrowotnej.",
+    experienceHeading: "Doświadczenie zawodowe",
+    jobTitle: "Asystentka opieki zdrowotnej",
+    jobDates: "2020 – obecnie",
+    employer: "Greenwood Care Home, Birmingham, Wielka Brytania",
+    bullets: [
+      "Zapewniałam codzienną opiekę osobistą ponad 8 pensjonariuszom, dbając o ich godność i komfort",
+      "Pomagałam w przypomnieniach o lekach i wsparciu w poruszaniu się",
+      "Współpracowałam z pielęgniarkami i rodzinami przy aktualizacji planów opieki",
+    ],
+    skillsHeading: "Kluczowe umiejętności",
+    skills: ["Opieka nad pacjentem", "Praca w zespole", "Komunikacja", "Pierwsza pomoc", "Zarządzanie czasem"],
+    educationHeading: "Wykształcenie",
+    degree: "NVQ Poziom 2 w zakresie opieki zdrowotnej i społecznej",
+    school: "Birmingham Adult Education, 2019",
+    languagesHeading: "Języki",
+    languagesText: "Angielski (biegle) · Urdu (ojczysty)",
+  },
+  ar: {
+    dir: "rtl",
+    contact: { phone: "+44 7700 900123", email: "amina.hussain@email.com", location: "برمنغهام، المملكة المتحدة" },
+    summaryHeading: "الملخص المهني",
+    summary:
+      "مساعدة رعاية صحية متفانية تتمتع بخبرة تزيد عن 4 سنوات في دور الرعاية والمستشفيات. متعاطفة، موثوقة، وملتزمة بتقديم دعم عالي الجودة للمرضى. أبحث عن فرصة جديدة للنمو في قطاع الرعاية الصحية بالمملكة المتحدة.",
+    experienceHeading: "الخبرة العملية",
+    jobTitle: "مساعدة رعاية صحية",
+    jobDates: "2020 – حتى الآن",
+    employer: "دار رعاية غرينوود، برمنغهام، المملكة المتحدة",
+    bullets: [
+      "تقديم الرعاية الشخصية اليومية لأكثر من 8 مقيمين مع الحفاظ على كرامتهم وراحتهم",
+      "المساعدة في تذكير الأدوية ودعم التنقل",
+      "التعاون مع الممرضات والعائلات لتحديث خطط الرعاية",
+    ],
+    skillsHeading: "المهارات الرئيسية",
+    skills: ["رعاية المرضى", "العمل الجماعي", "التواصل", "الإسعافات الأولية", "إدارة الوقت"],
+    educationHeading: "التعليم",
+    degree: "NVQ المستوى 2 في الصحة والرعاية الاجتماعية",
+    school: "تعليم الكبار في برمنغهام، 2019",
+    languagesHeading: "اللغات",
+    languagesText: "الإنجليزية (بطلاقة) · الأردية (اللغة الأم)",
+  },
+  ur: {
+    dir: "rtl",
+    contact: { phone: "+44 7700 900123", email: "amina.hussain@email.com", location: "برمنگھم، برطانیہ" },
+    summaryHeading: "پیشہ ورانہ خلاصہ",
+    summary:
+      "رہائشی اور ہسپتال کی نگہداشت میں 4 سال سے زائد تجربہ رکھنے والی پُرعزم ہیلتھ کیئر اسسٹنٹ۔ ہمدرد، قابلِ بھروسہ اور اعلیٰ معیار کی مریضوں کی دیکھ بھال فراہم کرنے کے لیے پُرعزم۔ برطانیہ کے ہیلتھ کیئر سیکٹر میں ترقی کے نئے مواقع کی تلاش میں۔",
+    experienceHeading: "کام کا تجربہ",
+    jobTitle: "ہیلتھ کیئر اسسٹنٹ",
+    jobDates: "2020 – تاحال",
+    employer: "گرین ووڈ کیئر ہوم، برمنگھم، برطانیہ",
+    bullets: [
+      "8 سے زائد رہائشیوں کو روزانہ ذاتی نگہداشت فراہم کی، عزت اور آرام کو برقرار رکھا",
+      "ادویات کی یاد دہانی اور نقل و حرکت میں مدد کی",
+      "نگہداشت کے منصوبوں کو اپ ڈیٹ کرنے کے لیے نرسوں اور خاندانوں کے ساتھ تعاون کیا",
+    ],
+    skillsHeading: "اہم مہارتیں",
+    skills: ["مریضوں کی دیکھ بھال", "ٹیم ورک", "گفتگو", "ابتدائی طبی امداد", "وقت کا انتظام"],
+    educationHeading: "تعلیم",
+    degree: "صحت اور سماجی نگہداشت میں NVQ لیول 2",
+    school: "برمنگھم اڈلٹ ایجوکیشن، 2019",
+    languagesHeading: "زبانیں",
+    languagesText: "انگریزی (روانی) · اردو (مادری)",
+  },
+  ro: {
+    dir: "ltr",
+    contact: { phone: "+44 7700 900123", email: "amina.hussain@email.com", location: "Birmingham, Marea Britanie" },
+    summaryHeading: "Profil profesional",
+    summary:
+      "Asistentă medicală dedicată cu peste 4 ani de experiență în centre rezidențiale și spitale. Empatică, de încredere și dedicată oferirii unui sprijin de înaltă calitate pacienților. Caut o nouă oportunitate de dezvoltare în sectorul medical din Marea Britanie.",
+    experienceHeading: "Experiență profesională",
+    jobTitle: "Asistentă medicală",
+    jobDates: "2020 – prezent",
+    employer: "Greenwood Care Home, Birmingham, Marea Britanie",
+    bullets: [
+      "Am oferit îngrijire personală zilnică pentru peste 8 rezidenți, păstrând demnitatea și confortul",
+      "Am asistat la administrarea reamintirilor de medicație și la sprijinul pentru mobilitate",
+      "Am colaborat cu asistentele și familiile pentru actualizarea planurilor de îngrijire",
+    ],
+    skillsHeading: "Abilități cheie",
+    skills: ["Îngrijirea pacienților", "Lucru în echipă", "Comunicare", "Prim ajutor", "Gestionarea timpului"],
+    educationHeading: "Educație",
+    degree: "NVQ Nivel 2 în Sănătate și Îngrijire Socială",
+    school: "Birmingham Adult Education, 2019",
+    languagesHeading: "Limbi",
+    languagesText: "Engleză (fluent) · Urdu (nativ)",
+  },
+};
+
+const previewLanguages: { code: keyof typeof cvTranslations | string; label: string }[] = [
+  { code: "en", label: "English" },
+  { code: "pl", label: "Polski" },
+  { code: "ar", label: "العربية" },
+  { code: "ur", label: "اردو" },
+  { code: "ro", label: "Română" },
+];
 
 const chooseLangPhrases: { text: string; dir: "ltr" | "rtl"; lang: string }[] = [
   { text: "اختر لغتك", dir: "rtl", lang: "ar" },
