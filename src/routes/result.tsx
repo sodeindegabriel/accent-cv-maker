@@ -378,6 +378,109 @@ function EditAnswersMenu() {
   );
 }
 
+function CandidatePoolCard() {
+  const [dismissed, setDismissed] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (hasSubmittedThisSession()) setSubmitted(true);
+  }, []);
+
+  if (dismissed) return null;
+
+  if (submitted) {
+    return (
+      <section className="no-print mt-8 rounded-2xl border border-border bg-card p-6 text-center">
+        <p className="text-lg font-semibold text-foreground">You're in the pool 🎉</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          We'll be in touch when employers are looking for someone like you.
+        </p>
+      </section>
+    );
+  }
+
+  const canSubmit = isValidEmail(email);
+
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canSubmit) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    try {
+      const inputRaw = sessionStorage.getItem("cvlingo:input");
+      const input = inputRaw ? JSON.parse(inputRaw) : {};
+      let referralSource: string | null = null;
+      try {
+        referralSource =
+          localStorage.getItem("cvlingo:referral") ||
+          localStorage.getItem("referral") ||
+          localStorage.getItem("referralCode") ||
+          null;
+      } catch {
+        /* ignore */
+      }
+      const entry: CandidatePoolEntry = {
+        email: email.trim(),
+        name: input?.personalDetails?.name ?? "",
+        jobTypes: Array.isArray(input?.jobTypes) ? input.jobTypes : [],
+        language: input?.language ?? "",
+        rightToWork: input?.personalDetails?.rightToWork ?? "",
+        city: input?.personalDetails?.city ?? "",
+        referralSource,
+        timestamp: new Date().toISOString(),
+      };
+      addCandidate(entry);
+      setSubmitted(true);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    }
+  };
+
+  return (
+    <section className="no-print mt-8 rounded-2xl border border-border bg-card p-6">
+      <h2 className="text-lg font-semibold text-foreground">Want employers to find you?</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Join the CVLingo candidate pool — employers hiring for your role type can view your CV and contact you directly. Free, always.
+      </p>
+      <form onSubmit={onSubmit} className="mt-4 space-y-3">
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (error) setError(null);
+          }}
+          placeholder="Enter your email address"
+          className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
+          aria-label="Email address"
+        />
+        <button
+          type="submit"
+          disabled={!canSubmit}
+          className="w-full rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+        >
+          Add me to the candidate pool
+        </button>
+        {error && <p className="text-sm text-destructive">{error}</p>}
+      </form>
+      <p className="mt-3 text-xs text-muted-foreground">
+        We will never share your email without your permission. Unsubscribe anytime.
+      </p>
+      <button
+        type="button"
+        onClick={() => setDismissed(true)}
+        className="mt-3 text-sm text-muted-foreground underline hover:text-foreground"
+      >
+        No thanks, just keep my CV
+      </button>
+    </section>
+  );
+}
+
+
 export const Route = createFileRoute("/result")({
   component: ResultPage,
   head: () => ({
