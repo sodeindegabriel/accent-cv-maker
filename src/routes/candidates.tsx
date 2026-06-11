@@ -81,6 +81,7 @@ function CandidatesPage() {
                     <td className="px-3 py-2">{e.language}</td>
                     <td className="px-3 py-2">{e.rightToWork}</td>
                     <td className="px-3 py-2">{e.city}</td>
+                    <td className="px-3 py-2">{e.postcode ?? "—"}</td>
                     <td className="px-3 py-2">{e.referralSource ?? "—"}</td>
                   </tr>
                 ))}
