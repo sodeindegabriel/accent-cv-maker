@@ -30,8 +30,9 @@ export function Navbar() {
 
   const links = [
     { label: "How it works", hash: "how" },
-    { label: "For Employers", to: "/employer" as const },
+    { label: "For Community", to: "/partners" as const },
     { label: "Languages", hash: "languages" },
+    { label: "For Employers", to: "/employer" as const },
   ];
 
   return (
