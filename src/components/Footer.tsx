@@ -49,6 +49,7 @@ export function Footer() {
           <ul className="mt-4 space-y-3 text-sm text-white/70">
             <li><Link to="/build" className="hover:text-accent transition-colors">Build Your CV</Link></li>
             <li><FooterAnchor hash="how">How It Works</FooterAnchor></li>
+            <li><FooterAnchor hash="watch">Watch Demo</FooterAnchor></li>
             <li><FooterAnchor hash="languages">Languages</FooterAnchor></li>
           </ul>
         </div>
@@ -57,7 +58,6 @@ export function Footer() {
           <h4 className="font-sans text-sm font-semibold uppercase tracking-wider text-white/90">Company</h4>
           <ul className="mt-4 space-y-3 text-sm text-white/70">
             <li><Link to="/employer" className="hover:text-accent transition-colors">For Employers</Link></li>
-            <li><FooterAnchor hash="watch">Watch Demo</FooterAnchor></li>
             <li><Link to="/partners" className="hover:text-accent transition-colors">Community Partners</Link></li>
             <li><Link to="/privacy" className="hover:text-accent transition-colors">Privacy Policy</Link></li>
             <li><Link to="/terms" className="hover:text-accent transition-colors">Terms of Service</Link></li>

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import emailjs from "@emailjs/browser";
 import { BridgeIcon } from "@/components/BridgeIcon";
 
@@ -113,6 +113,19 @@ function PartnersPage() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [orgType, setOrgType] = useState("Charity");
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const scrollToForm = () => {
+    const el = document.getElementById("partner-form");
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -144,15 +157,23 @@ function PartnersPage() {
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border">
+      {/* Sticky navbar */}
+      <header
+        className={`sticky top-0 z-50 w-full transition-all ${
+          scrolled ? "bg-white/90 backdrop-blur border-b border-border" : "bg-transparent"
+        }`}
+      >
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link to="/" className="flex items-center gap-2 text-primary transition hover:opacity-80">
             <BridgeIcon className="h-7 w-7" />
             <span className="font-serif text-2xl">CVLingo</span>
           </Link>
-          <Link to="/" className="text-sm font-medium text-muted-foreground transition hover:text-foreground">
-            ← Back to home
-          </Link>
+          <button
+            onClick={scrollToForm}
+            className="inline-flex items-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md"
+          >
+            Apply to Partner
+          </button>
         </div>
       </header>
 
@@ -174,6 +195,15 @@ function PartnersPage() {
               <p className="mt-2 text-sm text-muted-foreground">{b.body}</p>
             </div>
           ))}
+        </div>
+
+        <div className="mt-10 flex justify-center">
+          <button
+            onClick={scrollToForm}
+            className="inline-flex items-center rounded-full bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md"
+          >
+            Apply to Partner
+          </button>
         </div>
       </section>
 
@@ -199,7 +229,7 @@ function PartnersPage() {
       </section>
 
       {/* FORM */}
-      <section className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8">
+      <section id="partner-form" className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8 scroll-mt-24">
         <div className="text-center">
           <h2 className="font-serif text-3xl text-foreground">Ready to partner with us?</h2>
           <p className="mt-3 text-base text-muted-foreground">
