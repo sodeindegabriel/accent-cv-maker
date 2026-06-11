@@ -183,7 +183,7 @@ function BuildPage() {
       const editStep = sessionStorage.getItem("cvlingo:editStep");
       if (editStep) {
         const n = parseInt(editStep, 10);
-        if (n >= 1 && n <= 6) setStep(n);
+        if (n >= 1 && n <= 7) setStep(n);
         sessionStorage.removeItem("cvlingo:editStep");
       }
     } catch {
@@ -195,7 +195,7 @@ function BuildPage() {
     setData((current) => ({ ...current, [key]: value }));
   };
 
-  const next = () => setStep((current) => Math.min(6, current + 1));
+  const next = () => setStep((current) => Math.min(7, current + 1));
   const back = () => setStep((current) => Math.max(1, current - 1));
 
   const originalLang = data.questionLanguageCode || "en";
