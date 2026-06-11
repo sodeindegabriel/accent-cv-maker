@@ -5,6 +5,7 @@ export type CandidatePoolEntry = {
   language: string;
   rightToWork: string;
   city: string;
+  postcode: string | null;
   referralSource: string | null;
   timestamp: string;
 };
