@@ -88,7 +88,7 @@ function PartnersPage() {
       referralSource: String(fd.get("referralSource") ?? "").trim(),
       timestamp: new Date().toISOString(),
     };
-    if (!entry.orgName || !entry.name || !entry.email) return;
+    if (!entry.orgName || !entry.name || !entry.email || !entry.phone) return;
     setSubmitting(true);
     savePartner(entry);
     await notifyPartner(entry);
