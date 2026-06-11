@@ -206,6 +206,8 @@ function ResultPage() {
             </div>
           </article>
 
+          <CandidatePoolCard />
+
           <div className="no-print mt-6 flex flex-wrap gap-3">
             <button
               type="button"
@@ -241,8 +243,6 @@ function ResultPage() {
               Share via Email
             </a>
           </div>
-
-          <CandidatePoolCard />
 
 
           <section className="no-print mt-10 rounded-2xl border border-border bg-card p-6">
