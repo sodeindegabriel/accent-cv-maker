@@ -13,6 +13,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ResultRouteImport } from './routes/result'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as EmployerRouteImport } from './routes/employer'
+import { Route as CandidatesRouteImport } from './routes/candidates'
 import { Route as BuildRouteImport } from './routes/build'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -36,6 +37,11 @@ const EmployerRoute = EmployerRouteImport.update({
   path: '/employer',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CandidatesRoute = CandidatesRouteImport.update({
+  id: '/candidates',
+  path: '/candidates',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BuildRoute = BuildRouteImport.update({
   id: '/build',
   path: '/build',
@@ -50,6 +56,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/build': typeof BuildRoute
+  '/candidates': typeof CandidatesRoute
   '/employer': typeof EmployerRoute
   '/privacy': typeof PrivacyRoute
   '/result': typeof ResultRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/build': typeof BuildRoute
+  '/candidates': typeof CandidatesRoute
   '/employer': typeof EmployerRoute
   '/privacy': typeof PrivacyRoute
   '/result': typeof ResultRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/build': typeof BuildRoute
+  '/candidates': typeof CandidatesRoute
   '/employer': typeof EmployerRoute
   '/privacy': typeof PrivacyRoute
   '/result': typeof ResultRoute
@@ -74,13 +83,28 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/build' | '/employer' | '/privacy' | '/result' | '/terms'
+  fullPaths:
+    | '/'
+    | '/build'
+    | '/candidates'
+    | '/employer'
+    | '/privacy'
+    | '/result'
+    | '/terms'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/build' | '/employer' | '/privacy' | '/result' | '/terms'
+  to:
+    | '/'
+    | '/build'
+    | '/candidates'
+    | '/employer'
+    | '/privacy'
+    | '/result'
+    | '/terms'
   id:
     | '__root__'
     | '/'
     | '/build'
+    | '/candidates'
     | '/employer'
     | '/privacy'
     | '/result'
@@ -90,6 +114,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BuildRoute: typeof BuildRoute
+  CandidatesRoute: typeof CandidatesRoute
   EmployerRoute: typeof EmployerRoute
   PrivacyRoute: typeof PrivacyRoute
   ResultRoute: typeof ResultRoute
@@ -126,6 +151,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmployerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/candidates': {
+      id: '/candidates'
+      path: '/candidates'
+      fullPath: '/candidates'
+      preLoaderRoute: typeof CandidatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/build': {
       id: '/build'
       path: '/build'
@@ -146,6 +178,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BuildRoute: BuildRoute,
+  CandidatesRoute: CandidatesRoute,
   EmployerRoute: EmployerRoute,
   PrivacyRoute: PrivacyRoute,
   ResultRoute: ResultRoute,
