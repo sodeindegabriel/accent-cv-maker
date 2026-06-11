@@ -575,7 +575,9 @@ function Index() {
             </Reveal>
 
             {/* VIDEO SECTION */}
-            <Reveal delay={220} className="mx-auto mt-20 max-w-4xl text-center" id="watch">
+            <div id="watch" className="scroll-mt-24" />
+            <Reveal delay={220} className="mx-auto mt-20 max-w-4xl text-center">
+
 
               <span className="text-xs font-semibold uppercase tracking-widest text-accent">Watch</span>
               <h3 className="mt-2 font-serif text-3xl text-foreground md:text-4xl">Build your CV in under 2 minutes</h3>
