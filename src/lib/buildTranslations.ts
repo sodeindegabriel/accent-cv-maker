@@ -34,6 +34,7 @@ export type TKey =
   | "noExperienceYet" | "notAdded" | "noSkills" | "noAvailability"
   | "company" | "country" | "countryPlaceholder"
   | "yes" | "no" | "educationQuestion" | "pleaseAddExperience"
+  | "noEducationMessage"
   | "generateCv" | "generating" | "somethingWrong" | "retry";
 
 
