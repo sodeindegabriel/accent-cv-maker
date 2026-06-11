@@ -106,7 +106,7 @@ const en: Record<TKey, string> = {
   avail_evenings: "Evenings", avail_mornings: "Early mornings",
   avail_full: "Full-time", avail_part: "Part-time",
   educationTitle: "Any education or training?",
-  educationSubtitle: "Include anything — school, college, courses, certificates",
+  educationSubtitle: "Include anything — school, college, courses, certificates, informal training. All experience counts.",
   qualificationName: "Qualification or course name",
   institution: "School, college or institution",
   yearCompleted: "Year completed (or “In progress”)",
