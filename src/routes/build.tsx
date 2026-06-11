@@ -183,7 +183,7 @@ function BuildPage() {
       const editStep = sessionStorage.getItem("cvlingo:editStep");
       if (editStep) {
         const n = parseInt(editStep, 10);
-        if (n >= 1 && n <= 6) setStep(n);
+        if (n >= 1 && n <= 7) setStep(n);
         sessionStorage.removeItem("cvlingo:editStep");
       }
     } catch {
@@ -195,7 +195,7 @@ function BuildPage() {
     setData((current) => ({ ...current, [key]: value }));
   };
 
-  const next = () => setStep((current) => Math.min(6, current + 1));
+  const next = () => setStep((current) => Math.min(7, current + 1));
   const back = () => setStep((current) => Math.max(1, current - 1));
 
   const originalLang = data.questionLanguageCode || "en";
@@ -232,8 +232,9 @@ function BuildPage() {
       {step === 2 && <Step2JobType {...stepProps} onBack={back} onNext={next} />}
       {step === 3 && <Step3PersonalDetails {...stepProps} onBack={back} onNext={next} />}
       {step === 4 && <Step4Experience {...stepProps} onBack={back} onNext={next} />}
-      {step === 5 && <Step5Skills {...stepProps} onBack={back} onNext={next} />}
-      {step === 6 && <Step6Review {...stepProps} onBack={back} onEdit={setStep} />}
+      {step === 5 && <Step5Education {...stepProps} onBack={back} onNext={next} />}
+      {step === 6 && <Step6Skills {...stepProps} onBack={back} onNext={next} />}
+      {step === 7 && <Step7Review {...stepProps} onBack={back} onEdit={setStep} />}
       {preselectModalLang && (
         <LanguageChoiceModal
           lang={preselectModalLang}
@@ -326,15 +327,15 @@ function StepShell({
       )}
       <div className="mx-auto max-w-3xl">
         <div className="mb-8">
-          <div className="mb-4 flex items-center gap-2" aria-label={t(qLang, "stepOf", { n: step })}>
-            {Array.from({ length: 6 }, (_, index) => (
+          <div className="mb-4 flex items-center gap-2" aria-label={t(qLang, "stepOf", { n: step, total: 7 })}>
+            {Array.from({ length: 7 }, (_, index) => (
               <div
                 key={index}
                 className={`h-2 flex-1 rounded-full ${index + 1 <= step ? "bg-primary" : "bg-muted"}`}
               />
             ))}
           </div>
-          <p className="mb-2 text-sm font-medium text-muted-foreground">{t(qLang, "stepOf", { n: step })}</p>
+          <p className="mb-2 text-sm font-medium text-muted-foreground">{t(qLang, "stepOf", { n: step, total: 7 })}</p>
           <h1 className="text-2xl font-semibold tracking-normal text-foreground sm:text-4xl">{title}</h1>
           <p className="mt-3 text-base text-muted-foreground sm:text-lg">{subtitle}</p>
         </div>
@@ -771,7 +772,121 @@ function Step4Experience({ data, update, displayLang, originalLang, onToggleLang
   );
 }
 
-function Step5Skills({ data, update, displayLang, originalLang, onToggleLang, onBack, onNext }: StepProps) {
+function Step5Education({ data, update, displayLang, originalLang, onToggleLang, onBack, onNext }: StepProps) {
+  const valid =
+    data.hasEducation === "no" ||
+    (data.hasEducation === "yes" && data.education.some((e) => e.qualification.trim()));
+
+  return (
+    <StepShell
+      step={5}
+      qLang={displayLang}
+      originalLang={originalLang}
+      onToggleLang={onToggleLang}
+      title={t(displayLang, "educationTitle")}
+      subtitle={t(displayLang, "educationSubtitle")}
+      onBack={onBack}
+      onNext={onNext}
+      nextDisabled={!valid}
+    >
+      <div className="space-y-5">
+        <h2 className="font-medium text-foreground">{t(displayLang, "educationQuestion")}</h2>
+        <div className="grid grid-cols-2 gap-3 sm:max-w-xs">
+          <button
+            type="button"
+            onClick={() => {
+              update("hasEducation", "yes");
+              if (data.education.length === 0) {
+                update("education", [{ qualification: "", institution: "", country: "", year: "" }]);
+              }
+            }}
+            className={`rounded-xl border p-3 text-center font-medium transition ${
+              data.hasEducation === "yes"
+                ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary/30"
+                : "border-border bg-background text-foreground hover:bg-muted"
+            }`}
+          >
+            {t(displayLang, "yes")}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              update("hasEducation", "no");
+              update("education", []);
+            }}
+            className={`rounded-xl border p-3 text-center font-medium transition ${
+              data.hasEducation === "no"
+                ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary/30"
+                : "border-border bg-background text-foreground hover:bg-muted"
+            }`}
+          >
+            {t(displayLang, "no")}
+          </button>
+        </div>
+
+        {data.hasEducation === "no" && (
+          <p className="rounded-xl border border-border bg-background p-4 text-sm text-muted-foreground">
+            {t(displayLang, "noEducationMessage")}
+          </p>
+        )}
+
+        {data.hasEducation === "yes" && (
+          <div className="space-y-4">
+            {data.education.map((edu, index) => (
+              <div key={index} className="rounded-xl border border-border bg-background p-4">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <h3 className="font-medium text-foreground">{t(displayLang, "educationN", { n: index + 1 })}</h3>
+                  <button
+                    type="button"
+                    onClick={() => update("education", data.education.filter((_, i) => i !== index))}
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground"
+                  >
+                    {t(displayLang, "remove")}
+                  </button>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <TextField
+                    label={t(displayLang, "qualificationName")}
+                    value={edu.qualification}
+                    onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, qualification: v } : e))}
+                    placeholder="e.g. GCSE Maths, NVQ Level 2, Diploma in Care, Secondary School"
+                  />
+                  <TextField
+                    label={t(displayLang, "institution")}
+                    value={edu.institution}
+                    onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, institution: v } : e))}
+                    placeholder="e.g. City College, Birmingham Adult Education"
+                  />
+                  <TextField
+                    label={t(displayLang, "country")}
+                    value={edu.country}
+                    onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, country: v } : e))}
+                    placeholder={t(displayLang, "countryPlaceholder")}
+                  />
+                  <TextField
+                    label={t(displayLang, "yearCompleted")}
+                    value={edu.year}
+                    onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, year: v } : e))}
+                    placeholder={t(displayLang, "yearPlaceholder")}
+                  />
+                </div>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => update("education", [...data.education, { qualification: "", institution: "", country: "", year: "" }])}
+              className="rounded-xl border border-border bg-background px-4 py-3 font-medium text-foreground transition hover:bg-muted"
+            >
+              {t(displayLang, "addQualification")}
+            </button>
+          </div>
+        )}
+      </div>
+    </StepShell>
+  );
+}
+
+function Step6Skills({ data, update, displayLang, originalLang, onToggleLang, onBack, onNext }: StepProps) {
   const [customSkill, setCustomSkill] = useState("");
   const toggleValue = (key: "skills" | "availability", value: string) => {
     const selected = new Set(data[key]);
@@ -790,7 +905,7 @@ function Step5Skills({ data, update, displayLang, originalLang, onToggleLang, on
 
   return (
     <StepShell
-      step={5}
+      step={6}
       qLang={displayLang}
       originalLang={originalLang}
       onToggleLang={onToggleLang}
@@ -801,94 +916,6 @@ function Step5Skills({ data, update, displayLang, originalLang, onToggleLang, on
       nextDisabled={data.skills.length === 0 || data.availability.length === 0}
     >
       <div className="space-y-6">
-        <div>
-          <h2 className="font-medium text-foreground">{t(displayLang, "educationQuestion")}</h2>
-          <div className="mt-3 grid grid-cols-2 gap-3 sm:max-w-xs">
-            <button
-              type="button"
-              onClick={() => {
-                update("hasEducation", "yes");
-                if (data.education.length === 0) {
-                  update("education", [{ qualification: "", institution: "", country: "", year: "" }]);
-                }
-              }}
-              className={`rounded-xl border p-3 text-center font-medium transition ${
-                data.hasEducation === "yes"
-                  ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary/30"
-                  : "border-border bg-background text-foreground hover:bg-muted"
-              }`}
-            >
-              {t(displayLang, "yes")}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                update("hasEducation", "no");
-                update("education", []);
-              }}
-              className={`rounded-xl border p-3 text-center font-medium transition ${
-                data.hasEducation === "no"
-                  ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary/30"
-                  : "border-border bg-background text-foreground hover:bg-muted"
-              }`}
-            >
-              {t(displayLang, "no")}
-            </button>
-          </div>
-
-          {data.hasEducation === "yes" && (
-            <div className="mt-4 space-y-4">
-              {data.education.map((edu, index) => (
-                <div key={index} className="rounded-xl border border-border bg-background p-4">
-                  <div className="mb-4 flex items-center justify-between gap-3">
-                    <h3 className="font-medium text-foreground">{t(displayLang, "educationN", { n: index + 1 })}</h3>
-                    <button
-                      type="button"
-                      onClick={() => update("education", data.education.filter((_, i) => i !== index))}
-                      className="text-sm font-medium text-muted-foreground hover:text-foreground"
-                    >
-                      {t(displayLang, "remove")}
-                    </button>
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <TextField
-                      label={t(displayLang, "qualificationName")}
-                      value={edu.qualification}
-                      onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, qualification: v } : e))}
-                      placeholder="e.g. GCSE Maths, Diploma in Care"
-                    />
-                    <TextField
-                      label={t(displayLang, "institution")}
-                      value={edu.institution}
-                      onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, institution: v } : e))}
-                      placeholder="e.g. City College"
-                    />
-                    <TextField
-                      label={t(displayLang, "country")}
-                      value={edu.country}
-                      onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, country: v } : e))}
-                      placeholder={t(displayLang, "countryPlaceholder")}
-                    />
-                    <TextField
-                      label={t(displayLang, "yearCompleted")}
-                      value={edu.year}
-                      onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, year: v } : e))}
-                      placeholder={t(displayLang, "yearPlaceholder")}
-                    />
-                  </div>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => update("education", [...data.education, { qualification: "", institution: "", country: "", year: "" }])}
-                className="rounded-xl border border-border bg-background px-4 py-3 font-medium text-foreground transition hover:bg-muted"
-              >
-                {t(displayLang, "addQualification")}
-              </button>
-            </div>
-          )}
-        </div>
-
         <div>
           <h2 className="mb-3 font-medium text-foreground">{t(displayLang, "skills")}</h2>
           <div className="flex flex-wrap gap-2">
@@ -940,7 +967,7 @@ function Step5Skills({ data, update, displayLang, originalLang, onToggleLang, on
   );
 }
 
-function Step6Review({ data, update, displayLang, originalLang, onToggleLang, onBack, onEdit }: {
+function Step7Review({ data, update, displayLang, originalLang, onToggleLang, onBack, onEdit }: {
   data: CVData;
   update: <K extends keyof CVData>(key: K, value: CVData[K]) => void;
   displayLang: string;
@@ -1030,7 +1057,7 @@ function Step6Review({ data, update, displayLang, originalLang, onToggleLang, on
       )}
       <div className="mx-auto max-w-3xl">
         <div className="mb-8">
-          <p className="mb-2 text-sm font-medium text-muted-foreground">{t(displayLang, "stepOf", { n: 6 })}</p>
+          <p className="mb-2 text-sm font-medium text-muted-foreground">{t(displayLang, "stepOf", { n: 7, total: 7 })}</p>
           <h1 className="text-2xl font-semibold tracking-normal text-foreground sm:text-4xl">{t(displayLang, "step6Title")}</h1>
           <p className="mt-3 text-base text-muted-foreground sm:text-lg">{t(displayLang, "step6Subtitle")}</p>
         </div>
@@ -1075,7 +1102,7 @@ function Step6Review({ data, update, displayLang, originalLang, onToggleLang, on
               </>
             )}
           </ReviewSection>
-          <ReviewSection title={t(displayLang, "skillsAndAvailability")} editLabel={t(displayLang, "edit")} onEdit={() => onEdit(5)}>
+          <ReviewSection title={t(displayLang, "skillsAndAvailability")} editLabel={t(displayLang, "edit")} onEdit={() => onEdit(6)}>
             <p>{skillLabels || t(displayLang, "noSkills")}</p>
             <p>{availabilityLabels || t(displayLang, "noAvailability")}</p>
           </ReviewSection>
