@@ -101,6 +101,7 @@ QUALITY STANDARDS:
 - Contact details: full name as h1, then one clean line below with location · phone · email
 - Never output asterisks, hashtags, or any markdown syntax under any circumstances
 - If generating in ${language}, write all CV content in that language. For the English version, write everything in professional British English.
+- The user may have written their answers in their native language. Some place names, company names, or details may be in the user's language — for example "Londres" means London, "Varsovie" means Warsaw. Intelligently translate and interpret all user inputs into the correct English equivalents when generating the English CV. Never leave foreign language place names or terms untranslated in the English CV version.
 
 USER INFORMATION:
 Name: ${personalDetails.name}
