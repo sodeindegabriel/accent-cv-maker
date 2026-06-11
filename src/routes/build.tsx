@@ -1057,7 +1057,7 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
       )}
       <div className="mx-auto max-w-3xl">
         <div className="mb-8">
-          <p className="mb-2 text-sm font-medium text-muted-foreground">{t(displayLang, "stepOf", { n: 6 })}</p>
+          <p className="mb-2 text-sm font-medium text-muted-foreground">{t(displayLang, "stepOf", { n: 7, total: 7 })}</p>
           <h1 className="text-2xl font-semibold tracking-normal text-foreground sm:text-4xl">{t(displayLang, "step6Title")}</h1>
           <p className="mt-3 text-base text-muted-foreground sm:text-lg">{t(displayLang, "step6Subtitle")}</p>
         </div>
