@@ -232,8 +232,9 @@ function BuildPage() {
       {step === 2 && <Step2JobType {...stepProps} onBack={back} onNext={next} />}
       {step === 3 && <Step3PersonalDetails {...stepProps} onBack={back} onNext={next} />}
       {step === 4 && <Step4Experience {...stepProps} onBack={back} onNext={next} />}
-      {step === 5 && <Step5Skills {...stepProps} onBack={back} onNext={next} />}
-      {step === 6 && <Step6Review {...stepProps} onBack={back} onEdit={setStep} />}
+      {step === 5 && <Step5Education {...stepProps} onBack={back} onNext={next} />}
+      {step === 6 && <Step6Skills {...stepProps} onBack={back} onNext={next} />}
+      {step === 7 && <Step7Review {...stepProps} onBack={back} onEdit={setStep} />}
       {preselectModalLang && (
         <LanguageChoiceModal
           lang={preselectModalLang}
