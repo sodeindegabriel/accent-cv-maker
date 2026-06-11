@@ -427,6 +427,7 @@ function CandidatePoolCard() {
       let referralSource: string | null = null;
       try {
         referralSource =
+          localStorage.getItem("cvlingo_referral") ||
           localStorage.getItem("cvlingo:referral") ||
           localStorage.getItem("referral") ||
           localStorage.getItem("referralCode") ||
