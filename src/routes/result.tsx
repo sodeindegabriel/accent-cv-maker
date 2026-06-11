@@ -7,6 +7,7 @@ import {
   isValidEmail,
   type CandidatePoolEntry,
 } from "@/lib/candidatePool";
+import { notifyCandidate } from "@/lib/notifyCandidate";
 
 
 function ResultPage() {
@@ -447,6 +448,7 @@ function CandidatePoolCard() {
         timestamp: new Date().toISOString(),
       };
       addCandidate(entry);
+      void notifyCandidate(entry);
       setSubmitted(true);
     } catch {
       setError("Something went wrong. Please try again.");

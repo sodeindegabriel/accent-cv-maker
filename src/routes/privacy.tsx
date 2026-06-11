@@ -41,7 +41,7 @@ function PrivacyPage() {
           <h2 className="text-xl font-semibold">Your Rights</h2>
           <p>
             Under UK GDPR you have the right to access, correct, or delete your personal data at any time. Contact us at{" "}
-            <a href="mailto:privacy@cvlingo.com" className="text-primary underline">privacy@cvlingo.com</a>
+            <a href="mailto:hello@jebacoglobal.com" className="text-primary underline">hello@jebacoglobal.com</a>
           </p>
 
           <h2 className="text-xl font-semibold">Cookies</h2>
