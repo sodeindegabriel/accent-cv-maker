@@ -327,15 +327,15 @@ function StepShell({
       )}
       <div className="mx-auto max-w-3xl">
         <div className="mb-8">
-          <div className="mb-4 flex items-center gap-2" aria-label={t(qLang, "stepOf", { n: step })}>
-            {Array.from({ length: 6 }, (_, index) => (
+          <div className="mb-4 flex items-center gap-2" aria-label={t(qLang, "stepOf", { n: step, total: 7 })}>
+            {Array.from({ length: 7 }, (_, index) => (
               <div
                 key={index}
                 className={`h-2 flex-1 rounded-full ${index + 1 <= step ? "bg-primary" : "bg-muted"}`}
               />
             ))}
           </div>
-          <p className="mb-2 text-sm font-medium text-muted-foreground">{t(qLang, "stepOf", { n: step })}</p>
+          <p className="mb-2 text-sm font-medium text-muted-foreground">{t(qLang, "stepOf", { n: step, total: 7 })}</p>
           <h1 className="text-2xl font-semibold tracking-normal text-foreground sm:text-4xl">{title}</h1>
           <p className="mt-3 text-base text-muted-foreground sm:text-lg">{subtitle}</p>
         </div>
