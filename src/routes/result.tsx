@@ -35,7 +35,15 @@ function ResultPage() {
     return sanitizeCvHtml(tab === "native" ? result.native : result.english);
   }, [result, tab]);
 
+  const lang = (result?.language || "").toLowerCase();
+  const isEnglishOnly = !lang || lang === "english";
+
+  useEffect(() => {
+    if (isEnglishOnly) setTab("english");
+  }, [isEnglishOnly]);
+
   if (!result) return null;
+
 
   const plainText = htmlToPlainText(activeHtml);
   const footer = "CV built with CVLingo — cvlingo.com";
