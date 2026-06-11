@@ -163,8 +163,8 @@ function PartnersPage() {
                 <input id="email" name="email" type="email" required className={inputCls} />
               </div>
               <div>
-                <label className={labelCls} htmlFor="phone">Phone number</label>
-                <input id="phone" name="phone" type="tel" className={inputCls} />
+                <label className={labelCls} htmlFor="phone">Phone number *</label>
+                <input id="phone" name="phone" type="tel" required className={inputCls} />
               </div>
             </div>
 
