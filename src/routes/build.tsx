@@ -772,7 +772,121 @@ function Step4Experience({ data, update, displayLang, originalLang, onToggleLang
   );
 }
 
-function Step5Skills({ data, update, displayLang, originalLang, onToggleLang, onBack, onNext }: StepProps) {
+function Step5Education({ data, update, displayLang, originalLang, onToggleLang, onBack, onNext }: StepProps) {
+  const valid =
+    data.hasEducation === "no" ||
+    (data.hasEducation === "yes" && data.education.some((e) => e.qualification.trim()));
+
+  return (
+    <StepShell
+      step={5}
+      qLang={displayLang}
+      originalLang={originalLang}
+      onToggleLang={onToggleLang}
+      title={t(displayLang, "educationTitle")}
+      subtitle={t(displayLang, "educationSubtitle")}
+      onBack={onBack}
+      onNext={onNext}
+      nextDisabled={!valid}
+    >
+      <div className="space-y-5">
+        <h2 className="font-medium text-foreground">{t(displayLang, "educationQuestion")}</h2>
+        <div className="grid grid-cols-2 gap-3 sm:max-w-xs">
+          <button
+            type="button"
+            onClick={() => {
+              update("hasEducation", "yes");
+              if (data.education.length === 0) {
+                update("education", [{ qualification: "", institution: "", country: "", year: "" }]);
+              }
+            }}
+            className={`rounded-xl border p-3 text-center font-medium transition ${
+              data.hasEducation === "yes"
+                ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary/30"
+                : "border-border bg-background text-foreground hover:bg-muted"
+            }`}
+          >
+            {t(displayLang, "yes")}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              update("hasEducation", "no");
+              update("education", []);
+            }}
+            className={`rounded-xl border p-3 text-center font-medium transition ${
+              data.hasEducation === "no"
+                ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary/30"
+                : "border-border bg-background text-foreground hover:bg-muted"
+            }`}
+          >
+            {t(displayLang, "no")}
+          </button>
+        </div>
+
+        {data.hasEducation === "no" && (
+          <p className="rounded-xl border border-border bg-background p-4 text-sm text-muted-foreground">
+            {t(displayLang, "noEducationMessage")}
+          </p>
+        )}
+
+        {data.hasEducation === "yes" && (
+          <div className="space-y-4">
+            {data.education.map((edu, index) => (
+              <div key={index} className="rounded-xl border border-border bg-background p-4">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <h3 className="font-medium text-foreground">{t(displayLang, "educationN", { n: index + 1 })}</h3>
+                  <button
+                    type="button"
+                    onClick={() => update("education", data.education.filter((_, i) => i !== index))}
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground"
+                  >
+                    {t(displayLang, "remove")}
+                  </button>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <TextField
+                    label={t(displayLang, "qualificationName")}
+                    value={edu.qualification}
+                    onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, qualification: v } : e))}
+                    placeholder="e.g. GCSE Maths, NVQ Level 2, Diploma in Care, Secondary School"
+                  />
+                  <TextField
+                    label={t(displayLang, "institution")}
+                    value={edu.institution}
+                    onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, institution: v } : e))}
+                    placeholder="e.g. City College, Birmingham Adult Education"
+                  />
+                  <TextField
+                    label={t(displayLang, "country")}
+                    value={edu.country}
+                    onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, country: v } : e))}
+                    placeholder={t(displayLang, "countryPlaceholder")}
+                  />
+                  <TextField
+                    label={t(displayLang, "yearCompleted")}
+                    value={edu.year}
+                    onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, year: v } : e))}
+                    placeholder={t(displayLang, "yearPlaceholder")}
+                  />
+                </div>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => update("education", [...data.education, { qualification: "", institution: "", country: "", year: "" }])}
+              className="rounded-xl border border-border bg-background px-4 py-3 font-medium text-foreground transition hover:bg-muted"
+            >
+              {t(displayLang, "addQualification")}
+            </button>
+          </div>
+        )}
+      </div>
+    </StepShell>
+  );
+}
+
+function Step6Skills({ data, update, displayLang, originalLang, onToggleLang, onBack, onNext }: StepProps) {
   const [customSkill, setCustomSkill] = useState("");
   const toggleValue = (key: "skills" | "availability", value: string) => {
     const selected = new Set(data[key]);
@@ -791,7 +905,7 @@ function Step5Skills({ data, update, displayLang, originalLang, onToggleLang, on
 
   return (
     <StepShell
-      step={5}
+      step={6}
       qLang={displayLang}
       originalLang={originalLang}
       onToggleLang={onToggleLang}
@@ -802,94 +916,6 @@ function Step5Skills({ data, update, displayLang, originalLang, onToggleLang, on
       nextDisabled={data.skills.length === 0 || data.availability.length === 0}
     >
       <div className="space-y-6">
-        <div>
-          <h2 className="font-medium text-foreground">{t(displayLang, "educationQuestion")}</h2>
-          <div className="mt-3 grid grid-cols-2 gap-3 sm:max-w-xs">
-            <button
-              type="button"
-              onClick={() => {
-                update("hasEducation", "yes");
-                if (data.education.length === 0) {
-                  update("education", [{ qualification: "", institution: "", country: "", year: "" }]);
-                }
-              }}
-              className={`rounded-xl border p-3 text-center font-medium transition ${
-                data.hasEducation === "yes"
-                  ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary/30"
-                  : "border-border bg-background text-foreground hover:bg-muted"
-              }`}
-            >
-              {t(displayLang, "yes")}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                update("hasEducation", "no");
-                update("education", []);
-              }}
-              className={`rounded-xl border p-3 text-center font-medium transition ${
-                data.hasEducation === "no"
-                  ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary/30"
-                  : "border-border bg-background text-foreground hover:bg-muted"
-              }`}
-            >
-              {t(displayLang, "no")}
-            </button>
-          </div>
-
-          {data.hasEducation === "yes" && (
-            <div className="mt-4 space-y-4">
-              {data.education.map((edu, index) => (
-                <div key={index} className="rounded-xl border border-border bg-background p-4">
-                  <div className="mb-4 flex items-center justify-between gap-3">
-                    <h3 className="font-medium text-foreground">{t(displayLang, "educationN", { n: index + 1 })}</h3>
-                    <button
-                      type="button"
-                      onClick={() => update("education", data.education.filter((_, i) => i !== index))}
-                      className="text-sm font-medium text-muted-foreground hover:text-foreground"
-                    >
-                      {t(displayLang, "remove")}
-                    </button>
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <TextField
-                      label={t(displayLang, "qualificationName")}
-                      value={edu.qualification}
-                      onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, qualification: v } : e))}
-                      placeholder="e.g. GCSE Maths, Diploma in Care"
-                    />
-                    <TextField
-                      label={t(displayLang, "institution")}
-                      value={edu.institution}
-                      onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, institution: v } : e))}
-                      placeholder="e.g. City College"
-                    />
-                    <TextField
-                      label={t(displayLang, "country")}
-                      value={edu.country}
-                      onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, country: v } : e))}
-                      placeholder={t(displayLang, "countryPlaceholder")}
-                    />
-                    <TextField
-                      label={t(displayLang, "yearCompleted")}
-                      value={edu.year}
-                      onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, year: v } : e))}
-                      placeholder={t(displayLang, "yearPlaceholder")}
-                    />
-                  </div>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => update("education", [...data.education, { qualification: "", institution: "", country: "", year: "" }])}
-                className="rounded-xl border border-border bg-background px-4 py-3 font-medium text-foreground transition hover:bg-muted"
-              >
-                {t(displayLang, "addQualification")}
-              </button>
-            </div>
-          )}
-        </div>
-
         <div>
           <h2 className="mb-3 font-medium text-foreground">{t(displayLang, "skills")}</h2>
           <div className="flex flex-wrap gap-2">
