@@ -156,26 +156,28 @@ function ResultPage() {
             <EditAnswersMenu />
           </div>
 
-          <div className="no-print mb-4 inline-flex rounded-xl border border-border bg-card p-1">
-            <button
-              type="button"
-              onClick={() => setTab("native")}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                tab === "native" ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
-              }`}
-            >
-              {nativeLabel}
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab("english")}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                tab === "english" ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
-              }`}
-            >
-              English CV
-            </button>
-          </div>
+          {!isEnglishOnly && (
+            <div className="no-print mb-4 inline-flex rounded-xl border border-border bg-card p-1">
+              <button
+                type="button"
+                onClick={() => setTab("native")}
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                  tab === "native" ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
+                }`}
+              >
+                {nativeLabel}
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab("english")}
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                  tab === "english" ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
+                }`}
+              >
+                English CV
+              </button>
+            </div>
+          )}
 
           <article
             className="rounded-2xl border border-border bg-white shadow-sm"
