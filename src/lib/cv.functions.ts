@@ -28,6 +28,12 @@ export type GeneratedCV = {
   raw: string;
 };
 
+function isEnglishOnly(cvData: CVData) {
+  const code = (cvData.languageCode || "").toLowerCase();
+  const name = (cvData.language || "").toLowerCase();
+  return code === "en" || name === "english";
+}
+
 function buildPrompt(cvData: CVData) {
   const { language, jobTypes, personalDetails, experience, education, skills, availability } = cvData;
   const hasEducation = Array.isArray(education) && education.length > 0;
@@ -127,7 +133,12 @@ Availability: ${availability.join(", ")}
 
 
 
-Generate TWO versions of the CV using the exact structure above:
+${isEnglishOnly(cvData) ? `Generate ONE CV written entirely in professional British English using the exact structure above.
+
+FORMAT YOUR RESPONSE EXACTLY LIKE THIS — no commentary before or after, no code fences:
+
+===CV IN ENGLISH===
+[Full HTML CV in English]` : `Generate TWO versions of the CV using the exact structure above:
 1. One written entirely in ${language}
 2. One written entirely in English
 
@@ -137,7 +148,8 @@ FORMAT YOUR RESPONSE EXACTLY LIKE THIS — no commentary before or after, no cod
 [Full HTML CV in ${language}]
 
 ===CV IN ENGLISH===
-[Full HTML CV in English]`;
+[Full HTML CV in English]`}`;
+
 }
 
 export const generateCVServer = createServerFn({ method: "POST" })
@@ -202,7 +214,10 @@ export const generateCVServer = createServerFn({ method: "POST" })
     const englishIdx = raw.indexOf(englishMarker);
     const nativeIdx = raw.indexOf(nativeMarker);
 
-    if (nativeIdx !== -1 && englishIdx !== -1) {
+    if (isEnglishOnly(cvData) && englishIdx !== -1) {
+      english = raw.slice(englishIdx + englishMarker.length).trim();
+      native = english;
+    } else if (nativeIdx !== -1 && englishIdx !== -1) {
       native = raw.slice(nativeIdx + nativeMarker.length, englishIdx).trim();
       english = raw.slice(englishIdx + englishMarker.length).trim();
     } else if (englishIdx !== -1) {
