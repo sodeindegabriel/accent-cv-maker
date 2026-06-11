@@ -1,6 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import type { GeneratedCV } from "@/utils/generateCV";
+import {
+  addCandidate,
+  hasSubmittedThisSession,
+  isValidEmail,
+  type CandidatePoolEntry,
+} from "@/lib/candidatePool";
+
 
 function ResultPage() {
   const navigate = useNavigate();
