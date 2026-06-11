@@ -214,7 +214,10 @@ export const generateCVServer = createServerFn({ method: "POST" })
     const englishIdx = raw.indexOf(englishMarker);
     const nativeIdx = raw.indexOf(nativeMarker);
 
-    if (nativeIdx !== -1 && englishIdx !== -1) {
+    if (isEnglishOnly(cvData) && englishIdx !== -1) {
+      english = raw.slice(englishIdx + englishMarker.length).trim();
+      native = english;
+    } else if (nativeIdx !== -1 && englishIdx !== -1) {
       native = raw.slice(nativeIdx + nativeMarker.length, englishIdx).trim();
       english = raw.slice(englishIdx + englishMarker.length).trim();
     } else if (englishIdx !== -1) {
