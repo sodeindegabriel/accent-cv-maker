@@ -37,7 +37,28 @@ export function hasSubmittedThisSession(): boolean {
 }
 
 export function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const e = (email ?? "").trim();
+  if (e.length < 6) return false;
+  if (/\s/.test(e)) return false;
+  if (e.startsWith("@")) return false;
+  if (/^www\./i.test(e)) return false;
+  if (e.includes("..")) return false;
+  const at = e.indexOf("@");
+  if (at <= 0 || at !== e.lastIndexOf("@")) return false;
+  const local = e.slice(0, at);
+  const domain = e.slice(at + 1);
+  if (!local || !domain) return false;
+  if (domain.startsWith(".") || domain.endsWith(".")) return false;
+  if (!domain.includes(".")) return false;
+  const tld = domain.split(".").pop() ?? "";
+  if (tld.length < 2) return false;
+  if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(e)) return false;
+  const lower = e.toLowerCase();
+  const fakes = new Set(["test@test.com", "a@a.com", "123@123.com", "test@test.co.uk"]);
+  if (fakes.has(lower)) return false;
+  if (/^test@test\./i.test(lower)) return false;
+  if (/^([a-z0-9])\1*@\1+\./i.test(lower)) return false;
+  return true;
 }
 
 export function toCSV(entries: CandidatePoolEntry[]): string {
@@ -49,6 +70,7 @@ export function toCSV(entries: CandidatePoolEntry[]): string {
     "language",
     "rightToWork",
     "city",
+    "postcode",
     "referralSource",
   ];
   const escape = (v: string) => `"${(v ?? "").replace(/"/g, '""')}"`;
@@ -61,6 +83,7 @@ export function toCSV(entries: CandidatePoolEntry[]): string {
       e.language,
       e.rightToWork,
       e.city,
+      e.postcode ?? "",
       e.referralSource ?? "",
     ]
       .map((v) => escape(String(v)))
