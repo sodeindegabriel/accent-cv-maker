@@ -51,7 +51,7 @@ function TermsPage() {
           <h2 className="text-xl font-semibold">Contact</h2>
           <p>
             For any queries email{" "}
-            <a href="mailto:hello@cvlingo.com" className="text-primary underline">hello@cvlingo.com</a>
+            <a href="mailto:hello@jebacoglobal.com" className="text-primary underline">hello@jebacoglobal.com</a>
           </p>
         </div>
       </section>
