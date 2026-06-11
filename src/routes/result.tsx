@@ -383,9 +383,20 @@ function CandidatePoolCard() {
   const [submitted, setSubmitted] = useState(false);
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [cvEmail, setCvEmail] = useState<string>("");
+  const [confirmedEmail, setConfirmedEmail] = useState<string | null>(null);
 
   useEffect(() => {
     if (hasSubmittedThisSession()) setSubmitted(true);
+    try {
+      const inputRaw = sessionStorage.getItem("cvlingo:input");
+      if (inputRaw) {
+        const parsed = JSON.parse(inputRaw);
+        setCvEmail((parsed?.personalDetails?.email ?? "").trim());
+      }
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   if (dismissed) return null;
@@ -401,14 +412,14 @@ function CandidatePoolCard() {
     );
   }
 
-  const canSubmit = isValidEmail(email);
+  const validEmail = isValidEmail(email);
+  const typedEmail = email.trim();
+  const emailsMismatch =
+    validEmail && cvEmail && typedEmail.toLowerCase() !== cvEmail.toLowerCase();
+  const needsConfirmation = !!emailsMismatch && !confirmedEmail;
+  const canSubmit = validEmail && !needsConfirmation;
 
-  const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!canSubmit) {
-      setError("Please enter a valid email address.");
-      return;
-    }
+  const doSubmit = (finalEmail: string) => {
     try {
       const inputRaw = sessionStorage.getItem("cvlingo:input");
       const input = inputRaw ? JSON.parse(inputRaw) : {};
@@ -423,12 +434,15 @@ function CandidatePoolCard() {
         /* ignore */
       }
       const entry: CandidatePoolEntry = {
-        email: email.trim(),
+        email: finalEmail.trim(),
         name: input?.personalDetails?.name ?? "",
         jobTypes: Array.isArray(input?.jobTypes) ? input.jobTypes : [],
         language: input?.language ?? "",
         rightToWork: input?.personalDetails?.rightToWork ?? "",
         city: input?.personalDetails?.city ?? "",
+        postcode: input?.personalDetails?.postcode
+          ? String(input.personalDetails.postcode)
+          : null,
         referralSource,
         timestamp: new Date().toISOString(),
       };
@@ -437,6 +451,16 @@ function CandidatePoolCard() {
     } catch {
       setError("Something went wrong. Please try again.");
     }
+  };
+
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validEmail) {
+      setError("Please enter a valid email address");
+      return;
+    }
+    if (needsConfirmation) return;
+    doSubmit(confirmedEmail ?? typedEmail);
   };
 
   return (
@@ -452,11 +476,42 @@ function CandidatePoolCard() {
           onChange={(e) => {
             setEmail(e.target.value);
             if (error) setError(null);
+            setConfirmedEmail(null);
           }}
           placeholder="Enter your email address"
           className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
           aria-label="Email address"
         />
+        {email.length > 0 && !validEmail && (
+          <p className="text-sm text-destructive">Please enter a valid email address</p>
+        )}
+        {emailsMismatch && (
+          <div className="rounded-xl border border-border bg-muted/40 p-3">
+            <p className="text-sm text-foreground">
+              This is different from the email on your CV (the one in Step 3). Which one should we use?
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => doSubmit(typedEmail)}
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+              >
+                Use this email
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail(cvEmail);
+                  setConfirmedEmail(cvEmail);
+                  doSubmit(cvEmail);
+                }}
+                className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted"
+              >
+                Use my CV email
+              </button>
+            </div>
+          </div>
+        )}
         <button
           type="submit"
           disabled={!canSubmit}
