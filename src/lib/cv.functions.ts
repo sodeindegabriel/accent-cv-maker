@@ -127,7 +127,12 @@ Availability: ${availability.join(", ")}
 
 
 
-Generate TWO versions of the CV using the exact structure above:
+${isEnglishOnly(cvData) ? `Generate ONE CV written entirely in professional British English using the exact structure above.
+
+FORMAT YOUR RESPONSE EXACTLY LIKE THIS — no commentary before or after, no code fences:
+
+===CV IN ENGLISH===
+[Full HTML CV in English]` : `Generate TWO versions of the CV using the exact structure above:
 1. One written entirely in ${language}
 2. One written entirely in English
 
@@ -137,7 +142,8 @@ FORMAT YOUR RESPONSE EXACTLY LIKE THIS — no commentary before or after, no cod
 [Full HTML CV in ${language}]
 
 ===CV IN ENGLISH===
-[Full HTML CV in English]`;
+[Full HTML CV in English]`}`;
+
 }
 
 export const generateCVServer = createServerFn({ method: "POST" })
