@@ -967,7 +967,7 @@ function Step6Skills({ data, update, displayLang, originalLang, onToggleLang, on
   );
 }
 
-function Step6Review({ data, update, displayLang, originalLang, onToggleLang, onBack, onEdit }: {
+function Step7Review({ data, update, displayLang, originalLang, onToggleLang, onBack, onEdit }: {
   data: CVData;
   update: <K extends keyof CVData>(key: K, value: CVData[K]) => void;
   displayLang: string;
