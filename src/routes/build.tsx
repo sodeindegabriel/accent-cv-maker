@@ -1102,7 +1102,7 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
               </>
             )}
           </ReviewSection>
-          <ReviewSection title={t(displayLang, "skillsAndAvailability")} editLabel={t(displayLang, "edit")} onEdit={() => onEdit(5)}>
+          <ReviewSection title={t(displayLang, "skillsAndAvailability")} editLabel={t(displayLang, "edit")} onEdit={() => onEdit(6)}>
             <p>{skillLabels || t(displayLang, "noSkills")}</p>
             <p>{availabilityLabels || t(displayLang, "noAvailability")}</p>
           </ReviewSection>
