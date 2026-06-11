@@ -59,6 +59,11 @@ export function Footer() {
           <ul className="mt-4 space-y-3 text-sm text-white/70">
             <li><Link to="/privacy" className="hover:text-accent transition-colors">Privacy Policy</Link></li>
             <li><Link to="/terms" className="hover:text-accent transition-colors">Terms of Service</Link></li>
+            <li>
+              <a href="mailto:hello@jebacoglobal.com" className="hover:text-accent transition-colors">
+                hello@jebacoglobal.com
+              </a>
+            </li>
           </ul>
         </div>
       </div>
