@@ -708,6 +708,49 @@ function Index() {
           </div>
         </section>
 
+        {/* COMMUNITY PARTNERS TEASER */}
+        <section className="bg-secondary/40 py-20 md:py-24">
+          <div className="mx-auto max-w-6xl px-5">
+            <Reveal className="mx-auto max-w-2xl text-center">
+              <span className="text-xs font-semibold uppercase tracking-widest text-accent">
+                Community Partners
+              </span>
+              <h2 className="mt-3 font-serif text-3xl text-foreground md:text-4xl">
+                Supporting organisations that support people
+              </h2>
+              <p className="mt-4 text-muted-foreground">
+                We work with charities, refugee networks, job centres and community groups across
+                the UK — giving their members free access to professional CV tools.
+              </p>
+            </Reveal>
+
+            <div className="mx-auto mt-12 grid max-w-4xl gap-5 md:grid-cols-3">
+              {[
+                { title: "20+ Languages", body: "No English needed to build a great CV" },
+                { title: "100% Free", body: "For every member of every partner organisation" },
+                { title: "Track Impact", body: "See exactly how many of your members got CV-ready" },
+              ].map((s) => (
+                <div
+                  key={s.title}
+                  className="rounded-2xl border border-border bg-card p-6 text-center"
+                >
+                  <p className="font-serif text-2xl text-foreground">{s.title}</p>
+                  <p className="mt-2 text-sm text-muted-foreground">{s.body}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-10 flex justify-center">
+              <Link
+                to="/partners"
+                className="inline-flex items-center rounded-full bg-primary px-7 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md"
+              >
+                Become a Community Partner
+              </Link>
+            </div>
+          </div>
+        </section>
+
         {/* EMPLOYER TEASER */}
         <section className="bg-background pb-24">
           <div className="mx-auto max-w-6xl px-5">
