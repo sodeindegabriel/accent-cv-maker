@@ -10,6 +10,7 @@ const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY as string | undefined
 type PartnerEntry = {
   orgName: string;
   orgType: string;
+  orgTypeOther: string;
   name: string;
   role: string;
   email: string;
@@ -39,9 +40,12 @@ async function notifyPartner(entry: PartnerEntry) {
     return;
   }
   const subject = `New CVLingo Community Partner — ${entry.orgName}`;
+  const typeLine = entry.orgType === "Other" && entry.orgTypeOther
+    ? `Type: Other — ${entry.orgTypeOther}`
+    : `Type: ${entry.orgType}`;
   const message = [
     `Organisation: ${entry.orgName}`,
-    `Type: ${entry.orgType}`,
+    typeLine,
     `Contact: ${entry.name}`,
     `Role: ${entry.role}`,
     `Email: ${entry.email}`,
@@ -69,9 +73,46 @@ async function notifyPartner(entry: PartnerEntry) {
   }
 }
 
+const benefits = [
+  {
+    icon: "🌍",
+    title: "20 Languages and more",
+    body: "Your members can build CVs in their native language — no English needed",
+  },
+  {
+    icon: "💼",
+    title: "Free for Your Members",
+    body: "Every CV build is completely free for the people you support. Always.",
+  },
+  {
+    icon: "📊",
+    title: "Track Your Impact",
+    body: "See how many of your members have built CVs through your referral link",
+  },
+];
+
+const testimonials = [
+  {
+    quote:
+      "CVLingo helped 27 of our members create professional CVs in their own language. Eight have already found work.",
+    author: "Support Worker, Refugee Charity, Bristol",
+  },
+  {
+    quote:
+      "Simple, free, and it actually works. Our Arabic and Somali speaking clients could use it without any help from staff.",
+    author: "Employment Advisor, Community Centre, Birmingham",
+  },
+  {
+    quote:
+      "We recommended CVLingo at our jobs fair and the feedback was overwhelmingly positive. Will be using it again.",
+    author: "Volunteer Coordinator, Migrants Support Group, London",
+  },
+];
+
 function PartnersPage() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [orgType, setOrgType] = useState("Charity");
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -79,6 +120,7 @@ function PartnersPage() {
     const entry: PartnerEntry = {
       orgName: String(fd.get("orgName") ?? "").trim(),
       orgType: String(fd.get("orgType") ?? ""),
+      orgTypeOther: String(fd.get("orgTypeOther") ?? "").trim(),
       name: String(fd.get("name") ?? "").trim(),
       role: String(fd.get("role") ?? "").trim(),
       email: String(fd.get("email") ?? "").trim(),
@@ -103,7 +145,7 @@ function PartnersPage() {
   return (
     <main className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link to="/" className="flex items-center gap-2 text-primary transition hover:opacity-80">
             <BridgeIcon className="h-7 w-7" />
             <span className="font-serif text-2xl">CVLingo</span>
@@ -114,15 +156,60 @@ function PartnersPage() {
         </div>
       </header>
 
-      <section className="mx-auto max-w-2xl px-4 py-12 sm:px-6 lg:px-8">
-        <h1 className="font-serif text-3xl sm:text-4xl">Become a CVLingo Community Partner</h1>
-        <p className="mt-3 text-base text-muted-foreground">
-          Help your members get jobs. We provide free CV building tools for your community — no cost, no commitment.
+      {/* HERO */}
+      <section className="mx-auto max-w-5xl px-4 pt-14 pb-10 text-center sm:px-6 lg:px-8">
+        <h1 className="font-serif text-4xl sm:text-5xl">Partner with CVLingo</h1>
+        <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
+          Help your community get hired. We handle the CV — you open the door.
         </p>
+      </section>
+
+      {/* BENEFITS */}
+      <section className="mx-auto max-w-5xl px-4 pb-12 sm:px-6 lg:px-8">
+        <div className="grid gap-5 sm:grid-cols-3">
+          {benefits.map((b) => (
+            <div key={b.title} className="rounded-2xl border border-border bg-card p-6">
+              <div className="text-3xl">{b.icon}</div>
+              <h3 className="mt-3 font-serif text-xl text-foreground">{b.title}</h3>
+              <p className="mt-2 text-sm text-muted-foreground">{b.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* SOCIAL PROOF */}
+      <section className="bg-secondary/40 py-14">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <p className="text-center text-sm font-medium uppercase tracking-wider text-muted-foreground">
+            Trusted by community organisations supporting immigrants across the UK
+          </p>
+          <div className="mt-8 grid gap-5 md:grid-cols-3">
+            {testimonials.map((t) => (
+              <figure key={t.author} className="rounded-2xl border border-border bg-card p-6">
+                <blockquote className="text-sm leading-relaxed text-foreground">
+                  “{t.quote}”
+                </blockquote>
+                <figcaption className="mt-4 text-xs font-medium text-muted-foreground">
+                  — {t.author}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FORM */}
+      <section className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <h2 className="font-serif text-3xl text-foreground">Ready to partner with us?</h2>
+          <p className="mt-3 text-base text-muted-foreground">
+            Fill in the form below and we will be in touch within 2 working days.
+          </p>
+        </div>
 
         {submitted ? (
-          <div className="mt-8 rounded-2xl border border-primary/30 bg-primary/5 p-6">
-            <h2 className="text-lg font-semibold text-foreground">Thank you! 🎉</h2>
+          <div className="mt-8 rounded-2xl border border-primary/30 bg-primary/5 p-6 text-center">
+            <h3 className="text-lg font-semibold text-foreground">Thank you! 🎉</h3>
             <p className="mt-2 text-sm text-muted-foreground">
               We will be in touch within 2 working days at your email address.
             </p>
@@ -136,7 +223,13 @@ function PartnersPage() {
 
             <div>
               <label className={labelCls} htmlFor="orgType">Organisation type</label>
-              <select id="orgType" name="orgType" className={inputCls} defaultValue="Charity">
+              <select
+                id="orgType"
+                name="orgType"
+                className={inputCls}
+                value={orgType}
+                onChange={(e) => setOrgType(e.target.value)}
+              >
                 <option>Charity</option>
                 <option>NGO</option>
                 <option>Refugee Support</option>
@@ -145,6 +238,20 @@ function PartnersPage() {
                 <option>Other</option>
               </select>
             </div>
+
+            {orgType === "Other" && (
+              <div>
+                <label className={labelCls} htmlFor="orgTypeOther">
+                  Please tell us more about your organisation
+                </label>
+                <input
+                  id="orgTypeOther"
+                  name="orgTypeOther"
+                  placeholder="Describe your organisation type"
+                  className={inputCls}
+                />
+              </div>
+            )}
 
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
