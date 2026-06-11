@@ -65,6 +65,7 @@ function CandidatesPage() {
                   <th className="px-3 py-2">Language</th>
                   <th className="px-3 py-2">Right to work</th>
                   <th className="px-3 py-2">City</th>
+                  <th className="px-3 py-2">Postcode</th>
                   <th className="px-3 py-2">Referral</th>
                 </tr>
               </thead>
