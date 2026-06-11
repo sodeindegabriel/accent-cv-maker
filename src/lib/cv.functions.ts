@@ -28,6 +28,12 @@ export type GeneratedCV = {
   raw: string;
 };
 
+function isEnglishOnly(cvData: CVData) {
+  const code = (cvData.languageCode || "").toLowerCase();
+  const name = (cvData.language || "").toLowerCase();
+  return code === "en" || name === "english";
+}
+
 function buildPrompt(cvData: CVData) {
   const { language, jobTypes, personalDetails, experience, education, skills, availability } = cvData;
   const hasEducation = Array.isArray(education) && education.length > 0;
