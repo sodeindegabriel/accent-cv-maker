@@ -88,7 +88,7 @@ function PartnersPage() {
       referralSource: String(fd.get("referralSource") ?? "").trim(),
       timestamp: new Date().toISOString(),
     };
-    if (!entry.orgName || !entry.name || !entry.email) return;
+    if (!entry.orgName || !entry.name || !entry.email || !entry.phone) return;
     setSubmitting(true);
     savePartner(entry);
     await notifyPartner(entry);
@@ -163,8 +163,8 @@ function PartnersPage() {
                 <input id="email" name="email" type="email" required className={inputCls} />
               </div>
               <div>
-                <label className={labelCls} htmlFor="phone">Phone number</label>
-                <input id="phone" name="phone" type="tel" className={inputCls} />
+                <label className={labelCls} htmlFor="phone">Phone number *</label>
+                <input id="phone" name="phone" type="tel" required className={inputCls} />
               </div>
             </div>
 
