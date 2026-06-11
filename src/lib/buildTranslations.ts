@@ -130,8 +130,9 @@ const en: Record<TKey, string> = {
   generateCv: "Generate My CV", generating: "Generating…",
   somethingWrong: "Something went wrong. Please try again.", retry: "Retry",
   yes: "Yes", no: "No",
-  educationQuestion: "Do you have any education or training?",
-  pleaseAddExperience: "Please add at least one experience",
+  educationQuestion: "Do you have any education or training to add?",
+  pleaseAddExperience: "Please fill in at least your role and dates to continue",
+  noEducationMessage: "No problem — your skills and experience speak for themselves.",
 };
 
 const pl: Dict = {
