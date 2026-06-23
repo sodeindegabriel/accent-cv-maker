@@ -161,6 +161,7 @@ function BuildPage() {
         const lang = languages.find((l) => l.code === preselect);
         if (lang) {
           if (lang.code === "en") {
+            // English fast path: skip Step 1, go straight to Step 2
             setData((current) => ({
               ...current,
               languageCode: lang.code,
@@ -169,6 +170,7 @@ function BuildPage() {
             }));
             setStep(2);
           } else {
+            // Non-English: skip Step 1, go to Step 2, show popup immediately
             setData((current) => ({
               ...current,
               languageCode: lang.code,
