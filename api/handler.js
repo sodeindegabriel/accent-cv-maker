@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   try {
-    const mod = await import('../dist/server/server.js')
+    const mod = await import('../dist/server/server.bundle.js')
     console.log('Server module keys:', Object.keys(mod))
 
     const server = mod.default
