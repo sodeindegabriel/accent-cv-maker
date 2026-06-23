@@ -1,8 +1,18 @@
 {
+  "version": 2,
   "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "framework": null,
+  "outputDirectory": "dist/client",
+  "functions": {
+    "api/handler.js": {
+      "runtime": "@vercel/node",
+      "includeFiles": "dist/server/**",
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/((?!assets/).*)",
+      "destination": "/api/handler"
+    }
   ]
 }
