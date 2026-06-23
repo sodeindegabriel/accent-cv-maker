@@ -158,7 +158,11 @@ export const generateCVServer = createServerFn({ method: "POST" })
   .handler(async ({ data: cvData }): Promise<GeneratedCV> => {
     const apiKey = process.env.ANTHROPIC_API_KEY ?? process.env.ANTHROPIC_KEY;
     if (!apiKey) {
-      throw new Error("Missing ANTHROPIC_API_KEY secret on the server.");
+      throw new Error(
+        'ANTHROPIC_API_KEY environment variable is not set. ' +
+        'Available env keys: ' +
+        Object.keys(process.env).filter(k => k.includes('ANTHROPIC')).join(', ')
+      );
     }
 
     const prompt = buildPrompt(cvData);
