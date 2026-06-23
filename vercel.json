@@ -4,7 +4,7 @@
   "outputDirectory": "dist/client",
   "functions": {
     "api/handler.js": {
-      "runtime": "@vercel/node",
+      "runtime": "nodejs20.x",
       "includeFiles": "dist/server/**",
       "maxDuration": 30
     }
