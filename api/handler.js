@@ -1,29 +1,20 @@
+import { createRequire } from 'node:module'
+import { fileURLToPath } from 'node:url'
+import path from 'node:path'
+
+const require = createRequire(import.meta.url)
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+const server = require(path.join(__dirname, '../dist/server/server.bundle.cjs'))
+
 export default async function handler(req, res) {
   try {
-    const mod = await import('../dist/server/server.bundle.js')
-    console.log('Server module keys:', Object.keys(mod))
-
-    const server = mod.default
-    if (!server || typeof server.fetch !== 'function') {
-      throw new Error(`Unexpected export shape: ${JSON.stringify(Object.keys(mod))}`)
-    }
-
-    const url = new URL(req.url, `https://${req.headers.host}`)
-    const request = new Request(url, {
-      method: req.method,
-      headers: req.headers,
-    })
-
-    const response = await server.fetch(request)
-    console.log('SSR response status:', response.status)
-
-    res.status(response.status)
-    response.headers.forEach((value, key) => res.setHeader(key, value))
-    const body = await response.text()
-    res.send(body)
+    const defaultExport = server.default || server
+    console.log('Server keys:', Object.keys(defaultExport))
+    const response = await defaultExport.fetch(req)
+    return response
   } catch (e) {
-    console.error('Handler failed:', e.message)
-    console.error(e.stack)
-    res.status(500).json({ error: e.message, stack: e.stack })
+    console.error('Handler error:', e.message)
+    res.status(500).json({ error: e.message })
   }
 }
