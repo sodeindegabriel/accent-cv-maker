@@ -1,11 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
 import { BridgeIcon } from "@/components/BridgeIcon";
 
 const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID as string | undefined;
 const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID as string | undefined;
 const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY as string | undefined;
+// Set "From Name" to "CVLingo" in the EmailJS template dashboard for both templates
+const AUTOREPLY_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_AUTOREPLY_TEMPLATE_ID as string | undefined;
 
 type PartnerEntry = {
   orgName: string;
@@ -73,6 +75,27 @@ async function notifyPartner(entry: PartnerEntry) {
   }
 }
 
+async function sendAutoReply(entry: PartnerEntry) {
+  if (!SERVICE_ID || !AUTOREPLY_TEMPLATE_ID || !PUBLIC_KEY) {
+    // Auto-reply template not configured — skip gracefully
+    return;
+  }
+  try {
+    await emailjs.send(
+      SERVICE_ID,
+      AUTOREPLY_TEMPLATE_ID,
+      {
+        to_email: entry.email,
+        to_name: entry.name,
+        org_name: entry.orgName,
+      },
+      { publicKey: PUBLIC_KEY },
+    );
+  } catch (err) {
+    console.error("[sendAutoReply] EmailJS send failed", err);
+  }
+}
+
 const benefits = [
   {
     icon: "🌍",
@@ -112,8 +135,10 @@ const testimonials = [
 function PartnersPage() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState("");
   const [orgType, setOrgType] = useState("Charity");
   const [scrolled, setScrolled] = useState(false);
+  const thankYouRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -121,6 +146,12 @@ function PartnersPage() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    if (submitted && thankYouRef.current) {
+      thankYouRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [submitted]);
 
   const scrollToForm = () => {
     const el = document.getElementById("partner-form");
@@ -147,6 +178,8 @@ function PartnersPage() {
     setSubmitting(true);
     savePartner(entry);
     await notifyPartner(entry);
+    await sendAutoReply(entry);
+    setSubmittedEmail(entry.email);
     setSubmitting(false);
     setSubmitted(true);
   };
@@ -217,7 +250,7 @@ function PartnersPage() {
             {testimonials.map((t) => (
               <figure key={t.author} className="rounded-2xl border border-border bg-card p-6">
                 <blockquote className="text-sm leading-relaxed text-foreground">
-                  “{t.quote}”
+                  "{t.quote}"
                 </blockquote>
                 <figcaption className="mt-4 text-xs font-medium text-muted-foreground">
                   — {t.author}
@@ -238,10 +271,19 @@ function PartnersPage() {
         </div>
 
         {submitted ? (
-          <div className="mt-8 rounded-2xl border border-primary/30 bg-primary/5 p-6 text-center">
-            <h3 className="text-lg font-semibold text-foreground">Thank you! 🎉</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              We will be in touch within 2 working days at your email address.
+          <div
+            ref={thankYouRef}
+            className="mt-8 rounded-2xl border-2 border-emerald-400 bg-emerald-50 p-8 text-center shadow-md"
+          >
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+              <svg className="h-8 w-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="mt-4 font-serif text-2xl font-semibold text-emerald-900">Application Received! 🎉</h3>
+            <p className="mt-3 text-base text-emerald-800">
+              Thank you for applying to partner with CVLingo. We will be in touch within 2 working days at{" "}
+              <span className="font-semibold">{submittedEmail}</span>.
             </p>
           </div>
         ) : (
@@ -285,7 +327,7 @@ function PartnersPage() {
 
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
-                <label className={labelCls} htmlFor="name">Your name *</label>
+                <label className={labelCls} htmlFor="name">Full name *</label>
                 <input id="name" name="name" required className={inputCls} />
               </div>
               <div>
