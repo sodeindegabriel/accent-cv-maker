@@ -321,16 +321,17 @@ function ResultPage() {
                       if (colonIdx > 0 && colonIdx < 35) {
                         const label = text.substring(0, colonIdx);
                         const rest = text.substring(colonIdx);
+                        // Set bold BEFORE getTextWidth so measurement matches rendered width
                         pdf.setFont("helvetica", "bold");
                         const labelWidth = pdf.getTextWidth("• " + label);
-                        pdf.text("• " + label, margin + 2, y);
+                        const descX = margin + labelWidth + 2;
+                        const descW = contentWidth - labelWidth - 2;
+                        pdf.text("• " + label, margin, y);
                         pdf.setFont("helvetica", "normal");
-                        const restLines = pdf.splitTextToSize(rest, contentWidth - labelWidth - 4);
-                        pdf.text(restLines[0], margin + 2 + labelWidth, y);
-                        y += 4.5;
-                        restLines.slice(1).forEach((line: string) => {
+                        const restLines = pdf.splitTextToSize(rest, descW);
+                        restLines.forEach((line: string) => {
                           checkPage();
-                          pdf.text(line, margin + 2 + labelWidth, y);
+                          pdf.text(line, descX, y);
                           y += 4.5;
                         });
                       } else {
