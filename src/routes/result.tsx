@@ -1,7 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
 import type { GeneratedCV } from "@/utils/generateCV";
 import {
   addCandidate,
@@ -227,60 +225,91 @@ function ResultPage() {
             <button
               type="button"
               disabled={downloading}
-              onClick={async () => {
+              onClick={() => {
                 const el = document.getElementById("cv-print");
                 if (!el) return;
                 setDownloading(true);
                 try {
                   const langForFile = tab === "english" ? "English" : result.language || "Native";
                   const safeName = (name || "CV").replace(/[^\w\s-]/g, "").trim();
-                  const filename = `${safeName} - CVLingo - ${langForFile}.pdf`;
-                  const canvas = await html2canvas(el, {
-                    scale: 2,
-                    useCORS: true,
-                    allowTaint: true,
-                    logging: false,
-                    ignoreElements: (element) => element.tagName === "BUTTON",
-                    onclone: (clonedDoc) => {
-                      // html2canvas can't parse modern CSS color functions; replace with black
-                      const LAB_RE = /(?:ok)?l(?:ab|ch)\([^)]+\)/gi;
-                      const styles = clonedDoc.querySelectorAll("style");
-                      styles.forEach((s) => {
-                        s.textContent = (s.textContent ?? "").replace(LAB_RE, "#000000");
-                      });
-                      const styledEls = clonedDoc.querySelectorAll<HTMLElement>("[style]");
-                      styledEls.forEach((e) => {
-                        e.style.cssText = e.style.cssText.replace(LAB_RE, "#000000");
-                      });
-                    },
-                  });
-                  const imgData = canvas.toDataURL("image/png");
-                  const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-                  const pageWidth = pdf.internal.pageSize.getWidth();
-                  const pageHeight = pdf.internal.pageSize.getHeight();
-                  const imgHeight = (canvas.height * pageWidth) / canvas.width;
-                  let y = 0;
-                  let remaining = imgHeight;
-                  while (remaining > 0) {
-                    pdf.addImage(imgData, "PNG", 0, y, pageWidth, imgHeight);
-                    remaining -= pageHeight;
-                    if (remaining > 0) {
-                      pdf.addPage();
-                      y -= pageHeight;
-                    }
-                  }
-                  // jsPDF v4 output("blob") is async
-                  const blob = await pdf.output("blob");
-                  const url = URL.createObjectURL(blob);
-                  const link = document.createElement("a");
-                  link.href = url;
-                  link.download = filename;
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                  URL.revokeObjectURL(url);
+                  const filename = `${safeName} - CVLingo - ${langForFile}`;
+                  const cvHTML = el.innerHTML;
+                  const printWindow = window.open("", "_blank");
+                  if (!printWindow) throw new Error("Popup blocked — please allow popups for this site.");
+                  printWindow.document.write(`<!DOCTYPE html>
+<html>
+  <head>
+    <title>${filename}</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: 'DM Sans', Arial, sans-serif;
+        font-size: 11pt;
+        line-height: 1.6;
+        color: #1A1A1A;
+        padding: 40px;
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      .cv-name {
+        font-size: 24pt;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 4px;
+        font-family: Georgia, serif;
+      }
+      .cv-contact {
+        text-align: center;
+        color: #6B7280;
+        margin-bottom: 20px;
+        font-size: 10pt;
+      }
+      .cv-section {
+        margin-top: 20px;
+        border-top: 1px solid #E5E7EB;
+        padding-top: 12px;
+      }
+      .cv-section h2 {
+        font-size: 9pt;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #0D6E6E;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      .cv-job { margin-bottom: 12px; }
+      ul { padding-left: 20px; }
+      li { margin-bottom: 4px; }
+      .cv-date { float: right; color: #6B7280; font-size: 10pt; }
+      .cvlingo-brand {
+        text-align: center;
+        color: #9CA3AF;
+        font-size: 9pt;
+        margin-top: 40px;
+        padding-top: 12px;
+        border-top: 1px solid #E5E7EB;
+      }
+      @media print {
+        body { padding: 20px; }
+        @page { margin: 15mm; size: A4; }
+      }
+    </style>
+  </head>
+  <body>
+    ${cvHTML}
+    <div class="cvlingo-brand">Created with CVLingo · cvlingo.com</div>
+    <script>
+      window.onload = function() {
+        window.print();
+        window.onafterprint = function() { window.close(); };
+      };
+    </script>
+  </body>
+</html>`);
+                  printWindow.document.close();
                 } catch (err) {
                   console.error("PDF download failed", err);
+                  alert("PDF error: " + (err instanceof Error ? err.message : String(err)));
                 } finally {
                   setDownloading(false);
                 }
