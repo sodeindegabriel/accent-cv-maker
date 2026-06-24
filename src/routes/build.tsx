@@ -144,9 +144,31 @@ const availabilityOptions: { value: string; tKey: TKey }[] = [
 
 function BuildPage() {
   const [step, setStep] = useState(1);
-  const [data, setData] = useState<CVData>(initialData);
+  const [data, setData] = useState<CVData>(() => {
+    try {
+      const saved = localStorage.getItem("cvlingo_form_data");
+      if (saved) return JSON.parse(saved);
+    } catch {
+      localStorage.removeItem("cvlingo_form_data");
+    }
+    return initialData;
+  });
   const [forceEnglish, setForceEnglish] = useState(false);
   const [preselectModalLang, setPreselectModalLang] = useState<typeof languages[number] | null>(null);
+
+  // Scroll to top on every step change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [step]);
+
+  // Persist form data to localStorage on every change
+  useEffect(() => {
+    try {
+      localStorage.setItem("cvlingo_form_data", JSON.stringify(data));
+    } catch {
+      /* ignore */
+    }
+  }, [data]);
 
   useEffect(() => {
     try {
@@ -991,6 +1013,7 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
       const result = await generateCV(data);
       sessionStorage.setItem("cvlingo:result", JSON.stringify(result));
       sessionStorage.setItem("cvlingo:input", JSON.stringify(data));
+      localStorage.removeItem("cvlingo_form_data");
       navigate({ to: "/result" });
     } catch (e) {
       console.error(e);
