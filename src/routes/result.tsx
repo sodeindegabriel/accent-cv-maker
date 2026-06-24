@@ -239,7 +239,7 @@ function ResultPage() {
                   const pageW = 210;
                   const margin = 20;
                   const maxW = pageW - margin * 2;
-                  let y = 20;
+                  let y = 25;
 
                   const checkPage = (needed = 6) => {
                     if (y + needed > 277) { pdf.addPage(); y = 20; }
@@ -249,15 +249,15 @@ function ResultPage() {
                   const cvName = el.querySelector(".cv-name")?.textContent?.trim() ?? "";
                   if (cvName) {
                     pdf.setFont("helvetica", "bold");
-                    pdf.setFontSize(22);
+                    pdf.setFontSize(26);
                     pdf.setTextColor(17, 24, 39);
                     const nameLines = pdf.splitTextToSize(cvName, maxW);
                     nameLines.forEach((line: string) => {
-                      checkPage(9);
+                      checkPage(10);
                       pdf.text(line, pageW / 2, y, { align: "center" });
-                      y += 9;
+                      y += 10;
                     });
-                    y += 1;
+                    y += 8;
                   }
 
                   // Contact
@@ -272,7 +272,7 @@ function ResultPage() {
                       pdf.text(line, pageW / 2, y, { align: "center" });
                       y += 5;
                     });
-                    y += 4;
+                    y += 14;
                   }
 
                   // Sections
@@ -296,35 +296,60 @@ function ResultPage() {
                     }
 
                     // Paragraphs and list items
-                    pdf.setFont("helvetica", "normal");
                     pdf.setFontSize(10);
                     pdf.setTextColor(26, 26, 26);
 
-                    const nodes = section.querySelectorAll("p, li, strong");
                     const seen = new Set<Element>();
                     section.querySelectorAll("p, li").forEach((node) => {
                       if (seen.has(node)) return;
                       seen.add(node);
                       const text = node.textContent?.trim() ?? "";
                       if (!text) return;
-                      const prefix = node.tagName === "LI" ? "• " : "";
-                      const lines = pdf.splitTextToSize(prefix + text, maxW - (prefix ? 4 : 0));
-                      lines.forEach((line: string) => {
+                      const isLi = node.tagName === "LI";
+                      const xBase = isLi ? margin + 4 : margin;
+                      const wAvail = maxW - (isLi ? 4 : 0);
+
+                      // Bold label before colon (e.g. "JavaScript: proficient")
+                      const colonIdx = text.indexOf(":");
+                      if (isLi && colonIdx > 0 && colonIdx < 40) {
+                        const label = (isLi ? "• " : "") + text.slice(0, colonIdx);
+                        const rest = text.slice(colonIdx);
                         checkPage(5);
-                        pdf.text(line, prefix ? margin + 4 : margin, y);
+                        pdf.setFont("helvetica", "bold");
+                        const labelW = pdf.getTextWidth(label);
+                        pdf.text(label, xBase, y);
+                        pdf.setFont("helvetica", "normal");
+                        const restLines = pdf.splitTextToSize(rest, wAvail - labelW);
+                        pdf.text(restLines[0] ?? "", xBase + labelW, y);
                         y += 5;
-                      });
+                        // overflow lines if rest wrapped
+                        for (let i = 1; i < restLines.length; i++) {
+                          checkPage(5);
+                          pdf.text(restLines[i], xBase + labelW, y);
+                          y += 5;
+                        }
+                      } else {
+                        pdf.setFont("helvetica", "normal");
+                        const prefix = isLi ? "• " : "";
+                        const lines = pdf.splitTextToSize(prefix + text, wAvail);
+                        lines.forEach((line: string) => {
+                          checkPage(5);
+                          pdf.text(line, xBase, y);
+                          y += 5;
+                        });
+                      }
                       y += 1;
                     });
 
-                    y += 4;
+                    y += 8;
                   });
 
-                  // Branding footer
+                  // Branding footer — close to last content, min y=250
+                  const brandY = Math.max(y + 10, 250);
                   pdf.setFont("helvetica", "normal");
                   pdf.setFontSize(8);
                   pdf.setTextColor(156, 163, 175);
-                  pdf.text("Created with CVLingo · cvlingo.com", pageW / 2, 287, { align: "center" });
+                  pdf.text("Created with CVLingo · cvlingo.com", pageW / 2, brandY, { align: "center" });
 
                   pdf.save(filename);
                 } catch (err) {
