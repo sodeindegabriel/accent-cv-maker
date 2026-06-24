@@ -239,7 +239,7 @@ function ResultPage() {
                   const pageW = 210;
                   const margin = 20;
                   const maxW = pageW - margin * 2;
-                  let y = 25;
+                  let y = 20;
 
                   const checkPage = (needed = 6) => {
                     if (y + needed > 277) { pdf.addPage(); y = 20; }
@@ -272,7 +272,7 @@ function ResultPage() {
                       pdf.text(line, pageW / 2, y, { align: "center" });
                       y += 5;
                     });
-                    y += 14;
+                    y += 10;
                   }
 
                   // Sections
@@ -331,25 +331,28 @@ function ResultPage() {
                       } else {
                         pdf.setFont("helvetica", "normal");
                         const prefix = isLi ? "• " : "";
+                        const bulletW = isLi ? pdf.getTextWidth("• ") : 0;
                         const lines = pdf.splitTextToSize(prefix + text, wAvail);
-                        lines.forEach((line: string) => {
+                        lines.forEach((line: string, li: number) => {
                           checkPage(5);
-                          pdf.text(line, xBase, y);
+                          // continuation lines align with text after the bullet
+                          const xLine = li > 0 && isLi ? xBase + bulletW : xBase;
+                          pdf.text(line, xLine, y);
                           y += 5;
                         });
                       }
                       y += 1;
                     });
 
-                    y += 8;
+                    y += 5;
                   });
 
-                  // Branding footer — close to last content, min y=250
-                  const brandY = Math.max(y + 10, 250);
+                  // Branding footer — same page if space allows, new page if near bottom
                   pdf.setFont("helvetica", "normal");
                   pdf.setFontSize(8);
                   pdf.setTextColor(156, 163, 175);
-                  pdf.text("Created with CVLingo · cvlingo.com", pageW / 2, brandY, { align: "center" });
+                  if (y >= 260) { pdf.addPage(); y = 20; }
+                  pdf.text("Created with CVLingo · cvlingo.com", pageW / 2, y + 8, { align: "center" });
 
                   pdf.save(filename);
                 } catch (err) {
