@@ -12,8 +12,9 @@ export async function notifyCandidate(entry: CandidatePoolEntry): Promise<void> 
     return;
   }
 
-  const subject = `New CVLingo Candidate — ${entry.name || "Unknown"}`;
-  const message = [
+  // Admin notification
+  const adminSubject = `New CVLingo Candidate — ${entry.name || "Unknown"}`;
+  const adminMessage = [
     `Name: ${entry.name}`,
     `Email: ${entry.email}`,
     `Job Types: ${entry.jobTypes.join(", ")}`,
@@ -31,8 +32,8 @@ export async function notifyCandidate(entry: CandidatePoolEntry): Promise<void> 
       TEMPLATE_ID,
       {
         to_email: TO_EMAIL,
-        subject,
-        message,
+        subject: adminSubject,
+        message: adminMessage,
         name: entry.name,
         email: entry.email,
         job_types: entry.jobTypes.join(", "),
@@ -46,6 +47,43 @@ export async function notifyCandidate(entry: CandidatePoolEntry): Promise<void> 
       { publicKey: PUBLIC_KEY },
     );
   } catch (err) {
-    console.error("[notifyCandidate] EmailJS send failed", err);
+    console.error("[notifyCandidate] admin email failed", err);
+  }
+
+  // Candidate auto-reply confirmation
+  const jobTypesList = entry.jobTypes.join(", ") || "your chosen";
+  const autoReplyMessage = [
+    `Hi ${entry.name},`,
+    "",
+    `Great news — your CV profile has been added to the CVLingo candidate pool.`,
+    "",
+    `Employers hiring for ${jobTypesList} roles in the UK can now find your profile and reach out to you directly.`,
+    "",
+    `What happens next:`,
+    `- Employers browsing our candidate pool may contact you about relevant roles`,
+    `- Your information is private and secure`,
+    `- You can request removal at any time by emailing hello@jebacoglobal.com`,
+    "",
+    `Good luck with your job search!`,
+    "",
+    `The CVLingo Team`,
+    `cvlingo.com`,
+  ].join("\n");
+
+  try {
+    await emailjs.send(
+      SERVICE_ID,
+      TEMPLATE_ID,
+      {
+        to_email: entry.email,
+        subject: "Your CV is in our candidate pool — CVLingo",
+        message: autoReplyMessage,
+        name: entry.name,
+        email: entry.email,
+      },
+      { publicKey: PUBLIC_KEY },
+    );
+  } catch (err) {
+    console.error("[notifyCandidate] auto-reply failed", err);
   }
 }
