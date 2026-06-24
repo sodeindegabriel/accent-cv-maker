@@ -156,10 +156,14 @@ function BuildPage() {
   const [forceEnglish, setForceEnglish] = useState(false);
   const [preselectModalLang, setPreselectModalLang] = useState<typeof languages[number] | null>(null);
 
-  // Scroll to top on every step change
+  // Scroll to top on mount and on every step change
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [step]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, []);
 
   // Persist form data to localStorage on every change
   useEffect(() => {
