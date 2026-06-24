@@ -1,5 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 import type { GeneratedCV } from "@/utils/generateCV";
 import {
   addCandidate,
@@ -15,6 +17,7 @@ function ResultPage() {
   const [result, setResult] = useState<GeneratedCV | null>(null);
   const [name, setName] = useState<string>("");
   const [tab, setTab] = useState<"native" | "english">("native");
+  const [downloading, setDownloading] = useState(false);
   const [poolConsentGiven] = useState<boolean>(() => {
     try {
       const raw = sessionStorage.getItem("cvlingo:input");
@@ -223,22 +226,53 @@ function ResultPage() {
           <div className="no-print mt-6 flex flex-wrap gap-3">
             <button
               type="button"
-              onClick={() => {
-                const langForFile = tab === "english" ? "English" : result.language || "Native";
-                const safeName = (name || "CV").trim();
-                const filename = `${safeName} - CVLingo - ${langForFile}.pdf`;
-                const previousTitle = document.title;
-                document.title = filename;
-                setTimeout(() => {
-                  window.print();
-                  setTimeout(() => {
-                    document.title = previousTitle;
-                  }, 1000);
-                }, 300);
+              disabled={downloading}
+              onClick={async () => {
+                const el = document.getElementById("cv-print");
+                if (!el) return;
+                setDownloading(true);
+                try {
+                  const langForFile = tab === "english" ? "English" : result.language || "Native";
+                  const safeName = (name || "CV").replace(/[^\w\s-]/g, "").trim();
+                  const filename = `${safeName} - CVLingo - ${langForFile}.pdf`;
+                  const canvas = await html2canvas(el, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                  });
+                  const imgData = canvas.toDataURL("image/png");
+                  const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+                  const pageWidth = pdf.internal.pageSize.getWidth();
+                  const pageHeight = pdf.internal.pageSize.getHeight();
+                  const imgHeight = (canvas.height * pageWidth) / canvas.width;
+                  let y = 0;
+                  let remaining = imgHeight;
+                  while (remaining > 0) {
+                    pdf.addImage(imgData, "PNG", 0, y, pageWidth, imgHeight);
+                    remaining -= pageHeight;
+                    if (remaining > 0) {
+                      pdf.addPage();
+                      y -= pageHeight;
+                    }
+                  }
+                  const blob = pdf.output("blob");
+                  const url = URL.createObjectURL(blob);
+                  const link = document.createElement("a");
+                  link.href = url;
+                  link.download = filename;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  URL.revokeObjectURL(url);
+                } catch (err) {
+                  console.error("PDF download failed", err);
+                } finally {
+                  setDownloading(false);
+                }
               }}
-              className="rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground transition hover:opacity-90"
+              className="rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
             >
-              Download PDF
+              {downloading ? "Preparing PDF…" : "Download PDF"}
             </button>
             <a
               href={whatsappHref}
