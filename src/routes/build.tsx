@@ -437,6 +437,7 @@ function Step1Language({ data, update, onNext }: Step1Props) {
                   update("language", language.name);
                   if (language.code === "en") {
                     update("questionLanguageCode", "en");
+                    onNext();
                   } else {
                     setShowModal(true);
                   }

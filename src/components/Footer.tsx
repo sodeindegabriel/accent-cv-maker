@@ -1,11 +1,6 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
-function startInEnglish(navigate: ReturnType<typeof useNavigate>) {
-  try { sessionStorage.setItem("cvlingo:preselectLanguage", "en"); } catch { /* ignore */ }
-  navigate({ to: "/build" });
-}
-
 function FooterAnchor({ hash, children }: { hash: string; children: ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -37,7 +32,6 @@ function BridgeIcon({ className }: { className?: string }) {
 }
 
 export function Footer() {
-  const navigate = useNavigate();
   return (
     <footer className="bg-footer text-footer-foreground">
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 md:grid-cols-3">
@@ -53,7 +47,7 @@ export function Footer() {
         <div>
           <h4 className="font-sans text-sm font-semibold uppercase tracking-wider text-white/90">Platform</h4>
           <ul className="mt-4 space-y-3 text-sm text-white/70">
-            <li><button type="button" onClick={() => startInEnglish(navigate)} className="hover:text-accent transition-colors">Build Your CV</button></li>
+            <li><FooterAnchor hash="languages">Build Your CV</FooterAnchor></li>
             <li><FooterAnchor hash="how">How It Works</FooterAnchor></li>
             <li><FooterAnchor hash="watch">Watch Demo</FooterAnchor></li>
             <li><FooterAnchor hash="languages">Languages</FooterAnchor></li>
