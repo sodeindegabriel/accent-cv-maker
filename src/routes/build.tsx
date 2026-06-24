@@ -157,7 +157,7 @@ function BuildPage() {
         // either by the user clicking a card or by the sessionStorage preselect
         // fast path. Restoring a stale languageCode causes English to appear
         // pre-highlighted with no way to advance without scrolling to Continue.
-        return { ...parsed, languageCode: "", language: "", questionLanguageCode: "en" };
+        return { ...parsed, languageCode: "", language: "", questionLanguageCode: "en", candidatePoolConsent: null };
       }
     } catch {
       localStorage.removeItem("cvlingo_form_data");

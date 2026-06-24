@@ -15,7 +15,17 @@ function ResultPage() {
   const [result, setResult] = useState<GeneratedCV | null>(null);
   const [name, setName] = useState<string>("");
   const [tab, setTab] = useState<"native" | "english">("native");
-  const [poolConsentGiven, setPoolConsentGiven] = useState<boolean>(false);
+  const [poolConsentGiven] = useState<boolean>(() => {
+    try {
+      const raw = sessionStorage.getItem("cvlingo:input");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        // Hide card when user made an explicit choice (true OR false) in Step 7
+        return parsed?.candidatePoolConsent != null;
+      }
+    } catch { /* ignore */ }
+    return false;
+  });
 
   useEffect(() => {
     const raw = sessionStorage.getItem("cvlingo:result");
@@ -33,10 +43,6 @@ function ResultPage() {
       if (inputRaw) {
         const parsed = JSON.parse(inputRaw);
         setName(parsed?.personalDetails?.name ?? "");
-        // Hide pool card when user already made a choice in Step 7
-        if (parsed?.candidatePoolConsent !== null && parsed?.candidatePoolConsent !== undefined) {
-          setPoolConsentGiven(true);
-        }
       }
     } catch {
       /* ignore */
