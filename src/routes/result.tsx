@@ -266,6 +266,8 @@ function ResultPage() {
                   URL.revokeObjectURL(url);
                 } catch (err) {
                   console.error("PDF download failed", err);
+                  // Diagnostic alert — remove after error is identified
+                  alert("PDF error: " + (err instanceof Error ? err.message : String(err)));
                 } finally {
                   setDownloading(false);
                 }
