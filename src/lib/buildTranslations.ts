@@ -35,7 +35,8 @@ export type TKey =
   | "company" | "country" | "countryPlaceholder"
   | "yes" | "no" | "educationQuestion" | "pleaseAddExperience"
   | "noEducationMessage"
-  | "generateCv" | "generating" | "somethingWrong" | "retry";
+  | "generateCv" | "generating" | "somethingWrong" | "retry"
+  | "poolHeading" | "poolSubtext" | "poolYes" | "poolNo";
 
 
 type Dict = Partial<Record<TKey, string>>;
@@ -129,6 +130,10 @@ const en: Record<TKey, string> = {
   countryPlaceholder: "e.g. UK, Poland, Romania",
   generateCv: "Generate My CV", generating: "Generating…",
   somethingWrong: "Something went wrong. Please try again.", retry: "Retry",
+  poolHeading: "Get found by employers",
+  poolSubtext: "Would you like employers hiring for your role type to be able to find your CV profile? It's free and you can opt out anytime.",
+  poolYes: "Yes, add me to the pool",
+  poolNo: "No thanks",
   yes: "Yes", no: "No",
   educationQuestion: "Do you have any education or training to add?",
   pleaseAddExperience: "Please fill in at least your role and dates to continue",

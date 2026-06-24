@@ -5,6 +5,8 @@ import { GeneratingOverlay } from "@/components/GeneratingOverlay";
 import { BridgeIcon } from "@/components/BridgeIcon";
 import { Clock } from "lucide-react";
 import { t, type TKey } from "@/lib/buildTranslations";
+import { addCandidate } from "@/lib/candidatePool";
+import { notifyCandidate } from "@/lib/notifyCandidate";
 
 type Experience = {
   title: string;
@@ -44,6 +46,7 @@ type CVData = {
   education: Education[];
   skills: string[];
   availability: string[];
+  candidatePoolConsent: boolean | null;
 };
 
 const initialData: CVData = {
@@ -59,6 +62,7 @@ const initialData: CVData = {
   education: [],
   skills: [],
   availability: [],
+  candidatePoolConsent: null,
 };
 
 
@@ -1018,7 +1022,7 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
   const [consent, setConsent] = useState(false);
 
   const handleGenerate = async () => {
-    if (!consent) return;
+    if (!consent || data.candidatePoolConsent === null) return;
     setGenerating(true);
     setError(null);
     try {
@@ -1026,6 +1030,26 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
       sessionStorage.setItem("cvlingo:result", JSON.stringify(result));
       sessionStorage.setItem("cvlingo:input", JSON.stringify(data));
       localStorage.removeItem("cvlingo_form_data");
+      if (data.candidatePoolConsent === true) {
+        const referralSource = (() => {
+          try {
+            return localStorage.getItem("cvlingo_referral") || null;
+          } catch { return null; }
+        })();
+        const entry = {
+          email: data.personalDetails.email,
+          name: data.personalDetails.name,
+          jobTypes: data.jobTypes,
+          language: data.language,
+          rightToWork: data.personalDetails.rightToWork,
+          city: data.personalDetails.city,
+          postcode: data.personalDetails.postcode || null,
+          referralSource,
+          timestamp: new Date().toISOString(),
+        };
+        addCandidate(entry);
+        void notifyCandidate(entry);
+      }
       navigate({ to: "/result" });
     } catch (e) {
       console.error(e);
@@ -1171,7 +1195,35 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
             </button>
           </div>
         )}
-        <div className="mt-6 rounded-xl border border-border bg-card p-4">
+        <div className="mt-6 rounded-xl border border-border bg-card p-5">
+          <h3 className="font-semibold text-foreground">{t(displayLang, "poolHeading")}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{t(displayLang, "poolSubtext")}</p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() => update("candidatePoolConsent", true)}
+              className={`inline-flex items-center rounded-xl border px-4 py-2.5 text-sm font-semibold transition ${
+                data.candidatePoolConsent === true
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-background text-foreground hover:bg-muted"
+              }`}
+            >
+              {t(displayLang, "poolYes")}
+            </button>
+            <button
+              type="button"
+              onClick={() => update("candidatePoolConsent", false)}
+              className={`inline-flex items-center rounded-xl border px-4 py-2.5 text-sm font-semibold transition ${
+                data.candidatePoolConsent === false
+                  ? "border-muted-foreground bg-muted text-foreground"
+                  : "border-border bg-background text-foreground hover:bg-muted"
+              }`}
+            >
+              {t(displayLang, "poolNo")}
+            </button>
+          </div>
+        </div>
+        <div className="mt-4 rounded-xl border border-border bg-card p-4">
           <label className="flex items-start gap-3 text-sm text-foreground">
             <input
               type="checkbox"
@@ -1199,7 +1251,7 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
           <button
             type="button"
             onClick={handleGenerate}
-            disabled={generating || !consent}
+            disabled={generating || !consent || data.candidatePoolConsent === null}
             className="inline-flex min-h-[48px] items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {generating ? t(displayLang, "generating") : t(displayLang, "generateCv")}
