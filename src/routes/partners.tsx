@@ -48,7 +48,7 @@ async function notifyPartner(entry: PartnerEntry) {
   const message = [
     `Organisation: ${entry.orgName}`,
     typeLine,
-    `Contact: ${entry.name}`,
+    `Full Name: ${entry.name}`,
     `Role: ${entry.role}`,
     `Email: ${entry.email}`,
     `Phone: ${entry.phone}`,
@@ -284,6 +284,9 @@ function PartnersPage() {
             <p className="mt-3 text-base text-emerald-800">
               Thank you for applying to partner with CVLingo. We will be in touch within 2 working days at{" "}
               <span className="font-semibold">{submittedEmail}</span>.
+            </p>
+            <p className="mt-3 text-xs text-emerald-600">
+              Please check your spam folder if you don't see our confirmation email within a few minutes.
             </p>
           </div>
         ) : (
