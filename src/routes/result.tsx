@@ -227,137 +227,141 @@ function ResultPage() {
               type="button"
               disabled={downloading}
               onClick={() => {
-                const el = document.getElementById("cv-print");
-                if (!el) return;
+                const element = document.getElementById("cv-print");
+                if (!element) return;
                 setDownloading(true);
+                const langForFile = tab === "english" ? "English" : result.language || "Native";
+                const safeName = (name || "CV").replace(/[^\w\s-]/g, "").trim();
+                const filename = `${safeName} - CVLingo - ${langForFile}.pdf`;
                 try {
-                  const langForFile = tab === "english" ? "English" : result.language || "Native";
-                  const safeName = (name || "CV").replace(/[^\w\s-]/g, "").trim();
-                  const filename = `${safeName} - CVLingo - ${langForFile}.pdf`;
-
                   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-                  const pageW = 210;
+                  const pageWidth = 210;
                   const margin = 20;
-                  const maxW = pageW - margin * 2;
+                  const contentWidth = pageWidth - margin * 2;
                   let y = 20;
 
-                  const checkPage = (needed = 6) => {
-                    if (y + needed > 277) { pdf.addPage(); y = 20; }
+                  const checkPage = (needed = 8) => {
+                    if (y + needed > 280) { pdf.addPage(); y = 20; }
+                  };
+
+                  const addText = (
+                    text: string,
+                    fontSize: number,
+                    isBold: boolean,
+                    color: [number, number, number],
+                    align: "left" | "center" = "left",
+                    indent = 0,
+                  ) => {
+                    pdf.setFontSize(fontSize);
+                    pdf.setFont("helvetica", isBold ? "bold" : "normal");
+                    pdf.setTextColor(color[0], color[1], color[2]);
+                    const lines = pdf.splitTextToSize(text, contentWidth - indent);
+                    lines.forEach((line: string) => {
+                      checkPage();
+                      const x = align === "center" ? pageWidth / 2 : margin + indent;
+                      pdf.text(line, x, y, align === "center" ? { align: "center" } : {});
+                      y += fontSize * 0.45;
+                    });
                   };
 
                   // Name
-                  const cvName = el.querySelector(".cv-name")?.textContent?.trim() ?? "";
-                  if (cvName) {
-                    pdf.setFont("helvetica", "bold");
-                    pdf.setFontSize(26);
-                    pdf.setTextColor(17, 24, 39);
-                    const nameLines = pdf.splitTextToSize(cvName, maxW);
-                    nameLines.forEach((line: string) => {
-                      checkPage(10);
-                      pdf.text(line, pageW / 2, y, { align: "center" });
-                      y += 10;
-                    });
-                    y += 8;
-                  }
+                  addText(element.querySelector(".cv-name")?.textContent?.trim() || "", 22, true, [26, 26, 26], "center");
+                  y += 3;
 
                   // Contact
-                  const cvContact = el.querySelector(".cv-contact")?.textContent?.trim() ?? "";
-                  if (cvContact) {
-                    pdf.setFont("helvetica", "normal");
-                    pdf.setFontSize(9.5);
-                    pdf.setTextColor(107, 114, 128);
-                    const contactLines = pdf.splitTextToSize(cvContact, maxW);
-                    contactLines.forEach((line: string) => {
-                      checkPage(5);
-                      pdf.text(line, pageW / 2, y, { align: "center" });
-                      y += 5;
-                    });
-                    y += 10;
-                  }
+                  addText(element.querySelector(".cv-contact")?.textContent?.trim() || "", 9, false, [107, 114, 128], "center");
+                  y += 8;
 
                   // Sections
-                  const sections = el.querySelectorAll(".cv-section");
-                  sections.forEach((section) => {
-                    checkPage(14);
-
-                    // Divider line
+                  element.querySelectorAll(".cv-section").forEach((section) => {
+                    checkPage(12);
                     pdf.setDrawColor(229, 231, 235);
-                    pdf.line(margin, y, pageW - margin, y);
+                    pdf.line(margin, y, pageWidth - margin, y);
                     y += 5;
 
-                    // Section heading
-                    const heading = section.querySelector("h2")?.textContent?.trim() ?? "";
-                    if (heading) {
-                      pdf.setFont("helvetica", "bold");
-                      pdf.setFontSize(8);
-                      pdf.setTextColor(13, 110, 110);
-                      pdf.text(heading.toUpperCase(), margin, y);
-                      y += 6;
-                    }
+                    const heading = section.querySelector("h2")?.textContent?.trim() || "";
+                    addText(heading.toUpperCase(), 8, true, [13, 110, 110]);
+                    y += 3;
 
-                    // Paragraphs and list items
-                    pdf.setFontSize(10);
-                    pdf.setTextColor(26, 26, 26);
-
-                    const seen = new Set<Element>();
-                    section.querySelectorAll("p, li").forEach((node) => {
-                      if (seen.has(node)) return;
-                      seen.add(node);
-                      const text = node.textContent?.trim() ?? "";
+                    section.querySelectorAll("p").forEach((p) => {
+                      const text = p.textContent?.trim();
                       if (!text) return;
-                      const isLi = node.tagName === "LI";
-                      const xBase = isLi ? margin + 4 : margin;
-                      const wAvail = maxW - (isLi ? 4 : 0);
+                      addText(text, 10, false, [26, 26, 26]);
+                      y += 2;
+                    });
 
-                      // Bold label before colon (e.g. "JavaScript: proficient")
-                      const colonIdx = text.indexOf(":");
-                      if (isLi && colonIdx > 0 && colonIdx < 40) {
-                        const label = (isLi ? "• " : "") + text.slice(0, colonIdx);
-                        const rest = text.slice(colonIdx);
-                        checkPage(5);
-                        pdf.setFont("helvetica", "bold");
-                        const labelW = pdf.getTextWidth(label);
-                        pdf.text(label, xBase, y);
+                    section.querySelectorAll(".cv-job").forEach((job) => {
+                      const jobText = job.querySelector("p")?.textContent?.trim();
+                      if (jobText) { addText(jobText, 10, true, [26, 26, 26]); y += 1; }
+                      job.querySelectorAll("li").forEach((li) => {
+                        const text = li.textContent?.trim();
+                        if (!text) return;
+                        checkPage();
+                        pdf.setFontSize(10);
                         pdf.setFont("helvetica", "normal");
-                        const restLines = pdf.splitTextToSize(rest, wAvail - labelW);
-                        pdf.text(restLines[0] ?? "", xBase + labelW, y);
-                        y += 5;
-                        // overflow lines if rest wrapped
-                        for (let i = 1; i < restLines.length; i++) {
-                          checkPage(5);
-                          pdf.text(restLines[i], xBase + labelW, y);
-                          y += 5;
-                        }
+                        pdf.setTextColor(26, 26, 26);
+                        pdf.text("•", margin + 2, y);
+                        const lines = pdf.splitTextToSize(text, contentWidth - 6);
+                        lines.forEach((line: string) => {
+                          checkPage();
+                          pdf.text(line, margin + 6, y);
+                          y += 4.5;
+                        });
+                      });
+                      y += 2;
+                    });
+
+                    section.querySelectorAll("ul > li, ol > li").forEach((li) => {
+                      const text = li.textContent?.trim();
+                      if (!text) return;
+                      checkPage();
+                      pdf.setFontSize(10);
+                      pdf.setTextColor(26, 26, 26);
+                      const colonIdx = text.indexOf(":");
+                      if (colonIdx > 0 && colonIdx < 35) {
+                        const label = text.substring(0, colonIdx);
+                        const rest = text.substring(colonIdx);
+                        pdf.setFont("helvetica", "bold");
+                        const labelWidth = pdf.getTextWidth("• " + label);
+                        pdf.text("• " + label, margin + 2, y);
+                        pdf.setFont("helvetica", "normal");
+                        const restLines = pdf.splitTextToSize(rest, contentWidth - labelWidth - 4);
+                        pdf.text(restLines[0], margin + 2 + labelWidth, y);
+                        y += 4.5;
+                        restLines.slice(1).forEach((line: string) => {
+                          checkPage();
+                          pdf.text(line, margin + 2 + labelWidth, y);
+                          y += 4.5;
+                        });
                       } else {
                         pdf.setFont("helvetica", "normal");
-                        const prefix = isLi ? "• " : "";
-                        const bulletW = isLi ? pdf.getTextWidth("• ") : 0;
-                        const lines = pdf.splitTextToSize(prefix + text, wAvail);
-                        lines.forEach((line: string, li: number) => {
-                          checkPage(5);
-                          // continuation lines align with text after the bullet
-                          const xLine = li > 0 && isLi ? xBase + bulletW : xBase;
-                          pdf.text(line, xLine, y);
-                          y += 5;
+                        pdf.text("•", margin + 2, y);
+                        const lines = pdf.splitTextToSize(text, contentWidth - 6);
+                        lines.forEach((line: string) => {
+                          checkPage();
+                          pdf.text(line, margin + 6, y);
+                          y += 4.5;
                         });
                       }
                       y += 1;
                     });
 
-                    y += 5;
+                    y += 4;
                   });
 
-                  // Branding footer — same page if space allows, new page if near bottom
-                  pdf.setFont("helvetica", "normal");
+                  // Branding
+                  checkPage(10);
+                  pdf.setDrawColor(229, 231, 235);
+                  pdf.line(margin, y, pageWidth - margin, y);
+                  y += 5;
                   pdf.setFontSize(8);
+                  pdf.setFont("helvetica", "normal");
                   pdf.setTextColor(156, 163, 175);
-                  if (y >= 260) { pdf.addPage(); y = 20; }
-                  pdf.text("Created with CVLingo · cvlingo.com", pageW / 2, y + 8, { align: "center" });
+                  pdf.text("Created with CVLingo · cvlingo.com", pageWidth / 2, y, { align: "center" });
 
                   pdf.save(filename);
                 } catch (err) {
                   console.error("PDF download failed", err);
-                  alert("PDF error: " + (err instanceof Error ? err.message : String(err)));
                 } finally {
                   setDownloading(false);
                 }
