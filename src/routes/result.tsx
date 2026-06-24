@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { jsPDF } from "jspdf";
 import type { GeneratedCV } from "@/utils/generateCV";
 import {
   addCandidate,
@@ -232,81 +233,100 @@ function ResultPage() {
                 try {
                   const langForFile = tab === "english" ? "English" : result.language || "Native";
                   const safeName = (name || "CV").replace(/[^\w\s-]/g, "").trim();
-                  const filename = `${safeName} - CVLingo - ${langForFile}`;
-                  const cvHTML = el.innerHTML;
-                  const printWindow = window.open("", "_blank");
-                  if (!printWindow) throw new Error("Popup blocked — please allow popups for this site.");
-                  printWindow.document.write(`<!DOCTYPE html>
-<html>
-  <head>
-    <title>${filename}</title>
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body {
-        font-family: 'DM Sans', Arial, sans-serif;
-        font-size: 11pt;
-        line-height: 1.6;
-        color: #1A1A1A;
-        padding: 40px;
-        max-width: 800px;
-        margin: 0 auto;
-      }
-      .cv-name {
-        font-size: 24pt;
-        font-weight: bold;
-        text-align: center;
-        margin-bottom: 4px;
-        font-family: Georgia, serif;
-      }
-      .cv-contact {
-        text-align: center;
-        color: #6B7280;
-        margin-bottom: 20px;
-        font-size: 10pt;
-      }
-      .cv-section {
-        margin-top: 20px;
-        border-top: 1px solid #E5E7EB;
-        padding-top: 12px;
-      }
-      .cv-section h2 {
-        font-size: 9pt;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: #0D6E6E;
-        font-weight: 700;
-        margin-bottom: 8px;
-      }
-      .cv-job { margin-bottom: 12px; }
-      ul { padding-left: 20px; }
-      li { margin-bottom: 4px; }
-      .cv-date { float: right; color: #6B7280; font-size: 10pt; }
-      .cvlingo-brand {
-        text-align: center;
-        color: #9CA3AF;
-        font-size: 9pt;
-        margin-top: 40px;
-        padding-top: 12px;
-        border-top: 1px solid #E5E7EB;
-      }
-      @media print {
-        body { padding: 20px; }
-        @page { margin: 15mm; size: A4; }
-      }
-    </style>
-  </head>
-  <body>
-    ${cvHTML}
-    <div class="cvlingo-brand">Created with CVLingo · cvlingo.com</div>
-    <script>
-      window.onload = function() {
-        window.print();
-        window.onafterprint = function() { window.close(); };
-      };
-    </script>
-  </body>
-</html>`);
-                  printWindow.document.close();
+                  const filename = `${safeName} - CVLingo - ${langForFile}.pdf`;
+
+                  const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+                  const pageW = 210;
+                  const margin = 20;
+                  const maxW = pageW - margin * 2;
+                  let y = 20;
+
+                  const checkPage = (needed = 6) => {
+                    if (y + needed > 277) { pdf.addPage(); y = 20; }
+                  };
+
+                  // Name
+                  const cvName = el.querySelector(".cv-name")?.textContent?.trim() ?? "";
+                  if (cvName) {
+                    pdf.setFont("helvetica", "bold");
+                    pdf.setFontSize(22);
+                    pdf.setTextColor(17, 24, 39);
+                    const nameLines = pdf.splitTextToSize(cvName, maxW);
+                    nameLines.forEach((line: string) => {
+                      checkPage(9);
+                      pdf.text(line, pageW / 2, y, { align: "center" });
+                      y += 9;
+                    });
+                    y += 1;
+                  }
+
+                  // Contact
+                  const cvContact = el.querySelector(".cv-contact")?.textContent?.trim() ?? "";
+                  if (cvContact) {
+                    pdf.setFont("helvetica", "normal");
+                    pdf.setFontSize(9.5);
+                    pdf.setTextColor(107, 114, 128);
+                    const contactLines = pdf.splitTextToSize(cvContact, maxW);
+                    contactLines.forEach((line: string) => {
+                      checkPage(5);
+                      pdf.text(line, pageW / 2, y, { align: "center" });
+                      y += 5;
+                    });
+                    y += 4;
+                  }
+
+                  // Sections
+                  const sections = el.querySelectorAll(".cv-section");
+                  sections.forEach((section) => {
+                    checkPage(14);
+
+                    // Divider line
+                    pdf.setDrawColor(229, 231, 235);
+                    pdf.line(margin, y, pageW - margin, y);
+                    y += 5;
+
+                    // Section heading
+                    const heading = section.querySelector("h2")?.textContent?.trim() ?? "";
+                    if (heading) {
+                      pdf.setFont("helvetica", "bold");
+                      pdf.setFontSize(8);
+                      pdf.setTextColor(13, 110, 110);
+                      pdf.text(heading.toUpperCase(), margin, y);
+                      y += 6;
+                    }
+
+                    // Paragraphs and list items
+                    pdf.setFont("helvetica", "normal");
+                    pdf.setFontSize(10);
+                    pdf.setTextColor(26, 26, 26);
+
+                    const nodes = section.querySelectorAll("p, li, strong");
+                    const seen = new Set<Element>();
+                    section.querySelectorAll("p, li").forEach((node) => {
+                      if (seen.has(node)) return;
+                      seen.add(node);
+                      const text = node.textContent?.trim() ?? "";
+                      if (!text) return;
+                      const prefix = node.tagName === "LI" ? "• " : "";
+                      const lines = pdf.splitTextToSize(prefix + text, maxW - (prefix ? 4 : 0));
+                      lines.forEach((line: string) => {
+                        checkPage(5);
+                        pdf.text(line, prefix ? margin + 4 : margin, y);
+                        y += 5;
+                      });
+                      y += 1;
+                    });
+
+                    y += 4;
+                  });
+
+                  // Branding footer
+                  pdf.setFont("helvetica", "normal");
+                  pdf.setFontSize(8);
+                  pdf.setTextColor(156, 163, 175);
+                  pdf.text("Created with CVLingo · cvlingo.com", pageW / 2, 287, { align: "center" });
+
+                  pdf.save(filename);
                 } catch (err) {
                   console.error("PDF download failed", err);
                   alert("PDF error: " + (err instanceof Error ? err.message : String(err)));
