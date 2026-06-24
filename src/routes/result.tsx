@@ -238,7 +238,21 @@ function ResultPage() {
                   const canvas = await html2canvas(el, {
                     scale: 2,
                     useCORS: true,
+                    allowTaint: true,
                     logging: false,
+                    ignoreElements: (element) => element.tagName === "BUTTON",
+                    onclone: (clonedDoc) => {
+                      // html2canvas can't parse modern CSS color functions; replace with black
+                      const LAB_RE = /(?:ok)?l(?:ab|ch)\([^)]+\)/gi;
+                      const styles = clonedDoc.querySelectorAll("style");
+                      styles.forEach((s) => {
+                        s.textContent = (s.textContent ?? "").replace(LAB_RE, "#000000");
+                      });
+                      const styledEls = clonedDoc.querySelectorAll<HTMLElement>("[style]");
+                      styledEls.forEach((e) => {
+                        e.style.cssText = e.style.cssText.replace(LAB_RE, "#000000");
+                      });
+                    },
                   });
                   const imgData = canvas.toDataURL("image/png");
                   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
@@ -255,7 +269,8 @@ function ResultPage() {
                       y -= pageHeight;
                     }
                   }
-                  const blob = pdf.output("blob");
+                  // jsPDF v4 output("blob") is async
+                  const blob = await pdf.output("blob");
                   const url = URL.createObjectURL(blob);
                   const link = document.createElement("a");
                   link.href = url;
@@ -266,8 +281,6 @@ function ResultPage() {
                   URL.revokeObjectURL(url);
                 } catch (err) {
                   console.error("PDF download failed", err);
-                  // Diagnostic alert — remove after error is identified
-                  alert("PDF error: " + (err instanceof Error ? err.message : String(err)));
                 } finally {
                   setDownloading(false);
                 }
