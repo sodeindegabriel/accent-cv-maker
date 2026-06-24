@@ -147,7 +147,14 @@ function BuildPage() {
   const [data, setData] = useState<CVData>(() => {
     try {
       const saved = localStorage.getItem("cvlingo_form_data");
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved) as CVData;
+        // Always start Step 1 with no language highlighted — language is set
+        // either by the user clicking a card or by the sessionStorage preselect
+        // fast path. Restoring a stale languageCode causes English to appear
+        // pre-highlighted with no way to advance without scrolling to Continue.
+        return { ...parsed, languageCode: "", language: "", questionLanguageCode: "en" };
+      }
     } catch {
       localStorage.removeItem("cvlingo_form_data");
     }
