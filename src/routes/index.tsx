@@ -617,13 +617,13 @@ function Index() {
               </button>
               <h4 className="font-serif text-xl text-foreground">Premium templates coming soon</h4>
               <p className="mt-2 text-sm text-muted-foreground">Start free — no sign up needed.</p>
-              <Link
-                to="/build"
-                onClick={() => setComingSoonOpen(false)}
+              <button
+                type="button"
+                onClick={() => { setComingSoonOpen(false); pickLanguage("en"); }}
                 className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
               >
                 Start with Classic
-              </Link>
+              </button>
             </div>
           </div>
         )}
