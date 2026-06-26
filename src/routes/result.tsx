@@ -17,6 +17,7 @@ function ResultPage() {
   const [name, setName] = useState<string>("");
   const [tab, setTab] = useState<"native" | "english">("native");
   const [downloading, setDownloading] = useState(false);
+  const [showPdfModal, setShowPdfModal] = useState(false);
   const [poolConsentGiven] = useState<boolean>(() => {
     try {
       const raw = sessionStorage.getItem("cvlingo:input");
@@ -60,7 +61,7 @@ function ResultPage() {
   const isEnglishOnly = !lang || lang === "english";
 
   useEffect(() => {
-    if (isEnglishOnly) setTab("english");
+    setTab(isEnglishOnly ? "english" : "native");
   }, [isEnglishOnly]);
 
   if (!result) return null;
@@ -81,6 +82,118 @@ function ResultPage() {
   const twitterShareHref = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}`;
 
   const nativeLabel = result.language ? `${result.language} CV` : "Native CV";
+
+  const downloadPdf = async (whichTab: "native" | "english") => {
+    setDownloading(true);
+    setShowPdfModal(false);
+    const langForFile = whichTab === "english" ? "English" : result.language || "Native";
+    const safeName = (name || "CV").replace(/[^\w\s-]/g, "").trim();
+    const filename = `${safeName} - CVLingo - ${langForFile}.pdf`;
+    const htmlContent = sanitizeCvHtml(whichTab === "native" ? result.native : result.english);
+    const el = document.createElement("div");
+    el.innerHTML = htmlContent;
+    el.style.cssText = "position:absolute;visibility:hidden;left:-9999px;top:-9999px;";
+    document.body.appendChild(el);
+    try {
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const W = 210; const ML = 18; const MR = 18; const CW = W - ML - MR;
+      let y = 22;
+      const newPageIfNeeded = (h: number) => { if (y + h > 282) { pdf.addPage(); y = 18; } };
+      const cvName = el.querySelector(".cv-name")?.textContent?.trim() ?? "";
+      pdf.setFont("helvetica", "bold"); pdf.setFontSize(26); pdf.setTextColor(26, 26, 26);
+      pdf.splitTextToSize(cvName, CW).forEach((line: string) => { pdf.text(line, W / 2, y, { align: "center" }); y += 10; });
+      y += 3;
+      const cvContact = el.querySelector(".cv-contact")?.textContent?.trim() ?? "";
+      pdf.setFont("helvetica", "normal"); pdf.setFontSize(10); pdf.setTextColor(107, 114, 128);
+      pdf.splitTextToSize(cvContact, CW).forEach((line: string) => { pdf.text(line, W / 2, y, { align: "center" }); y += 6; });
+      y += 8;
+      el.querySelectorAll(".cv-section").forEach((section) => {
+        newPageIfNeeded(14);
+        pdf.setDrawColor(220, 220, 220); pdf.line(ML, y, W - MR, y); y += 5;
+        const heading = section.querySelector("h2")?.textContent?.trim() ?? "";
+        pdf.setFont("helvetica", "bold"); pdf.setFontSize(13); pdf.setTextColor(13, 110, 110);
+        pdf.text(heading, ML, y); y += 6;
+        section.querySelectorAll("p").forEach((p) => {
+          if (p.closest(".cv-job") || p.closest(".cv-edu")) return;
+          const txt = p.textContent?.trim() ?? ""; if (!txt) return;
+          newPageIfNeeded(6); pdf.setFont("helvetica", "normal"); pdf.setFontSize(11); pdf.setTextColor(26, 26, 26);
+          pdf.splitTextToSize(txt, CW).forEach((line: string) => { newPageIfNeeded(6); pdf.text(line, ML, y); y += 6; }); y += 3;
+        });
+        section.querySelectorAll(".cv-job").forEach((job) => {
+          newPageIfNeeded(8);
+          const jobP = job.querySelector("p");
+          if (jobP) {
+            const titleText = jobP.querySelector("strong")?.textContent?.trim() ?? "";
+            const dateText = jobP.querySelector(".cv-date")?.textContent?.trim() ?? "";
+            let companyText = "";
+            jobP.childNodes.forEach((node) => { if (node.nodeType === Node.TEXT_NODE) companyText += node.textContent ?? ""; });
+            companyText = companyText.trim();
+            pdf.setFontSize(11); pdf.setFont("helvetica", "bold"); pdf.setTextColor(26, 26, 26);
+            const titleW = pdf.getTextWidth(titleText + " ");
+            pdf.text(titleText, ML, y); pdf.setFont("helvetica", "normal");
+            if (companyText) pdf.text(companyText, ML + titleW, y);
+            if (dateText) { pdf.setTextColor(107, 114, 128); pdf.text(dateText, W - MR, y, { align: "right" }); pdf.setTextColor(26, 26, 26); }
+            y += 6;
+          }
+          job.querySelectorAll("li").forEach((li) => {
+            const txt = li.textContent?.trim() ?? ""; if (!txt) return;
+            newPageIfNeeded(6); pdf.setFont("helvetica", "normal"); pdf.setFontSize(11); pdf.setTextColor(26, 26, 26);
+            pdf.text("•", ML + 1, y);
+            pdf.splitTextToSize(txt, CW - 5).forEach((line: string) => { newPageIfNeeded(6); pdf.text(line, ML + 5, y); y += 6; });
+          });
+          y += 2;
+        });
+        section.querySelectorAll(".cv-edu").forEach((edu) => {
+          newPageIfNeeded(8);
+          const eduP = edu.querySelector("p");
+          if (eduP) {
+            const qualText = eduP.querySelector("strong")?.textContent?.trim() ?? "";
+            const dateText = eduP.querySelector(".cv-date")?.textContent?.trim() ?? "";
+            pdf.setFontSize(11); pdf.setFont("helvetica", "bold"); pdf.setTextColor(26, 26, 26);
+            pdf.text(qualText, ML, y);
+            if (dateText) { pdf.setTextColor(107, 114, 128); pdf.text(dateText, W - MR, y, { align: "right" }); }
+            y += 6;
+            let instText = "";
+            eduP.childNodes.forEach((node) => { if (node.nodeType === Node.TEXT_NODE) instText += node.textContent ?? ""; });
+            instText = instText.trim();
+            if (instText) { pdf.setFont("helvetica", "normal"); pdf.setTextColor(107, 114, 128); pdf.text(instText, ML, y); y += 6; }
+          }
+          y += 1;
+        });
+        section.querySelectorAll("ul > li").forEach((li) => {
+          if (li.closest(".cv-job") || li.closest(".cv-edu")) return;
+          const strongEl = li.querySelector("strong");
+          newPageIfNeeded(6); pdf.setFontSize(11); pdf.setTextColor(26, 26, 26);
+          if (strongEl) {
+            const label = strongEl.textContent?.trim() ?? "";
+            let desc = "";
+            li.childNodes.forEach((node) => { if (node !== strongEl && node.nodeType === Node.TEXT_NODE) desc += node.textContent ?? ""; });
+            desc = desc.trim();
+            pdf.setFont("helvetica", "bold"); pdf.text("• " + label, ML + 1, y); y += 6;
+            if (desc) { pdf.setFont("helvetica", "normal"); pdf.splitTextToSize(desc, CW - 5).forEach((line: string) => { newPageIfNeeded(6); pdf.text(line, ML + 5, y); y += 6; }); }
+            y += 2;
+          } else {
+            const txt = li.textContent?.trim() ?? ""; if (!txt) return;
+            pdf.setFont("helvetica", "normal"); pdf.text("•", ML + 1, y);
+            pdf.splitTextToSize(txt, CW - 5).forEach((line: string) => { newPageIfNeeded(6); pdf.text(line, ML + 5, y); y += 6; });
+            y += 1;
+          }
+        });
+        y += 4;
+      });
+      newPageIfNeeded(10);
+      pdf.setDrawColor(220, 220, 220); pdf.line(ML, y, W - MR, y); y += 5;
+      pdf.setFont("helvetica", "normal"); pdf.setFontSize(8); pdf.setTextColor(180, 180, 180);
+      pdf.text("Created with CVLingo · cvlingo.com", W / 2, y, { align: "center" });
+      pdf.save(filename);
+    } catch (err) {
+      console.error("PDF error:", err);
+      alert("PDF error: " + (err as Error).message);
+    } finally {
+      document.body.removeChild(el);
+      setDownloading(false);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -226,223 +339,49 @@ function ResultPage() {
             <button
               type="button"
               disabled={downloading}
-              onClick={async () => {
-                setDownloading(true);
-                const langForFile = tab === "english" ? "English" : result.language || "Native";
-                const safeName = (name || "CV").replace(/[^\w\s-]/g, "").trim();
-                const filename = `${safeName} - CVLingo - ${langForFile}.pdf`;
-                try {
-                  const el = document.getElementById("cv-print");
-                  if (!el) throw new Error("CV element not found");
-
-                  const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-                  const W = 210;
-                  const ML = 18;
-                  const MR = 18;
-                  const CW = W - ML - MR;
-                  let y = 22;
-
-                  const newPageIfNeeded = (h: number) => {
-                    if (y + h > 282) { pdf.addPage(); y = 18; }
-                  };
-
-                  // ── NAME ──────────────────────────────────
-                  const cvName = el.querySelector(".cv-name")?.textContent?.trim() ?? "";
-                  pdf.setFont("helvetica", "bold");
-                  pdf.setFontSize(26);
-                  pdf.setTextColor(26, 26, 26);
-                  pdf.splitTextToSize(cvName, CW).forEach((line: string) => {
-                    pdf.text(line, W / 2, y, { align: "center" });
-                    y += 10;
-                  });
-                  y += 3;
-
-                  // ── CONTACT ───────────────────────────────
-                  const cvContact = el.querySelector(".cv-contact")?.textContent?.trim() ?? "";
-                  pdf.setFont("helvetica", "normal");
-                  pdf.setFontSize(10);
-                  pdf.setTextColor(107, 114, 128);
-                  pdf.splitTextToSize(cvContact, CW).forEach((line: string) => {
-                    pdf.text(line, W / 2, y, { align: "center" });
-                    y += 6;
-                  });
-                  y += 8;
-
-                  // ── SECTIONS ──────────────────────────────
-                  el.querySelectorAll(".cv-section").forEach((section) => {
-                    newPageIfNeeded(14);
-                    pdf.setDrawColor(220, 220, 220);
-                    pdf.line(ML, y, W - MR, y);
-                    y += 5;
-
-                    const heading = section.querySelector("h2")?.textContent?.trim() ?? "";
-                    pdf.setFont("helvetica", "bold");
-                    pdf.setFontSize(13);
-                    pdf.setTextColor(13, 110, 110);
-                    pdf.text(heading, ML, y);
-                    y += 6;
-
-                    // Paragraphs (skip those inside .cv-job or .cv-edu)
-                    section.querySelectorAll("p").forEach((p) => {
-                      if (p.closest(".cv-job") || p.closest(".cv-edu")) return;
-                      const txt = p.textContent?.trim() ?? "";
-                      if (!txt) return;
-                      newPageIfNeeded(6);
-                      pdf.setFont("helvetica", "normal");
-                      pdf.setFontSize(11);
-                      pdf.setTextColor(26, 26, 26);
-                      pdf.splitTextToSize(txt, CW).forEach((line: string) => {
-                        newPageIfNeeded(6);
-                        pdf.text(line, ML, y);
-                        y += 6;
-                      });
-                      y += 3;
-                    });
-
-                    // Job entries
-                    section.querySelectorAll(".cv-job").forEach((job) => {
-                      newPageIfNeeded(8);
-                      const jobP = job.querySelector("p");
-                      if (jobP) {
-                        const titleText = jobP.querySelector("strong")?.textContent?.trim() ?? "";
-                        const dateText = jobP.querySelector(".cv-date")?.textContent?.trim() ?? "";
-                        let companyText = "";
-                        jobP.childNodes.forEach((node) => {
-                          if (node.nodeType === Node.TEXT_NODE) companyText += node.textContent ?? "";
-                        });
-                        companyText = companyText.trim();
-
-                        pdf.setFontSize(11);
-                        pdf.setFont("helvetica", "bold");
-                        pdf.setTextColor(26, 26, 26);
-                        const titleW = pdf.getTextWidth(titleText + " ");
-                        pdf.text(titleText, ML, y);
-                        pdf.setFont("helvetica", "normal");
-                        if (companyText) pdf.text(companyText, ML + titleW, y);
-                        if (dateText) {
-                          pdf.setTextColor(107, 114, 128);
-                          pdf.text(dateText, W - MR, y, { align: "right" });
-                          pdf.setTextColor(26, 26, 26);
-                        }
-                        y += 6;
-                      }
-                      job.querySelectorAll("li").forEach((li) => {
-                        const txt = li.textContent?.trim() ?? "";
-                        if (!txt) return;
-                        newPageIfNeeded(6);
-                        pdf.setFont("helvetica", "normal");
-                        pdf.setFontSize(11);
-                        pdf.setTextColor(26, 26, 26);
-                        pdf.text("•", ML + 1, y);
-                        pdf.splitTextToSize(txt, CW - 5).forEach((line: string) => {
-                          newPageIfNeeded(6);
-                          pdf.text(line, ML + 5, y);
-                          y += 6;
-                        });
-                      });
-                      y += 2;
-                    });
-
-                    // Education entries
-                    section.querySelectorAll(".cv-edu").forEach((edu) => {
-                      newPageIfNeeded(8);
-                      const eduP = edu.querySelector("p");
-                      if (eduP) {
-                        const qualText = eduP.querySelector("strong")?.textContent?.trim() ?? "";
-                        const dateText = eduP.querySelector(".cv-date")?.textContent?.trim() ?? "";
-                        pdf.setFontSize(11);
-                        pdf.setFont("helvetica", "bold");
-                        pdf.setTextColor(26, 26, 26);
-                        pdf.text(qualText, ML, y);
-                        if (dateText) {
-                          pdf.setTextColor(107, 114, 128);
-                          pdf.text(dateText, W - MR, y, { align: "right" });
-                        }
-                        y += 6;
-                        let instText = "";
-                        eduP.childNodes.forEach((node) => {
-                          if (node.nodeType === Node.TEXT_NODE) instText += node.textContent ?? "";
-                        });
-                        instText = instText.trim();
-                        if (instText) {
-                          pdf.setFont("helvetica", "normal");
-                          pdf.setTextColor(107, 114, 128);
-                          pdf.text(instText, ML, y);
-                          y += 6;
-                        }
-                      }
-                      y += 1;
-                    });
-
-                    // List items (skills, availability, etc.)
-                    // Guard: skip li inside .cv-job or .cv-edu to prevent double-rendering
-                    section.querySelectorAll("ul > li").forEach((li) => {
-                      if (li.closest(".cv-job") || li.closest(".cv-edu")) return;
-                      const strongEl = li.querySelector("strong");
-                      newPageIfNeeded(6);
-                      pdf.setFontSize(11);
-                      pdf.setTextColor(26, 26, 26);
-
-                      if (strongEl) {
-                        // Two-line format: bold label on line 1, description indented on line 2+
-                        const label = strongEl.textContent?.trim() ?? "";
-                        let desc = "";
-                        li.childNodes.forEach((node) => {
-                          if (node !== strongEl && node.nodeType === Node.TEXT_NODE)
-                            desc += node.textContent ?? "";
-                        });
-                        desc = desc.trim();
-                        pdf.setFont("helvetica", "bold");
-                        pdf.text("• " + label, ML + 1, y);
-                        y += 6;
-                        if (desc) {
-                          pdf.setFont("helvetica", "normal");
-                          pdf.splitTextToSize(desc, CW - 5).forEach((line: string) => {
-                            newPageIfNeeded(6);
-                            pdf.text(line, ML + 5, y);
-                            y += 6;
-                          });
-                        }
-                        y += 2;
-                      } else {
-                        const txt = li.textContent?.trim() ?? "";
-                        if (!txt) return;
-                        pdf.setFont("helvetica", "normal");
-                        pdf.text("•", ML + 1, y);
-                        pdf.splitTextToSize(txt, CW - 5).forEach((line: string) => {
-                          newPageIfNeeded(6);
-                          pdf.text(line, ML + 5, y);
-                          y += 6;
-                        });
-                        y += 1;
-                      }
-                    });
-
-                    y += 4;
-                  });
-
-                  // ── BRANDING ──────────────────────────────
-                  newPageIfNeeded(10);
-                  pdf.setDrawColor(220, 220, 220);
-                  pdf.line(ML, y, W - MR, y);
-                  y += 5;
-                  pdf.setFont("helvetica", "normal");
-                  pdf.setFontSize(8);
-                  pdf.setTextColor(180, 180, 180);
-                  pdf.text("Created with CVLingo · cvlingo.com", W / 2, y, { align: "center" });
-
-                  pdf.save(filename);
-                } catch (err) {
-                  console.error("PDF error:", err);
-                  alert("PDF error: " + (err as Error).message);
-                } finally {
-                  setDownloading(false);
+              onClick={() => {
+                if (isEnglishOnly) {
+                  downloadPdf("english");
+                } else {
+                  setShowPdfModal(true);
                 }
               }}
               className="rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
             >
               {downloading ? "Preparing PDF…" : "Download PDF"}
             </button>
+            {/* PDF language picker modal */}
+            {showPdfModal && !isEnglishOnly && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-xl">
+                  <h2 className="mb-1 text-lg font-semibold text-foreground">Which CV would you like to download?</h2>
+                  <p className="mb-5 text-sm text-muted-foreground">Choose a language version to save as PDF.</p>
+                  <div className="flex flex-col gap-3">
+                    <button
+                      type="button"
+                      onClick={() => downloadPdf("native")}
+                      className="rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground transition hover:opacity-90"
+                    >
+                      {nativeLabel}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => downloadPdf("english")}
+                      className="rounded-xl border border-border bg-background px-5 py-3 font-semibold text-foreground transition hover:bg-muted"
+                    >
+                      English CV
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowPdfModal(false)}
+                      className="text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
             <a
               href={whatsappHref}
               target="_blank"

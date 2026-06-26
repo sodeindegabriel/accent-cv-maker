@@ -36,7 +36,8 @@ export type TKey =
   | "yes" | "no" | "educationQuestion" | "pleaseAddExperience"
   | "noEducationMessage"
   | "generateCv" | "generating" | "somethingWrong" | "retry"
-  | "poolHeading" | "poolSubtext" | "poolYes" | "poolNo";
+  | "poolHeading" | "poolSubtext" | "poolYes" | "poolNo"
+  | "consentText" | "privacyLock" | "readPrivacyPolicy";
 
 
 type Dict = Partial<Record<TKey, string>>;
@@ -138,6 +139,9 @@ const en: Record<TKey, string> = {
   educationQuestion: "Do you have any education or training to add?",
   pleaseAddExperience: "Please fill in at least your role and dates to continue",
   noEducationMessage: "No problem — your skills and experience speak for themselves.",
+  consentText: "I agree to my information being used to generate my CV. We do not share your data with third parties.",
+  privacyLock: "Your information is private and never shared without your permission.",
+  readPrivacyPolicy: "Read our Privacy Policy",
 };
 
 const pl: Dict = {
@@ -231,6 +235,12 @@ const pl: Dict = {
   poolSubtext: "Czy chcesz, aby pracodawcy szukający pracowników na Twój typ stanowiska mogli znaleźć Twój profil CV? Jest bezpłatny i możesz zrezygnować w dowolnym momencie.",
   poolYes: "Tak, dodaj mnie do puli",
   poolNo: "Nie, dziękuję",
+  yes: "Tak", no: "Nie",
+  educationQuestion: "Czy masz jakieś wykształcenie lub szkolenie do dodania?",
+  noEducationMessage: "Nie ma problemu — Twoje umiejętności i doświadczenie mówią same za siebie.",
+  consentText: "Wyrażam zgodę na wykorzystanie moich danych do stworzenia CV. Nie udostępniamy danych osobom trzecim.",
+  privacyLock: "Twoje informacje są prywatne i nigdy nie są udostępniane bez Twojej zgody.",
+  readPrivacyPolicy: "Przeczytaj naszą Politykę Prywatności",
 };
 
 const ro: Dict = {
@@ -324,6 +334,12 @@ const ro: Dict = {
   poolSubtext: "Dorești ca angajatorii care recrutează pentru tipul tău de rol să poată găsi profilul tău CV? Este gratuit și poți renunța oricând.",
   poolYes: "Da, adaugă-mă în pool",
   poolNo: "Nu, mulțumesc",
+  yes: "Da", no: "Nu",
+  educationQuestion: "Ai studii sau formare profesională de adăugat?",
+  noEducationMessage: "Nicio problemă — abilitățile și experiența ta vorbesc de la sine.",
+  consentText: "Sunt de acord ca informațiile mele să fie folosite pentru a genera CV-ul. Nu partajăm datele cu terți.",
+  privacyLock: "Informațiile tale sunt private și nu sunt partajate fără permisiunea ta.",
+  readPrivacyPolicy: "Citește Politica de Confidențialitate",
 };
 
 const es: Dict = {
@@ -417,6 +433,12 @@ const es: Dict = {
   poolSubtext: "¿Te gustaría que los empleadores que contratan para tu tipo de puesto pudieran encontrar tu perfil de CV? Es gratis y puedes salir cuando quieras.",
   poolYes: "Sí, añádeme al grupo",
   poolNo: "No, gracias",
+  yes: "Sí", no: "No",
+  educationQuestion: "¿Tienes algún estudio o formación para añadir?",
+  noEducationMessage: "Sin problema — tus habilidades y experiencia hablan por sí solos.",
+  consentText: "Acepto que mi información se use para generar mi CV. No compartimos tus datos con terceros.",
+  privacyLock: "Tu información es privada y nunca se comparte sin tu permiso.",
+  readPrivacyPolicy: "Leer nuestra Política de Privacidad",
 };
 
 const pt: Dict = {
@@ -510,6 +532,12 @@ const pt: Dict = {
   poolSubtext: "Gostarias que os empregadores a contratar para o teu tipo de função possam encontrar o teu perfil de CV? É grátis e podes sair a qualquer momento.",
   poolYes: "Sim, adiciona-me ao grupo",
   poolNo: "Não, obrigado",
+  yes: "Sim", no: "Não",
+  educationQuestion: "Tens alguma formação ou treino a adicionar?",
+  noEducationMessage: "Sem problema — as tuas competências e experiência falam por si.",
+  consentText: "Concordo com a utilização das minhas informações para gerar o meu CV. Não partilhamos os seus dados com terceiros.",
+  privacyLock: "As tuas informações são privadas e nunca partilhadas sem a tua permissão.",
+  readPrivacyPolicy: "Ler a nossa Política de Privacidade",
 };
 
 const fr: Dict = {
@@ -603,6 +631,12 @@ const fr: Dict = {
   poolSubtext: "Souhaitez-vous que les employeurs recrutant pour votre type de poste puissent trouver votre profil CV ? C'est gratuit et vous pouvez vous désabonner à tout moment.",
   poolYes: "Oui, ajoutez-moi au groupe",
   poolNo: "Non merci",
+  yes: "Oui", no: "Non",
+  educationQuestion: "Avez-vous une formation ou un parcours académique à ajouter ?",
+  noEducationMessage: "Pas de problème — vos compétences et votre expérience parlent d'elles-mêmes.",
+  consentText: "J'accepte que mes informations soient utilisées pour générer mon CV. Nous ne partageons pas vos données avec des tiers.",
+  privacyLock: "Vos informations sont privées et ne sont jamais partagées sans votre permission.",
+  readPrivacyPolicy: "Lire notre Politique de Confidentialité",
 };
 
 const ar: Dict = {
@@ -696,6 +730,12 @@ const ar: Dict = {
   poolSubtext: "هل تريد أن يتمكن أصحاب العمل الذين يوظفون لنوع دورك من العثور على ملف CV الخاص بك؟ إنه مجاني ويمكنك إلغاء الاشتراك في أي وقت.",
   poolYes: "نعم، أضفني إلى المجموعة",
   poolNo: "لا شكراً",
+  yes: "نعم", no: "لا",
+  educationQuestion: "هل لديك أي تعليم أو تدريب لإضافته؟",
+  noEducationMessage: "لا مشكلة — مهاراتك وخبرتك تتحدثان عن نفسيهما.",
+  consentText: "أوافق على استخدام معلوماتي لإنشاء سيرتي الذاتية. لا نشارك بياناتك مع أطراف ثالثة.",
+  privacyLock: "معلوماتك خاصة ولا تُشارك أبدًا دون إذنك.",
+  readPrivacyPolicy: "اقرأ سياسة الخصوصية",
 };
 
 const ur: Dict = {
@@ -789,6 +829,12 @@ const ur: Dict = {
   poolSubtext: "کیا آپ چاہتے ہیں کہ آپ کی جیسی نوکری کے لیے آجر آپ کا CV پروفائل دیکھ سکیں؟ یہ مفت ہے اور آپ کسی بھی وقت نکل سکتے ہیں۔",
   poolYes: "ہاں، مجھے پول میں شامل کریں",
   poolNo: "نہیں، شکریہ",
+  yes: "ہاں", no: "نہیں",
+  educationQuestion: "کیا آپ کے پاس کوئی تعلیم یا تربیت ہے جو شامل کرنی ہو؟",
+  noEducationMessage: "کوئی مسئلہ نہیں — آپ کی مہارتیں اور تجربہ خود بولتے ہیں۔",
+  consentText: "میں اپنا CV بنانے کے لیے اپنی معلومات استعمال کرنے پر رضامند ہوں۔ ہم آپ کا ڈیٹا تیسرے فریق کے ساتھ شیئر نہیں کرتے۔",
+  privacyLock: "آپ کی معلومات نجی ہیں اور آپ کی اجازت کے بغیر کبھی شیئر نہیں کی جاتیں۔",
+  readPrivacyPolicy: "ہماری پرائیویسی پالیسی پڑھیں",
 };
 
 const hi: Dict = {
@@ -882,6 +928,12 @@ const hi: Dict = {
   poolSubtext: "क्या आप चाहते हैं कि आपकी भूमिका प्रकार के लिए भर्ती करने वाले नियोक्ता आपका CV प्रोफ़ाइल देख सकें? यह मुफ़्त है और आप कभी भी बाहर निकल सकते हैं।",
   poolYes: "हाँ, मुझे पूल में जोड़ें",
   poolNo: "नहीं, धन्यवाद",
+  yes: "हाँ", no: "नहीं",
+  educationQuestion: "क्या आपके पास जोड़ने के लिए कोई शिक्षा या प्रशिक्षण है?",
+  noEducationMessage: "कोई बात नहीं — आपकी कुशलता और अनुभव खुद बोलते हैं।",
+  consentText: "मैं अपना CV बनाने के लिए मेरी जानकारी का उपयोग करने पर सहमत हूँ। हम आपका डेटा तृतीय पक्षों के साथ साझा नहीं करते।",
+  privacyLock: "आपकी जानकारी निजी है और आपकी अनुमति के बिना कभी साझा नहीं की जाती।",
+  readPrivacyPolicy: "हमारी गोपनीयता नीति पढ़ें",
 };
 
 const bn: Dict = {
@@ -975,6 +1027,12 @@ const bn: Dict = {
   poolSubtext: "আপনি কি চান যে আপনার ভূমিকার জন্য নিয়োগ করা নিয়োগকর্তারা আপনার CV প্রোফাইল দেখতে পারেন? এটি বিনামূল্যে এবং আপনি যেকোনো সময় বেরিয়ে যেতে পারেন।",
   poolYes: "হ্যাঁ, আমাকে পুলে যোগ করুন",
   poolNo: "না, ধন্যবাদ",
+  yes: "হ্যাঁ", no: "না",
+  educationQuestion: "আপনার যোগ করার জন্য কোনো শিক্ষা বা প্রশিক্ষণ আছে?",
+  noEducationMessage: "কোনো সমস্যা নেই — আপনার দক্ষতা এবং অভিজ্ঞতা নিজেই বলে।",
+  consentText: "আমি আমার CV তৈরিতে আমার তথ্য ব্যবহার করতে সম্মত। আমরা আপনার ডেটা তৃতীয় পক্ষের সাথে শেয়ার করি না।",
+  privacyLock: "আপনার তথ্য ব্যক্তিগত এবং আপনার অনুমতি ছাড়া কখনো শেয়ার করা হয় না।",
+  readPrivacyPolicy: "আমাদের গোপনীয়তা নীতি পড়ুন",
 };
 
 const so: Dict = {
@@ -1068,6 +1126,12 @@ const so: Dict = {
   poolSubtext: "Miyaad doonaysaa in shaqo bixiyayaasha u shaqaalaynaya noocaaga doorka ay awoodi karaan inay helaan xogta CV-gaaga? Waa bilaash waxaadna ka baxsan kartaa waqti kasta.",
   poolYes: "Haa, i geli xiddigta",
   poolNo: "Maya, mahadsanid",
+  yes: "Haa", no: "Maya",
+  educationQuestion: "Ma leedahay waxbarasho ama tababar aad ku darsato?",
+  noEducationMessage: "Waxba ma ahan — xirfadahaada iyo khibradaadu waxay ku hadlaan naftooda.",
+  consentText: "Waxaan oggolaanayaa in macluumaadkayga loo isticmaalo si loo sameeyo CV-gaygga. Kuma wadaagno xogta adigga dhinacyada kale.",
+  privacyLock: "Macluumaadkaaga waa gaar ah mana la wadaago cidna heshiis la'aantaada.",
+  readPrivacyPolicy: "Akhri Xeerka Asturnaanta",
 };
 
 const tr: Dict = {
@@ -1161,6 +1225,12 @@ const tr: Dict = {
   poolSubtext: "Rolünüz için işe alan işverenlerin CV profilinizi bulabilmesini ister misiniz? Ücretsizdir ve istediğiniz zaman çıkabilirsiniz.",
   poolYes: "Evet, beni havuza ekle",
   poolNo: "Hayır, teşekkürler",
+  yes: "Evet", no: "Hayır",
+  educationQuestion: "Eklenecek bir eğitiminiz var mı?",
+  noEducationMessage: "Sorun değil — becerileriniz ve deneyiminiz kendi adına konuşur.",
+  consentText: "CV'mi oluşturmak için bilgilerimin kullanılmasını kabul ediyorum. Verilerinizi üçüncü taraflarla paylaşmıyoruz.",
+  privacyLock: "Bilgileriniz özeldir ve izniniz olmadan hiç kimseyle paylaşılmaz.",
+  readPrivacyPolicy: "Gizlilik Politikamızı Okuyun",
 };
 
 const fa: Dict = {
@@ -1254,6 +1324,12 @@ const fa: Dict = {
   poolSubtext: "آیا می‌خواهید کارفرمایانی که برای نوع نقش شما استخدام می‌کنند بتوانند پروفایل CV شما را پیدا کنند؟ رایگان است و می‌توانید در هر زمانی انصراف دهید.",
   poolYes: "بله، من را به استخر اضافه کن",
   poolNo: "نه، ممنون",
+  yes: "بله", no: "نه",
+  educationQuestion: "آیا تحصیلات یا آموزشی برای اضافه کردن دارید؟",
+  noEducationMessage: "مشکلی نیست — مهارت‌ها و تجربه شما خودشان حرف می‌زنند.",
+  consentText: "موافقم که اطلاعاتم برای ایجاد رزومه‌ام استفاده شود. ما داده‌های شما را با اشخاص ثالث به اشتراک نمی‌گذاریم.",
+  privacyLock: "اطلاعات شما خصوصی است و بدون اجازه شما هرگز به اشتراک گذاشته نمی‌شود.",
+  readPrivacyPolicy: "سیاست حریم خصوصی ما را بخوانید",
 };
 
 const uk: Dict = {
@@ -1347,6 +1423,12 @@ const uk: Dict = {
   poolSubtext: "Бажаєте, щоб роботодавці, які наймають на вашу посаду, могли знайти ваш профіль CV? Це безкоштовно, і ви можете відмовитися будь-коли.",
   poolYes: "Так, додайте мене до пулу",
   poolNo: "Ні, дякую",
+  yes: "Так", no: "Ні",
+  educationQuestion: "Чи є у вас освіта або навчання для додавання?",
+  noEducationMessage: "Не хвилюйтесь — ваші навички та досвід говорять самі за себе.",
+  consentText: "Я погоджуюся на використання моїх даних для створення CV. Ми не передаємо ваші дані третім особам.",
+  privacyLock: "Ваша інформація є приватною і ніколи не передається без вашого дозволу.",
+  readPrivacyPolicy: "Читати нашу Політику Конфіденційності",
 };
 
 const zh: Dict = {
@@ -1440,6 +1522,12 @@ const zh: Dict = {
   poolSubtext: "您是否希望招聘您职位类型的雇主能够找到您的CV档案？完全免费，您可以随时退出。",
   poolYes: "是的，将我加入候选池",
   poolNo: "不，谢谢",
+  yes: "是", no: "否",
+  educationQuestion: "您有教育或培训经历要添加吗？",
+  noEducationMessage: "没关系 — 您的技能和经验会自己说明一切。",
+  consentText: "我同意使用我的信息生成我的简历。我们不会将您的数据与第三方共享。",
+  privacyLock: "您的信息是私密的，未经您的许可绝不会被共享。",
+  readPrivacyPolicy: "阅读我们的隐私政策",
 };
 
 const pa: Dict = {
@@ -1533,6 +1621,12 @@ const pa: Dict = {
   poolSubtext: "ਕੀ ਤੁਸੀਂ ਚਾਹੁੰਦੇ ਹੋ ਕਿ ਤੁਹਾਡੀ ਭੂਮਿਕਾ ਲਈ ਭਰਤੀ ਕਰਨ ਵਾਲੇ ਮਾਲਕ ਤੁਹਾਡਾ CV ਪ੍ਰੋਫਾਈਲ ਦੇਖ ਸਕਣ? ਇਹ ਮੁਫ਼ਤ ਹੈ ਅਤੇ ਤੁਸੀਂ ਕਿਸੇ ਵੀ ਸਮੇਂ ਬਾਹਰ ਨਿਕਲ ਸਕਦੇ ਹੋ।",
   poolYes: "ਹਾਂ, ਮੈਨੂੰ ਪੂਲ ਵਿੱਚ ਸ਼ਾਮਲ ਕਰੋ",
   poolNo: "ਨਹੀਂ, ਧੰਨਵਾਦ",
+  yes: "ਹਾਂ", no: "ਨਹੀਂ",
+  educationQuestion: "ਕੀ ਤੁਹਾਡੇ ਕੋਲ ਜੋੜਨ ਲਈ ਕੋਈ ਸਿੱਖਿਆ ਜਾਂ ਸਿਖਲਾਈ ਹੈ?",
+  noEducationMessage: "ਕੋਈ ਸਮੱਸਿਆ ਨਹੀਂ — ਤੁਹਾਡੀਆਂ ਯੋਗਤਾਵਾਂ ਅਤੇ ਤਜਰਬਾ ਆਪ ਬੋਲਦੇ ਹਨ।",
+  consentText: "ਮੈਂ ਆਪਣਾ CV ਬਣਾਉਣ ਲਈ ਆਪਣੀ ਜਾਣਕਾਰੀ ਵਰਤੇ ਜਾਣ ਲਈ ਸਹਿਮਤ ਹਾਂ। ਅਸੀਂ ਤੁਹਾਡਾ ਡੇਟਾ ਤੀਜੀ ਧਿਰ ਨਾਲ ਸਾਂਝਾ ਨਹੀਂ ਕਰਦੇ।",
+  privacyLock: "ਤੁਹਾਡੀ ਜਾਣਕਾਰੀ ਨਿੱਜੀ ਹੈ ਅਤੇ ਤੁਹਾਡੀ ਇਜਾਜ਼ਤ ਤੋਂ ਬਿਨਾਂ ਕਦੇ ਸਾਂਝੀ ਨਹੀਂ ਕੀਤੀ ਜਾਂਦੀ।",
+  readPrivacyPolicy: "ਸਾਡੀ ਗੋਪਨੀਯਤਾ ਨੀਤੀ ਪੜ੍ਹੋ",
 };
 
 const gu: Dict = {
@@ -1626,6 +1720,12 @@ const gu: Dict = {
   poolSubtext: "શું તમે ઇચ્છો છો કે તમારી ભૂમિકા માટે ભરતી કરતા એમ્પ્લોયર્સ તમારો CV પ્રોફાઇલ જોઈ શકે? તે મફત છે અને તમે ગમે ત્યારે બહાર નીકળી શકો છો.",
   poolYes: "હા, મને પૂલમાં ઉમેરો",
   poolNo: "ના, આભાર",
+  yes: "હા", no: "ના",
+  educationQuestion: "શું તમારે ઉમેરવા માટે કોઈ શિક્ષણ અથવા તાલીમ છે?",
+  noEducationMessage: "ઠીક છે — તમારી કૌશલ્ય અને અનુભવ ખુદ બોલે છે.",
+  consentText: "હું મારો CV બનાવવા માટે મારી માહિતી ઉપયોગ કરવા સહમત છું. અમે તમારો ડેટા ત્રીજા પક્ષ સાથે શેર કરતા નથી.",
+  privacyLock: "તમારી માહિતી ખાનગી છે અને તમારી પરવાનગી વિના ક્યારેય શેર કરવામાં આવતી નથી.",
+  readPrivacyPolicy: "અમારી ગોપનીયતા નીતિ વાંચો",
 };
 
 const ku: Dict = {
@@ -1719,6 +1819,12 @@ const ku: Dict = {
   poolSubtext: "Dixwazî kardêrên ku ji bo cûreyê karê te kes digerin karibin profîla CV-ya te bibînin? Ew belaş e û tu dikarî her dem derkevî.",
   poolYes: "Erê, min li kolê zêde bike",
   poolNo: "Na, spas",
+  yes: "Erê", no: "Na",
+  educationQuestion: "Ma perwerdehiyek an perwerdeyeka te heye ku lê zêde bikî?",
+  noEducationMessage: "Pirsgirêk nîne — jêhatîbûn û ezmûna te bi xwe dipeyivin.",
+  consentText: "Razî me ku agahdariyên min bên bikaranîn da ku CV-ya min bê çêkirin. Em daneyên te bi aliyan re parve nakin.",
+  privacyLock: "Agahdariyên te taybet in û tu carî bê destûra te nayên parve kirin.",
+  readPrivacyPolicy: "Siyaseta Nepenîtiyê Bixwîne",
 };
 
 const ta: Dict = {
@@ -1812,6 +1918,12 @@ const ta: Dict = {
   poolSubtext: "உங்கள் பணி வகைக்கு பணியமர்த்தும் முதலாளிகள் உங்கள் CV சுயவிவரத்தை பார்க்க விரும்புகிறீர்களா? இது இலவசம் மற்றும் எந்த நேரத்திலும் வெளியேறலாம்.",
   poolYes: "ஆம், என்னை குழுவில் சேர்க்கவும்",
   poolNo: "இல்லை, நன்றி",
+  yes: "ஆம்", no: "இல்லை",
+  educationQuestion: "சேர்க்க ஏதாவது கல்வி அல்லது பயிற்சி உள்ளதா?",
+  noEducationMessage: "பரவாயில்லை — உங்கள் திறன்களும் அனுபவமும் தானே பேசும்.",
+  consentText: "என் CV உருவாக்க என் தகவல்களை பயன்படுத்த ஒப்புக்கொள்கிறேன். உங்கள் தரவை மூன்றாம் தரப்பினருடன் பகிர மாட்டோம்.",
+  privacyLock: "உங்கள் தகவல் தனிப்பட்டது மற்றும் உங்கள் அனுமதி இல்லாமல் பகிரப்படாது.",
+  readPrivacyPolicy: "எங்கள் தனியுரிமைக் கொள்கையைப் படியுங்கள்",
 };
 
 const am: Dict = {
@@ -1905,6 +2017,12 @@ const am: Dict = {
   poolSubtext: "ለሥራ ዓይነትህ ቀጣሪዎች የCV ፕሮፋይልህን ማየት እንዲችሉ ትፈልጋለህ? ነፃ ነው እና በማንኛውም ጊዜ ወጥ ማለት ትችላለህ።",
   poolYes: "አዎ፣ ወደ ፑሉ ጨምረኝ",
   poolNo: "አይ፣ አመሰግናለሁ",
+  yes: "አዎ", no: "አይ",
+  educationQuestion: "ለመጨመር ትምህርት ወይም ስልጠና አለህ?",
+  noEducationMessage: "ምንም ችግር የለም — ችሎታህና ልምድህ ለራሳቸው ይናገራሉ።",
+  consentText: "CV ለመፍጠር መረጃዬ ጥቅም ላይ እንዲውል ተስማምቻለሁ። ውሂብዎን ለሦስተኛ ወገን አናጋራም።",
+  privacyLock: "የእርስዎ መረጃ ግላዊ ነው እና ፈቃድዎ ከሌለ ፈጽሞ አይጋራም።",
+  readPrivacyPolicy: "የእኛን የግለኝነት ፖሊሲ ያንብቡ",
 };
 
 const ti: Dict = {
@@ -1998,6 +2116,12 @@ const ti: Dict = {
   poolSubtext: "ናይ ስራሕ ዓይነትካ ዝቆጽሩ ኣስራሕቲ ናይ CV ፕሮፋይልካ ክርእዩ ደሊኻ? ናጻ እዩ ብዝኾነ ግዜ ክትወጽእ ትኽእል ኢኻ።",
   poolYes: "እወ፣ ናብ ፑሉ ወስኸኒ",
   poolNo: "ኣይፋልን፣ ኣመስጊነ",
+  yes: "እወ", no: "ኣይፋልን",
+  educationQuestion: "ክትወስኾ ትምህርቲ ወይ ስልጠና ኣለካ?",
+  noEducationMessage: "ጸገም የለን — ክእለትካን ተመኩሮካን ባዕሎም ይዛረቡ።",
+  consentText: "ናተይ CV ንምፍጣር ሓበሬታይ ክትጥቀሙ ፍቓደኛ ኢየ። ናትካ ዳታ ናብ ሳልሳይ ኣካላት ኣይወሃቡን።",
+  privacyLock: "ሓበሬታኻ ውልቃዊ እዩ ብዘይ ፍቓድካ ፈጺሙ ኣይውሃቡን።",
+  readPrivacyPolicy: "ናይ ምስጢርነት ፖሊሲና ኣንብብ",
 };
 
 const translations: Record<string, Dict> = {

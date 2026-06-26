@@ -1232,9 +1232,9 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
               className="mt-1 h-4 w-4 shrink-0 accent-primary"
             />
             <span>
-              I agree to my information being used to generate my CV. We do not share your data with third parties.{" "}
+              {t(displayLang, "consentText")}{" "}
               <Link to="/privacy" className="text-primary underline hover:opacity-80">
-                Read our Privacy Policy
+                {t(displayLang, "readPrivacyPolicy")}
               </Link>
               .
             </span>
@@ -1242,7 +1242,7 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
         </div>
         <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
           <span aria-hidden="true">🔒</span>
-          <span>Your information is private and never shared without your permission.</span>
+          <span>{t(displayLang, "privacyLock")}</span>
         </p>
         <div className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 border-t border-border bg-background/95 px-4 py-3 backdrop-blur sm:static sm:mt-4 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
           <button type="button" onClick={onBack} className="inline-flex min-h-[48px] items-center justify-center rounded-xl border border-border bg-background px-5 py-3 font-medium text-foreground transition hover:bg-muted">
@@ -1258,7 +1258,7 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
           </button>
         </div>
       </div>
-      {generating && <GeneratingOverlay lang={displayLang} />}
+      {generating && <GeneratingOverlay lang={originalLang} />}
     </section>
   );
 }
