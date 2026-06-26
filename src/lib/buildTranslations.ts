@@ -227,6 +227,10 @@ const pl: Dict = {
   educationN: "Kwalifikacja {n}",
   education: "Wykształcenie",
   noEducation: "Brak",
+  poolHeading: "Zostań znaleziony przez pracodawców",
+  poolSubtext: "Czy chcesz, aby pracodawcy szukający pracowników na Twój typ stanowiska mogli znaleźć Twój profil CV? Jest bezpłatny i możesz zrezygnować w dowolnym momencie.",
+  poolYes: "Tak, dodaj mnie do puli",
+  poolNo: "Nie, dziękuję",
 };
 
 const ro: Dict = {
@@ -316,6 +320,10 @@ const ro: Dict = {
   educationN: "Calificare {n}",
   education: "Educație",
   noEducation: "Niciuna",
+  poolHeading: "Fii găsit de angajatori",
+  poolSubtext: "Dorești ca angajatorii care recrutează pentru tipul tău de rol să poată găsi profilul tău CV? Este gratuit și poți renunța oricând.",
+  poolYes: "Da, adaugă-mă în pool",
+  poolNo: "Nu, mulțumesc",
 };
 
 const es: Dict = {
@@ -405,6 +413,10 @@ const es: Dict = {
   educationN: "Titulación {n}",
   education: "Educación",
   noEducation: "Ninguno",
+  poolHeading: "Sé encontrado por empleadores",
+  poolSubtext: "¿Te gustaría que los empleadores que contratan para tu tipo de puesto pudieran encontrar tu perfil de CV? Es gratis y puedes salir cuando quieras.",
+  poolYes: "Sí, añádeme al grupo",
+  poolNo: "No, gracias",
 };
 
 const pt: Dict = {
@@ -494,6 +506,10 @@ const pt: Dict = {
   educationN: "Qualificação {n}",
   education: "Educação",
   noEducation: "Nenhuma",
+  poolHeading: "Sê encontrado por empregadores",
+  poolSubtext: "Gostarias que os empregadores a contratar para o teu tipo de função possam encontrar o teu perfil de CV? É grátis e podes sair a qualquer momento.",
+  poolYes: "Sim, adiciona-me ao grupo",
+  poolNo: "Não, obrigado",
 };
 
 const fr: Dict = {
@@ -583,6 +599,10 @@ const fr: Dict = {
   educationN: "Diplôme {n}",
   education: "Formation",
   noEducation: "Aucun",
+  poolHeading: "Soyez trouvé par les employeurs",
+  poolSubtext: "Souhaitez-vous que les employeurs recrutant pour votre type de poste puissent trouver votre profil CV ? C'est gratuit et vous pouvez vous désabonner à tout moment.",
+  poolYes: "Oui, ajoutez-moi au groupe",
+  poolNo: "Non merci",
 };
 
 const ar: Dict = {
@@ -672,6 +692,10 @@ const ar: Dict = {
   educationN: "المؤهل {n}",
   education: "التعليم",
   noEducation: "لا يوجد",
+  poolHeading: "اجعل أصحاب العمل يجدونك",
+  poolSubtext: "هل تريد أن يتمكن أصحاب العمل الذين يوظفون لنوع دورك من العثور على ملف CV الخاص بك؟ إنه مجاني ويمكنك إلغاء الاشتراك في أي وقت.",
+  poolYes: "نعم، أضفني إلى المجموعة",
+  poolNo: "لا شكراً",
 };
 
 const ur: Dict = {
@@ -761,6 +785,10 @@ const ur: Dict = {
   educationN: "قابلیت {n}",
   education: "تعلیم",
   noEducation: "کوئی نہیں",
+  poolHeading: "آجروں کو آپ تک پہنچنے دیں",
+  poolSubtext: "کیا آپ چاہتے ہیں کہ آپ کی جیسی نوکری کے لیے آجر آپ کا CV پروفائل دیکھ سکیں؟ یہ مفت ہے اور آپ کسی بھی وقت نکل سکتے ہیں۔",
+  poolYes: "ہاں، مجھے پول میں شامل کریں",
+  poolNo: "نہیں، شکریہ",
 };
 
 const hi: Dict = {
@@ -850,6 +878,10 @@ const hi: Dict = {
   educationN: "योग्यता {n}",
   education: "शिक्षा",
   noEducation: "कोई नहीं",
+  poolHeading: "नियोक्ताओं को आपको खोजने दें",
+  poolSubtext: "क्या आप चाहते हैं कि आपकी भूमिका प्रकार के लिए भर्ती करने वाले नियोक्ता आपका CV प्रोफ़ाइल देख सकें? यह मुफ़्त है और आप कभी भी बाहर निकल सकते हैं।",
+  poolYes: "हाँ, मुझे पूल में जोड़ें",
+  poolNo: "नहीं, धन्यवाद",
 };
 
 const bn: Dict = {
@@ -939,6 +971,10 @@ const bn: Dict = {
   educationN: "যোগ্যতা {n}",
   education: "শিক্ষা",
   noEducation: "কিছুই নেই",
+  poolHeading: "নিয়োগকর্তাদের আপনাকে খুঁজে পেতে দিন",
+  poolSubtext: "আপনি কি চান যে আপনার ভূমিকার জন্য নিয়োগ করা নিয়োগকর্তারা আপনার CV প্রোফাইল দেখতে পারেন? এটি বিনামূল্যে এবং আপনি যেকোনো সময় বেরিয়ে যেতে পারেন।",
+  poolYes: "হ্যাঁ, আমাকে পুলে যোগ করুন",
+  poolNo: "না, ধন্যবাদ",
 };
 
 const so: Dict = {
@@ -1028,6 +1064,10 @@ const so: Dict = {
   educationN: "Shahaado {n}",
   education: "Waxbarasho",
   noEducation: "Midna",
+  poolHeading: "U oggolow shaqo bixiyayaasha inay kuu helaan",
+  poolSubtext: "Miyaad doonaysaa in shaqo bixiyayaasha u shaqaalaynaya noocaaga doorka ay awoodi karaan inay helaan xogta CV-gaaga? Waa bilaash waxaadna ka baxsan kartaa waqti kasta.",
+  poolYes: "Haa, i geli xiddigta",
+  poolNo: "Maya, mahadsanid",
 };
 
 const tr: Dict = {
@@ -1117,6 +1157,10 @@ const tr: Dict = {
   educationN: "Yeterlilik {n}",
   education: "Eğitim",
   noEducation: "Yok",
+  poolHeading: "İşverenler tarafından bulunun",
+  poolSubtext: "Rolünüz için işe alan işverenlerin CV profilinizi bulabilmesini ister misiniz? Ücretsizdir ve istediğiniz zaman çıkabilirsiniz.",
+  poolYes: "Evet, beni havuza ekle",
+  poolNo: "Hayır, teşekkürler",
 };
 
 const fa: Dict = {
@@ -1206,6 +1250,10 @@ const fa: Dict = {
   educationN: "مدرک {n}",
   education: "تحصیلات",
   noEducation: "هیچ‌کدام",
+  poolHeading: "توسط کارفرمایان پیدا شوید",
+  poolSubtext: "آیا می‌خواهید کارفرمایانی که برای نوع نقش شما استخدام می‌کنند بتوانند پروفایل CV شما را پیدا کنند؟ رایگان است و می‌توانید در هر زمانی انصراف دهید.",
+  poolYes: "بله، من را به استخر اضافه کن",
+  poolNo: "نه، ممنون",
 };
 
 const uk: Dict = {
@@ -1295,6 +1343,10 @@ const uk: Dict = {
   educationN: "Кваліфікація {n}",
   education: "Освіта",
   noEducation: "Немає",
+  poolHeading: "Щоб роботодавці знайшли вас",
+  poolSubtext: "Бажаєте, щоб роботодавці, які наймають на вашу посаду, могли знайти ваш профіль CV? Це безкоштовно, і ви можете відмовитися будь-коли.",
+  poolYes: "Так, додайте мене до пулу",
+  poolNo: "Ні, дякую",
 };
 
 const zh: Dict = {
@@ -1384,6 +1436,10 @@ const zh: Dict = {
   educationN: "学历 {n}",
   education: "教育",
   noEducation: "无",
+  poolHeading: "让雇主找到您",
+  poolSubtext: "您是否希望招聘您职位类型的雇主能够找到您的CV档案？完全免费，您可以随时退出。",
+  poolYes: "是的，将我加入候选池",
+  poolNo: "不，谢谢",
 };
 
 const pa: Dict = {
@@ -1473,6 +1529,10 @@ const pa: Dict = {
   educationN: "ਯੋਗਤਾ {n}",
   education: "ਸਿੱਖਿਆ",
   noEducation: "ਕੋਈ ਨਹੀਂ",
+  poolHeading: "ਮਾਲਕਾਂ ਨੂੰ ਤੁਹਾਨੂੰ ਲੱਭਣ ਦਿਓ",
+  poolSubtext: "ਕੀ ਤੁਸੀਂ ਚਾਹੁੰਦੇ ਹੋ ਕਿ ਤੁਹਾਡੀ ਭੂਮਿਕਾ ਲਈ ਭਰਤੀ ਕਰਨ ਵਾਲੇ ਮਾਲਕ ਤੁਹਾਡਾ CV ਪ੍ਰੋਫਾਈਲ ਦੇਖ ਸਕਣ? ਇਹ ਮੁਫ਼ਤ ਹੈ ਅਤੇ ਤੁਸੀਂ ਕਿਸੇ ਵੀ ਸਮੇਂ ਬਾਹਰ ਨਿਕਲ ਸਕਦੇ ਹੋ।",
+  poolYes: "ਹਾਂ, ਮੈਨੂੰ ਪੂਲ ਵਿੱਚ ਸ਼ਾਮਲ ਕਰੋ",
+  poolNo: "ਨਹੀਂ, ਧੰਨਵਾਦ",
 };
 
 const gu: Dict = {
@@ -1562,6 +1622,10 @@ const gu: Dict = {
   educationN: "લાયકાત {n}",
   education: "શિક્ષણ",
   noEducation: "કોઈ નહીં",
+  poolHeading: "એમ્પ્લોયર્સ દ્વારા શોધાવ",
+  poolSubtext: "શું તમે ઇચ્છો છો કે તમારી ભૂમિકા માટે ભરતી કરતા એમ્પ્લોયર્સ તમારો CV પ્રોફાઇલ જોઈ શકે? તે મફત છે અને તમે ગમે ત્યારે બહાર નીકળી શકો છો.",
+  poolYes: "હા, મને પૂલમાં ઉમેરો",
+  poolNo: "ના, આભાર",
 };
 
 const ku: Dict = {
@@ -1651,6 +1715,10 @@ const ku: Dict = {
   educationN: "Pesindarî {n}",
   education: "Perwerde",
   noEducation: "Tune",
+  poolHeading: "Ji aliyê kardêran ve bê dîtin",
+  poolSubtext: "Dixwazî kardêrên ku ji bo cûreyê karê te kes digerin karibin profîla CV-ya te bibînin? Ew belaş e û tu dikarî her dem derkevî.",
+  poolYes: "Erê, min li kolê zêde bike",
+  poolNo: "Na, spas",
 };
 
 const ta: Dict = {
@@ -1740,6 +1808,10 @@ const ta: Dict = {
   educationN: "தகுதி {n}",
   education: "கல்வி",
   noEducation: "எதுவுமில்லை",
+  poolHeading: "முதலாளிகளால் கண்டுபிடிக்கப்படுங்கள்",
+  poolSubtext: "உங்கள் பணி வகைக்கு பணியமர்த்தும் முதலாளிகள் உங்கள் CV சுயவிவரத்தை பார்க்க விரும்புகிறீர்களா? இது இலவசம் மற்றும் எந்த நேரத்திலும் வெளியேறலாம்.",
+  poolYes: "ஆம், என்னை குழுவில் சேர்க்கவும்",
+  poolNo: "இல்லை, நன்றி",
 };
 
 const am: Dict = {
@@ -1829,6 +1901,10 @@ const am: Dict = {
   educationN: "ብቃት {n}",
   education: "ትምህርት",
   noEducation: "የለም",
+  poolHeading: "በቀጣሪዎች ተገኝ",
+  poolSubtext: "ለሥራ ዓይነትህ ቀጣሪዎች የCV ፕሮፋይልህን ማየት እንዲችሉ ትፈልጋለህ? ነፃ ነው እና በማንኛውም ጊዜ ወጥ ማለት ትችላለህ።",
+  poolYes: "አዎ፣ ወደ ፑሉ ጨምረኝ",
+  poolNo: "አይ፣ አመሰግናለሁ",
 };
 
 const ti: Dict = {
@@ -1918,6 +1994,10 @@ const ti: Dict = {
   educationN: "ብቕዓት {n}",
   education: "ትምህርቲ",
   noEducation: "የለን",
+  poolHeading: "ብኣስራሕቲ ክትርከብ",
+  poolSubtext: "ናይ ስራሕ ዓይነትካ ዝቆጽሩ ኣስራሕቲ ናይ CV ፕሮፋይልካ ክርእዩ ደሊኻ? ናጻ እዩ ብዝኾነ ግዜ ክትወጽእ ትኽእል ኢኻ።",
+  poolYes: "እወ፣ ናብ ፑሉ ወስኸኒ",
+  poolNo: "ኣይፋልን፣ ኣመስጊነ",
 };
 
 const translations: Record<string, Dict> = {
