@@ -277,7 +277,7 @@ function ResultPage() {
 
                     const heading = section.querySelector("h2")?.textContent?.trim() ?? "";
                     pdf.setFont("helvetica", "bold");
-                    pdf.setFontSize(10);
+                    pdf.setFontSize(13);
                     pdf.setTextColor(13, 110, 110);
                     pdf.text(heading, ML, y);
                     y += 6;
