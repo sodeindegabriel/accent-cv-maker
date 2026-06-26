@@ -67,6 +67,8 @@ function ResultPage() {
     setTab(isEnglishOnly ? "english" : "native");
   }, [isEnglishOnly]);
 
+  const uiLang = tab === "english" ? "en" : langCode;
+
   if (!result) return null;
 
 
@@ -297,8 +299,8 @@ function ResultPage() {
       <section className="px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl">
           <div className="no-print mb-6 flex items-center justify-between gap-3">
-            <h1 className="text-2xl font-semibold sm:text-3xl">{t(langCode, "cvReady")}</h1>
-            <EditAnswersMenu lang={langCode} />
+            <h1 className="text-2xl font-semibold sm:text-3xl">{t(uiLang, "cvReady")}</h1>
+            <EditAnswersMenu lang={uiLang} />
           </div>
 
           {!isEnglishOnly && (
@@ -357,8 +359,8 @@ function ResultPage() {
             {showPdfModal && !isEnglishOnly && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
                 <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-xl">
-                  <h2 className="mb-1 text-lg font-semibold text-foreground">{t(langCode, "downloadTitle")}</h2>
-                  <p className="mb-5 text-sm text-muted-foreground">{t(langCode, "downloadSubtitle")}</p>
+                  <h2 className="mb-1 text-lg font-semibold text-foreground">{t(uiLang, "downloadTitle")}</h2>
+                  <p className="mb-5 text-sm text-muted-foreground">{t(uiLang, "downloadSubtitle")}</p>
                   <div className="flex flex-col gap-3">
                     <button
                       type="button"
@@ -379,7 +381,7 @@ function ResultPage() {
                       onClick={() => setShowPdfModal(false)}
                       className="text-sm text-muted-foreground hover:text-foreground"
                     >
-                      {t(langCode, "downloadCancel")}
+                      {t(uiLang, "downloadCancel")}
                     </button>
                   </div>
                 </div>
@@ -405,7 +407,7 @@ function ResultPage() {
           <section className="no-print mt-10 rounded-2xl border border-border bg-card p-6">
             <h2 className="text-lg font-semibold">Share CVLingo</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              {t(langCode, "shareMessage")}
+              {t(uiLang, "shareMessage")}
             </p>
             <div className="mt-3 flex flex-wrap gap-3">
               <a
