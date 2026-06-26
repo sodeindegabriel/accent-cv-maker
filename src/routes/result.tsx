@@ -249,38 +249,38 @@ function ResultPage() {
                   // ── NAME ──────────────────────────────────
                   const cvName = el.querySelector(".cv-name")?.textContent?.trim() ?? "";
                   pdf.setFont("helvetica", "bold");
-                  pdf.setFontSize(22);
+                  pdf.setFontSize(26);
                   pdf.setTextColor(26, 26, 26);
                   pdf.splitTextToSize(cvName, CW).forEach((line: string) => {
                     pdf.text(line, W / 2, y, { align: "center" });
-                    y += 9;
+                    y += 10;
                   });
-                  y += 1;
+                  y += 3;
 
                   // ── CONTACT ───────────────────────────────
                   const cvContact = el.querySelector(".cv-contact")?.textContent?.trim() ?? "";
                   pdf.setFont("helvetica", "normal");
-                  pdf.setFontSize(9);
+                  pdf.setFontSize(10);
                   pdf.setTextColor(107, 114, 128);
                   pdf.splitTextToSize(cvContact, CW).forEach((line: string) => {
                     pdf.text(line, W / 2, y, { align: "center" });
-                    y += 4.5;
+                    y += 6;
                   });
-                  y += 6;
+                  y += 8;
 
                   // ── SECTIONS ──────────────────────────────
                   el.querySelectorAll(".cv-section").forEach((section) => {
-                    newPageIfNeeded(12);
+                    newPageIfNeeded(14);
                     pdf.setDrawColor(220, 220, 220);
                     pdf.line(ML, y, W - MR, y);
                     y += 5;
 
                     const heading = section.querySelector("h2")?.textContent?.trim() ?? "";
                     pdf.setFont("helvetica", "bold");
-                    pdf.setFontSize(8);
+                    pdf.setFontSize(10);
                     pdf.setTextColor(13, 110, 110);
                     pdf.text(heading, ML, y);
-                    y += 5;
+                    y += 6;
 
                     // Paragraphs (skip those inside .cv-job or .cv-edu)
                     section.querySelectorAll("p").forEach((p) => {
@@ -289,14 +289,14 @@ function ResultPage() {
                       if (!txt) return;
                       newPageIfNeeded(6);
                       pdf.setFont("helvetica", "normal");
-                      pdf.setFontSize(10);
+                      pdf.setFontSize(11);
                       pdf.setTextColor(26, 26, 26);
                       pdf.splitTextToSize(txt, CW).forEach((line: string) => {
-                        newPageIfNeeded(5);
+                        newPageIfNeeded(6);
                         pdf.text(line, ML, y);
-                        y += 5;
+                        y += 6;
                       });
-                      y += 1;
+                      y += 3;
                     });
 
                     // Job entries
@@ -312,7 +312,7 @@ function ResultPage() {
                         });
                         companyText = companyText.trim();
 
-                        pdf.setFontSize(10);
+                        pdf.setFontSize(11);
                         pdf.setFont("helvetica", "bold");
                         pdf.setTextColor(26, 26, 26);
                         const titleW = pdf.getTextWidth(titleText + " ");
@@ -324,20 +324,20 @@ function ResultPage() {
                           pdf.text(dateText, W - MR, y, { align: "right" });
                           pdf.setTextColor(26, 26, 26);
                         }
-                        y += 5;
+                        y += 6;
                       }
                       job.querySelectorAll("li").forEach((li) => {
                         const txt = li.textContent?.trim() ?? "";
                         if (!txt) return;
-                        newPageIfNeeded(5);
+                        newPageIfNeeded(6);
                         pdf.setFont("helvetica", "normal");
-                        pdf.setFontSize(10);
+                        pdf.setFontSize(11);
                         pdf.setTextColor(26, 26, 26);
                         pdf.text("•", ML + 1, y);
                         pdf.splitTextToSize(txt, CW - 5).forEach((line: string) => {
-                          newPageIfNeeded(5);
+                          newPageIfNeeded(6);
                           pdf.text(line, ML + 5, y);
-                          y += 5;
+                          y += 6;
                         });
                       });
                       y += 2;
@@ -350,7 +350,7 @@ function ResultPage() {
                       if (eduP) {
                         const qualText = eduP.querySelector("strong")?.textContent?.trim() ?? "";
                         const dateText = eduP.querySelector(".cv-date")?.textContent?.trim() ?? "";
-                        pdf.setFontSize(10);
+                        pdf.setFontSize(11);
                         pdf.setFont("helvetica", "bold");
                         pdf.setTextColor(26, 26, 26);
                         pdf.text(qualText, ML, y);
@@ -358,7 +358,7 @@ function ResultPage() {
                           pdf.setTextColor(107, 114, 128);
                           pdf.text(dateText, W - MR, y, { align: "right" });
                         }
-                        y += 5;
+                        y += 6;
                         let instText = "";
                         eduP.childNodes.forEach((node) => {
                           if (node.nodeType === Node.TEXT_NODE) instText += node.textContent ?? "";
@@ -368,20 +368,23 @@ function ResultPage() {
                           pdf.setFont("helvetica", "normal");
                           pdf.setTextColor(107, 114, 128);
                           pdf.text(instText, ML, y);
-                          y += 5;
+                          y += 6;
                         }
                       }
                       y += 1;
                     });
 
                     // List items (skills, availability, etc.)
+                    // Guard: skip li inside .cv-job or .cv-edu to prevent double-rendering
                     section.querySelectorAll("ul > li").forEach((li) => {
+                      if (li.closest(".cv-job") || li.closest(".cv-edu")) return;
                       const strongEl = li.querySelector("strong");
-                      newPageIfNeeded(5);
-                      pdf.setFontSize(10);
+                      newPageIfNeeded(6);
+                      pdf.setFontSize(11);
                       pdf.setTextColor(26, 26, 26);
 
                       if (strongEl) {
+                        // Two-line format: bold label on line 1, description indented on line 2+
                         const label = strongEl.textContent?.trim() ?? "";
                         let desc = "";
                         li.childNodes.forEach((node) => {
@@ -390,33 +393,32 @@ function ResultPage() {
                         });
                         desc = desc.trim();
                         pdf.setFont("helvetica", "bold");
-                        const bulletAndLabel = "• " + label;
-                        const labelW = pdf.getTextWidth(bulletAndLabel);
-                        pdf.text(bulletAndLabel, ML, y);
-                        pdf.setFont("helvetica", "normal");
-                        const descLines = pdf.splitTextToSize(" " + desc, CW - labelW);
-                        pdf.text(descLines[0] ?? "", ML + labelW, y);
-                        y += 5;
-                        descLines.slice(1).forEach((line: string) => {
-                          newPageIfNeeded(5);
-                          pdf.text(line, ML + labelW, y);
-                          y += 5;
-                        });
+                        pdf.text("• " + label, ML + 1, y);
+                        y += 6;
+                        if (desc) {
+                          pdf.setFont("helvetica", "normal");
+                          pdf.splitTextToSize(desc, CW - 5).forEach((line: string) => {
+                            newPageIfNeeded(6);
+                            pdf.text(line, ML + 5, y);
+                            y += 6;
+                          });
+                        }
+                        y += 2;
                       } else {
                         const txt = li.textContent?.trim() ?? "";
                         if (!txt) return;
                         pdf.setFont("helvetica", "normal");
                         pdf.text("•", ML + 1, y);
                         pdf.splitTextToSize(txt, CW - 5).forEach((line: string) => {
-                          newPageIfNeeded(5);
+                          newPageIfNeeded(6);
                           pdf.text(line, ML + 5, y);
-                          y += 5;
+                          y += 6;
                         });
+                        y += 1;
                       }
-                      y += 1;
                     });
 
-                    y += 3;
+                    y += 4;
                   });
 
                   // ── BRANDING ──────────────────────────────
