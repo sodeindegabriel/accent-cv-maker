@@ -645,7 +645,7 @@ function Step3PersonalDetails({ data, update, displayLang, originalLang, onToggl
             />
           </div>
           {personal.phone && !phoneValid && (
-            <p className="mt-1 text-sm text-destructive">Please enter a valid UK phone number</p>
+            <p className="mt-1 text-sm text-destructive">{t(displayLang, "invalidPhone")}</p>
           )}
         </div>
         <div>
@@ -658,7 +658,7 @@ function Step3PersonalDetails({ data, update, displayLang, originalLang, onToggl
             className={`w-full rounded-xl border bg-background px-4 py-3 text-foreground outline-none focus:ring-2 focus:ring-primary/30 ${personal.email && !emailValid ? "border-destructive" : "border-border focus:border-primary"}`}
           />
           {personal.email && !emailValid && (
-            <p className="mt-1 text-sm text-destructive">Please enter a valid email address</p>
+            <p className="mt-1 text-sm text-destructive">{t(displayLang, "invalidEmail")}</p>
           )}
         </div>
         <TextField label={t(displayLang, "cityUk")} value={personal.city} onChange={(value) => setPersonal("city", value)} placeholder={t(displayLang, "cityPlaceholder")} />

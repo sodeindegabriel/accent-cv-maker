@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { jsPDF } from "jspdf";
+import { t } from "@/lib/buildTranslations";
 import type { GeneratedCV } from "@/utils/generateCV";
 import {
   addCandidate,
@@ -15,6 +16,7 @@ function ResultPage() {
   const navigate = useNavigate();
   const [result, setResult] = useState<GeneratedCV | null>(null);
   const [name, setName] = useState<string>("");
+  const [langCode, setLangCode] = useState<string>("en");
   const [tab, setTab] = useState<"native" | "english">("native");
   const [downloading, setDownloading] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
@@ -46,6 +48,7 @@ function ResultPage() {
       if (inputRaw) {
         const parsed = JSON.parse(inputRaw);
         setName(parsed?.personalDetails?.name ?? "");
+        setLangCode(parsed?.languageCode ?? "en");
       }
     } catch {
       /* ignore */
@@ -294,8 +297,8 @@ function ResultPage() {
       <section className="px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl">
           <div className="no-print mb-6 flex items-center justify-between gap-3">
-            <h1 className="text-2xl font-semibold sm:text-3xl">Your CV is ready</h1>
-            <EditAnswersMenu />
+            <h1 className="text-2xl font-semibold sm:text-3xl">{t(langCode, "cvReady")}</h1>
+            <EditAnswersMenu lang={langCode} />
           </div>
 
           {!isEnglishOnly && (
@@ -354,8 +357,8 @@ function ResultPage() {
             {showPdfModal && !isEnglishOnly && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
                 <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-xl">
-                  <h2 className="mb-1 text-lg font-semibold text-foreground">Which CV would you like to download?</h2>
-                  <p className="mb-5 text-sm text-muted-foreground">Choose a language version to save as PDF.</p>
+                  <h2 className="mb-1 text-lg font-semibold text-foreground">{t(langCode, "downloadTitle")}</h2>
+                  <p className="mb-5 text-sm text-muted-foreground">{t(langCode, "downloadSubtitle")}</p>
                   <div className="flex flex-col gap-3">
                     <button
                       type="button"
@@ -376,7 +379,7 @@ function ResultPage() {
                       onClick={() => setShowPdfModal(false)}
                       className="text-sm text-muted-foreground hover:text-foreground"
                     >
-                      Cancel
+                      {t(langCode, "downloadCancel")}
                     </button>
                   </div>
                 </div>
@@ -402,7 +405,7 @@ function ResultPage() {
           <section className="no-print mt-10 rounded-2xl border border-border bg-card p-6">
             <h2 className="text-lg font-semibold">Share CVLingo</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Know someone who needs a CV? Spread the word.
+              {t(langCode, "shareMessage")}
             </p>
             <div className="mt-3 flex flex-wrap gap-3">
               <a
@@ -470,16 +473,7 @@ function htmlToPlainText(html: string): string {
   return text;
 }
 
-const editSections: { step: number; label: string }[] = [
-  { step: 1, label: "Language" },
-  { step: 2, label: "Job Type" },
-  { step: 3, label: "Personal Details" },
-  { step: 4, label: "Experience" },
-  { step: 5, label: "Education" },
-  { step: 6, label: "Skills & Availability" },
-];
-
-function EditAnswersMenu() {
+function EditAnswersMenu({ lang = "en" }: { lang?: string }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
@@ -508,14 +502,21 @@ function EditAnswersMenu() {
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        Edit answers ▾
+        {t(lang, "editAnswers")} ▾
       </button>
       {open && (
         <div
           role="menu"
           className="absolute right-0 z-10 mt-2 w-56 overflow-hidden rounded-xl border border-border bg-card shadow-lg"
         >
-          {editSections.map((s) => (
+          {([
+            { step: 1, key: "editLanguage" },
+            { step: 2, key: "editJobType" },
+            { step: 3, key: "editPersonalDetails" },
+            { step: 4, key: "editExperience" },
+            { step: 5, key: "editEducation" },
+            { step: 6, key: "editSkills" },
+          ] as { step: number; key: Parameters<typeof t>[1] }[]).map((s) => (
             <button
               key={s.step}
               type="button"
@@ -523,7 +524,7 @@ function EditAnswersMenu() {
               onClick={() => goTo(s.step)}
               className="block w-full px-4 py-2 text-left text-sm text-foreground transition hover:bg-muted"
             >
-              {s.label}
+              {t(lang, s.key)}
             </button>
           ))}
         </div>

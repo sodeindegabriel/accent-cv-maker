@@ -37,7 +37,12 @@ export type TKey =
   | "noEducationMessage"
   | "generateCv" | "generating" | "somethingWrong" | "retry"
   | "poolHeading" | "poolSubtext" | "poolYes" | "poolNo"
-  | "consentText" | "privacyLock" | "readPrivacyPolicy";
+  | "consentText" | "privacyLock" | "readPrivacyPolicy"
+  | "invalidPhone" | "invalidEmail"
+  | "cvReady" | "editAnswers"
+  | "editLanguage" | "editJobType" | "editPersonalDetails" | "editExperience" | "editEducation" | "editSkills"
+  | "shareMessage"
+  | "downloadTitle" | "downloadSubtitle" | "downloadCancel";
 
 
 type Dict = Partial<Record<TKey, string>>;
@@ -142,6 +147,20 @@ const en: Record<TKey, string> = {
   consentText: "I agree to my information being used to generate my CV. We do not share your data with third parties.",
   privacyLock: "Your information is private and never shared without your permission.",
   readPrivacyPolicy: "Read our Privacy Policy",
+  invalidPhone: "Please enter a valid UK phone number",
+  invalidEmail: "Please enter a valid email address",
+  cvReady: "Your CV is ready",
+  editAnswers: "Edit answers",
+  editLanguage: "Language",
+  editJobType: "Job Type",
+  editPersonalDetails: "Personal Details",
+  editExperience: "Experience",
+  editEducation: "Education",
+  editSkills: "Skills & Availability",
+  shareMessage: "Know someone who needs a CV? Spread the word.",
+  downloadTitle: "Which CV would you like to download?",
+  downloadSubtitle: "Choose a language version to save as PDF.",
+  downloadCancel: "Cancel",
 };
 
 const pl: Dict = {
@@ -241,6 +260,20 @@ const pl: Dict = {
   consentText: "Wyrażam zgodę na wykorzystanie moich danych do stworzenia CV. Nie udostępniamy danych osobom trzecim.",
   privacyLock: "Twoje informacje są prywatne i nigdy nie są udostępniane bez Twojej zgody.",
   readPrivacyPolicy: "Przeczytaj naszą Politykę Prywatności",
+  invalidPhone: "Podaj prawidłowy numer telefonu w UK",
+  invalidEmail: "Podaj prawidłowy adres e-mail",
+  cvReady: "Twoje CV jest gotowe",
+  editAnswers: "Edytuj odpowiedzi",
+  editLanguage: "Język",
+  editJobType: "Rodzaj pracy",
+  editPersonalDetails: "Dane osobowe",
+  editExperience: "Doświadczenie",
+  editEducation: "Wykształcenie",
+  editSkills: "Umiejętności i dostępność",
+  shareMessage: "Znasz kogoś, kto potrzebuje CV? Poleć nas.",
+  downloadTitle: "Które CV chcesz pobrać?",
+  downloadSubtitle: "Wybierz wersję językową do zapisania jako PDF.",
+  downloadCancel: "Anuluj",
 };
 
 const ro: Dict = {
@@ -340,6 +373,20 @@ const ro: Dict = {
   consentText: "Sunt de acord ca informațiile mele să fie folosite pentru a genera CV-ul. Nu partajăm datele cu terți.",
   privacyLock: "Informațiile tale sunt private și nu sunt partajate fără permisiunea ta.",
   readPrivacyPolicy: "Citește Politica de Confidențialitate",
+  invalidPhone: "Introduceți un număr de telefon UK valid",
+  invalidEmail: "Introduceți o adresă de e-mail validă",
+  cvReady: "CV-ul tău este gata",
+  editAnswers: "Editează răspunsurile",
+  editLanguage: "Limbă",
+  editJobType: "Tip de job",
+  editPersonalDetails: "Date personale",
+  editExperience: "Experiență",
+  editEducation: "Educație",
+  editSkills: "Abilități și disponibilitate",
+  shareMessage: "Cunoști pe cineva care are nevoie de un CV? Răspândește vestea.",
+  downloadTitle: "Ce CV dorești să descarci?",
+  downloadSubtitle: "Alege versiunea lingvistică pentru a salva ca PDF.",
+  downloadCancel: "Anulează",
 };
 
 const es: Dict = {
@@ -439,6 +486,20 @@ const es: Dict = {
   consentText: "Acepto que mi información se use para generar mi CV. No compartimos tus datos con terceros.",
   privacyLock: "Tu información es privada y nunca se comparte sin tu permiso.",
   readPrivacyPolicy: "Leer nuestra Política de Privacidad",
+  invalidPhone: "Introduce un número de teléfono UK válido",
+  invalidEmail: "Introduce una dirección de correo electrónico válida",
+  cvReady: "Tu CV está listo",
+  editAnswers: "Editar respuestas",
+  editLanguage: "Idioma",
+  editJobType: "Tipo de trabajo",
+  editPersonalDetails: "Datos personales",
+  editExperience: "Experiencia",
+  editEducation: "Educación",
+  editSkills: "Habilidades y disponibilidad",
+  shareMessage: "¿Conoces a alguien que necesite un CV? Corre la voz.",
+  downloadTitle: "¿Qué CV deseas descargar?",
+  downloadSubtitle: "Elige la versión de idioma para guardar como PDF.",
+  downloadCancel: "Cancelar",
 };
 
 const pt: Dict = {
@@ -538,6 +599,20 @@ const pt: Dict = {
   consentText: "Concordo com a utilização das minhas informações para gerar o meu CV. Não partilhamos os seus dados com terceiros.",
   privacyLock: "As tuas informações são privadas e nunca partilhadas sem a tua permissão.",
   readPrivacyPolicy: "Ler a nossa Política de Privacidade",
+  invalidPhone: "Introduza um número de telefone UK válido",
+  invalidEmail: "Introduza um endereço de e-mail válido",
+  cvReady: "O teu CV está pronto",
+  editAnswers: "Editar respostas",
+  editLanguage: "Língua",
+  editJobType: "Tipo de trabalho",
+  editPersonalDetails: "Dados pessoais",
+  editExperience: "Experiência",
+  editEducation: "Educação",
+  editSkills: "Competências e disponibilidade",
+  shareMessage: "Conheces alguém que precisa de um CV? Espalha a palavra.",
+  downloadTitle: "Que CV queres descarregar?",
+  downloadSubtitle: "Escolhe a versão de idioma para guardar como PDF.",
+  downloadCancel: "Cancelar",
 };
 
 const fr: Dict = {
@@ -637,6 +712,20 @@ const fr: Dict = {
   consentText: "J'accepte que mes informations soient utilisées pour générer mon CV. Nous ne partageons pas vos données avec des tiers.",
   privacyLock: "Vos informations sont privées et ne sont jamais partagées sans votre permission.",
   readPrivacyPolicy: "Lire notre Politique de Confidentialité",
+  invalidPhone: "Entrez un numéro de téléphone UK valide",
+  invalidEmail: "Entrez une adresse e-mail valide",
+  cvReady: "Votre CV est prêt",
+  editAnswers: "Modifier les réponses",
+  editLanguage: "Langue",
+  editJobType: "Type de poste",
+  editPersonalDetails: "Informations personnelles",
+  editExperience: "Expérience",
+  editEducation: "Formation",
+  editSkills: "Compétences et disponibilité",
+  shareMessage: "Vous connaissez quelqu'un qui a besoin d'un CV ? Faites passer le mot.",
+  downloadTitle: "Quel CV souhaitez-vous télécharger ?",
+  downloadSubtitle: "Choisissez la version linguistique à enregistrer en PDF.",
+  downloadCancel: "Annuler",
 };
 
 const ar: Dict = {
@@ -736,6 +825,20 @@ const ar: Dict = {
   consentText: "أوافق على استخدام معلوماتي لإنشاء سيرتي الذاتية. لا نشارك بياناتك مع أطراف ثالثة.",
   privacyLock: "معلوماتك خاصة ولا تُشارك أبدًا دون إذنك.",
   readPrivacyPolicy: "اقرأ سياسة الخصوصية",
+  invalidPhone: "أدخل رقم هاتف UK صحيح",
+  invalidEmail: "أدخل عنوان بريد إلكتروني صحيح",
+  cvReady: "سيرتك الذاتية جاهزة",
+  editAnswers: "تعديل الإجابات",
+  editLanguage: "اللغة",
+  editJobType: "نوع الوظيفة",
+  editPersonalDetails: "البيانات الشخصية",
+  editExperience: "الخبرة",
+  editEducation: "التعليم",
+  editSkills: "المهارات والتوفر",
+  shareMessage: "هل تعرف شخصًا يحتاج إلى سيرة ذاتية؟ انشر الخبر.",
+  downloadTitle: "أي سيرة ذاتية تريد تنزيلها؟",
+  downloadSubtitle: "اختر نسخة اللغة للحفظ كـ PDF.",
+  downloadCancel: "إلغاء",
 };
 
 const ur: Dict = {
@@ -835,6 +938,20 @@ const ur: Dict = {
   consentText: "میں اپنا CV بنانے کے لیے اپنی معلومات استعمال کرنے پر رضامند ہوں۔ ہم آپ کا ڈیٹا تیسرے فریق کے ساتھ شیئر نہیں کرتے۔",
   privacyLock: "آپ کی معلومات نجی ہیں اور آپ کی اجازت کے بغیر کبھی شیئر نہیں کی جاتیں۔",
   readPrivacyPolicy: "ہماری پرائیویسی پالیسی پڑھیں",
+  invalidPhone: "ایک درست UK فون نمبر درج کریں",
+  invalidEmail: "ایک درست ای میل پتہ درج کریں",
+  cvReady: "آپ کا CV تیار ہے",
+  editAnswers: "جوابات ترمیم کریں",
+  editLanguage: "زبان",
+  editJobType: "کام کی قسم",
+  editPersonalDetails: "ذاتی تفصیلات",
+  editExperience: "تجربہ",
+  editEducation: "تعلیم",
+  editSkills: "مہارتیں اور دستیابی",
+  shareMessage: "کیا آپ کسی ایسے شخص کو جانتے ہیں جسے CV کی ضرورت ہے؟ بات پھیلائیں۔",
+  downloadTitle: "آپ کون سا CV ڈاؤن لوڈ کرنا چاہتے ہیں؟",
+  downloadSubtitle: "PDF کے طور پر محفوظ کرنے کے لیے زبان کا ورژن منتخب کریں۔",
+  downloadCancel: "منسوخ کریں",
 };
 
 const hi: Dict = {
@@ -934,6 +1051,20 @@ const hi: Dict = {
   consentText: "मैं अपना CV बनाने के लिए मेरी जानकारी का उपयोग करने पर सहमत हूँ। हम आपका डेटा तृतीय पक्षों के साथ साझा नहीं करते।",
   privacyLock: "आपकी जानकारी निजी है और आपकी अनुमति के बिना कभी साझा नहीं की जाती।",
   readPrivacyPolicy: "हमारी गोपनीयता नीति पढ़ें",
+  invalidPhone: "एक वैध UK फ़ोन नंबर दर्ज करें",
+  invalidEmail: "एक वैध ईमेल पता दर्ज करें",
+  cvReady: "आपका CV तैयार है",
+  editAnswers: "उत्तर संपादित करें",
+  editLanguage: "भाषा",
+  editJobType: "काम का प्रकार",
+  editPersonalDetails: "व्यक्तिगत विवरण",
+  editExperience: "अनुभव",
+  editEducation: "शिक्षा",
+  editSkills: "कौशल और उपलब्धता",
+  shareMessage: "कोई जानते हैं जिसे CV चाहिए? बात फैलाएं।",
+  downloadTitle: "आप कौन सा CV डाउनलोड करना चाहते हैं?",
+  downloadSubtitle: "PDF के रूप में सहेजने के लिए भाषा संस्करण चुनें।",
+  downloadCancel: "रद्द करें",
 };
 
 const bn: Dict = {
@@ -1033,6 +1164,20 @@ const bn: Dict = {
   consentText: "আমি আমার CV তৈরিতে আমার তথ্য ব্যবহার করতে সম্মত। আমরা আপনার ডেটা তৃতীয় পক্ষের সাথে শেয়ার করি না।",
   privacyLock: "আপনার তথ্য ব্যক্তিগত এবং আপনার অনুমতি ছাড়া কখনো শেয়ার করা হয় না।",
   readPrivacyPolicy: "আমাদের গোপনীয়তা নীতি পড়ুন",
+  invalidPhone: "একটি বৈধ UK ফোন নম্বর লিখুন",
+  invalidEmail: "একটি বৈধ ইমেইল ঠিকানা লিখুন",
+  cvReady: "আপনার সিভি প্রস্তুত",
+  editAnswers: "উত্তর সম্পাদনা করুন",
+  editLanguage: "ভাষা",
+  editJobType: "কাজের ধরন",
+  editPersonalDetails: "ব্যক্তিগত তথ্য",
+  editExperience: "অভিজ্ঞতা",
+  editEducation: "শিক্ষা",
+  editSkills: "দক্ষতা ও উপলব্ধতা",
+  shareMessage: "এমন কাউকে চেনেন যার CV দরকার? কথা ছড়িয়ে দিন।",
+  downloadTitle: "আপনি কোন CV ডাউনলোড করতে চান?",
+  downloadSubtitle: "PDF হিসেবে সংরক্ষণ করতে ভাষার সংস্করণ বেছে নিন।",
+  downloadCancel: "বাতিল করুন",
 };
 
 const so: Dict = {
@@ -1132,6 +1277,20 @@ const so: Dict = {
   consentText: "Waxaan oggolaanayaa in macluumaadkayga loo isticmaalo si loo sameeyo CV-gaygga. Kuma wadaagno xogta adigga dhinacyada kale.",
   privacyLock: "Macluumaadkaaga waa gaar ah mana la wadaago cidna heshiis la'aantaada.",
   readPrivacyPolicy: "Akhri Xeerka Asturnaanta",
+  invalidPhone: "Geli lambarka taleefonka UK ee saxda ah",
+  invalidEmail: "Geli cinwaanka iimaylka ee saxda ah",
+  cvReady: "CV-gaagu wuu diyaar yahay",
+  editAnswers: "Wax ka beddel jawaabaha",
+  editLanguage: "Luqad",
+  editJobType: "Nooca shaqada",
+  editPersonalDetails: "Xogta shakhsiga",
+  editExperience: "Khibrad",
+  editEducation: "Waxbarasho",
+  editSkills: "Xirfadaha iyo wakhtiga",
+  shareMessage: "Ma garanaysaa qof u baahan CV? Faafi wararka.",
+  downloadTitle: "Kee CV baad rabta inaad soo dejiso?",
+  downloadSubtitle: "Dooro nooca luqadda si aad u keydsato PDF.",
+  downloadCancel: "Jooji",
 };
 
 const tr: Dict = {
@@ -1231,6 +1390,20 @@ const tr: Dict = {
   consentText: "CV'mi oluşturmak için bilgilerimin kullanılmasını kabul ediyorum. Verilerinizi üçüncü taraflarla paylaşmıyoruz.",
   privacyLock: "Bilgileriniz özeldir ve izniniz olmadan hiç kimseyle paylaşılmaz.",
   readPrivacyPolicy: "Gizlilik Politikamızı Okuyun",
+  invalidPhone: "Geçerli bir UK telefon numarası girin",
+  invalidEmail: "Geçerli bir e-posta adresi girin",
+  cvReady: "CV'niz hazır",
+  editAnswers: "Cevapları düzenle",
+  editLanguage: "Dil",
+  editJobType: "İş türü",
+  editPersonalDetails: "Kişisel bilgiler",
+  editExperience: "Deneyim",
+  editEducation: "Eğitim",
+  editSkills: "Beceriler ve müsaitlik",
+  shareMessage: "CV'ye ihtiyacı olan birini tanıyor musunuz? Haberi yayın.",
+  downloadTitle: "Hangi CV'yi indirmek istersiniz?",
+  downloadSubtitle: "PDF olarak kaydetmek için dil sürümünü seçin.",
+  downloadCancel: "İptal",
 };
 
 const fa: Dict = {
@@ -1330,6 +1503,20 @@ const fa: Dict = {
   consentText: "موافقم که اطلاعاتم برای ایجاد رزومه‌ام استفاده شود. ما داده‌های شما را با اشخاص ثالث به اشتراک نمی‌گذاریم.",
   privacyLock: "اطلاعات شما خصوصی است و بدون اجازه شما هرگز به اشتراک گذاشته نمی‌شود.",
   readPrivacyPolicy: "سیاست حریم خصوصی ما را بخوانید",
+  invalidPhone: "یک شماره تلفن معتبر UK وارد کنید",
+  invalidEmail: "یک آدرس ایمیل معتبر وارد کنید",
+  cvReady: "رزومه شما آماده است",
+  editAnswers: "ویرایش پاسخ‌ها",
+  editLanguage: "زبان",
+  editJobType: "نوع شغل",
+  editPersonalDetails: "اطلاعات شخصی",
+  editExperience: "تجربه",
+  editEducation: "تحصیلات",
+  editSkills: "مهارت‌ها و زمان‌بندی",
+  shareMessage: "کسی را می‌شناسید که به رزومه نیاز دارد؟ خبر را پخش کنید.",
+  downloadTitle: "کدام رزومه را می‌خواهید دانلود کنید؟",
+  downloadSubtitle: "نسخه زبانی برای ذخیره به صورت PDF را انتخاب کنید.",
+  downloadCancel: "لغو",
 };
 
 const uk: Dict = {
@@ -1429,6 +1616,20 @@ const uk: Dict = {
   consentText: "Я погоджуюся на використання моїх даних для створення CV. Ми не передаємо ваші дані третім особам.",
   privacyLock: "Ваша інформація є приватною і ніколи не передається без вашого дозволу.",
   readPrivacyPolicy: "Читати нашу Політику Конфіденційності",
+  invalidPhone: "Введіть дійсний номер телефону UK",
+  invalidEmail: "Введіть дійсну адресу електронної пошти",
+  cvReady: "Ваше CV готове",
+  editAnswers: "Редагувати відповіді",
+  editLanguage: "Мова",
+  editJobType: "Тип роботи",
+  editPersonalDetails: "Особисті дані",
+  editExperience: "Досвід",
+  editEducation: "Освіта",
+  editSkills: "Навички та доступність",
+  shareMessage: "Знаєте когось, хто потребує CV? Поширте інформацію.",
+  downloadTitle: "Яке CV ви хочете завантажити?",
+  downloadSubtitle: "Оберіть мовну версію для збереження у PDF.",
+  downloadCancel: "Скасувати",
 };
 
 const zh: Dict = {
@@ -1528,6 +1729,20 @@ const zh: Dict = {
   consentText: "我同意使用我的信息生成我的简历。我们不会将您的数据与第三方共享。",
   privacyLock: "您的信息是私密的，未经您的许可绝不会被共享。",
   readPrivacyPolicy: "阅读我们的隐私政策",
+  invalidPhone: "请输入有效的英国电话号码",
+  invalidEmail: "请输入有效的电子邮件地址",
+  cvReady: "您的简历已准备好",
+  editAnswers: "编辑答案",
+  editLanguage: "语言",
+  editJobType: "工作类型",
+  editPersonalDetails: "个人信息",
+  editExperience: "经验",
+  editEducation: "教育",
+  editSkills: "技能和可用时间",
+  shareMessage: "认识需要简历的人吗？请告诉他们。",
+  downloadTitle: "您想下载哪份简历？",
+  downloadSubtitle: "选择语言版本以保存为PDF。",
+  downloadCancel: "取消",
 };
 
 const pa: Dict = {
@@ -1627,6 +1842,20 @@ const pa: Dict = {
   consentText: "ਮੈਂ ਆਪਣਾ CV ਬਣਾਉਣ ਲਈ ਆਪਣੀ ਜਾਣਕਾਰੀ ਵਰਤੇ ਜਾਣ ਲਈ ਸਹਿਮਤ ਹਾਂ। ਅਸੀਂ ਤੁਹਾਡਾ ਡੇਟਾ ਤੀਜੀ ਧਿਰ ਨਾਲ ਸਾਂਝਾ ਨਹੀਂ ਕਰਦੇ।",
   privacyLock: "ਤੁਹਾਡੀ ਜਾਣਕਾਰੀ ਨਿੱਜੀ ਹੈ ਅਤੇ ਤੁਹਾਡੀ ਇਜਾਜ਼ਤ ਤੋਂ ਬਿਨਾਂ ਕਦੇ ਸਾਂਝੀ ਨਹੀਂ ਕੀਤੀ ਜਾਂਦੀ।",
   readPrivacyPolicy: "ਸਾਡੀ ਗੋਪਨੀਯਤਾ ਨੀਤੀ ਪੜ੍ਹੋ",
+  invalidPhone: "ਇੱਕ ਵੈਧ UK ਫ਼ੋਨ ਨੰਬਰ ਦਰਜ ਕਰੋ",
+  invalidEmail: "ਇੱਕ ਵੈਧ ਈਮੇਲ ਪਤਾ ਦਰਜ ਕਰੋ",
+  cvReady: "ਤੁਹਾਡਾ CV ਤਿਆਰ ਹੈ",
+  editAnswers: "ਜਵਾਬ ਸੰਪਾਦਿਤ ਕਰੋ",
+  editLanguage: "ਭਾਸ਼ਾ",
+  editJobType: "ਕੰਮ ਦੀ ਕਿਸਮ",
+  editPersonalDetails: "ਨਿੱਜੀ ਵੇਰਵੇ",
+  editExperience: "ਤਜਰਬਾ",
+  editEducation: "ਸਿੱਖਿਆ",
+  editSkills: "ਯੋਗਤਾਵਾਂ ਅਤੇ ਉਪਲਬਧਤਾ",
+  shareMessage: "ਕੀ ਤੁਸੀਂ ਕਿਸੇ ਅਜਿਹੇ ਵਿਅਕਤੀ ਨੂੰ ਜਾਣਦੇ ਹੋ ਜਿਸਨੂੰ CV ਦੀ ਲੋੜ ਹੈ? ਗੱਲ ਫੈਲਾਓ।",
+  downloadTitle: "ਤੁਸੀਂ ਕਿਹੜਾ CV ਡਾਊਨਲੋਡ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?",
+  downloadSubtitle: "PDF ਵਜੋਂ ਸੁਰੱਖਿਅਤ ਕਰਨ ਲਈ ਭਾਸ਼ਾ ਦਾ ਸੰਸਕਰਣ ਚੁਣੋ।",
+  downloadCancel: "ਰੱਦ ਕਰੋ",
 };
 
 const gu: Dict = {
@@ -1726,6 +1955,20 @@ const gu: Dict = {
   consentText: "હું મારો CV બનાવવા માટે મારી માહિતી ઉપયોગ કરવા સહમત છું. અમે તમારો ડેટા ત્રીજા પક્ષ સાથે શેર કરતા નથી.",
   privacyLock: "તમારી માહિતી ખાનગી છે અને તમારી પરવાનગી વિના ક્યારેય શેર કરવામાં આવતી નથી.",
   readPrivacyPolicy: "અમારી ગોપનીયતા નીતિ વાંચો",
+  invalidPhone: "માન્ય UK ફોન નંબર દાખલ કરો",
+  invalidEmail: "માન્ય ઇમેઇલ સરનામું દાખલ કરો",
+  cvReady: "તમારું CV તૈયાર છે",
+  editAnswers: "જવાબો સંપાદિત કરો",
+  editLanguage: "ભાષા",
+  editJobType: "નોકરીનો પ્રકાર",
+  editPersonalDetails: "વ્યક્તિગત વિગતો",
+  editExperience: "અનુભવ",
+  editEducation: "શિક્ષણ",
+  editSkills: "કૌશલ્ય અને ઉપલબ્ધતા",
+  shareMessage: "શું તમે કોઈ એવી વ્યક્તિને ઓળખો છો જેને CV ની જરૂર છે? વાત ફેલાવો.",
+  downloadTitle: "તમે કયું CV ડાઉનલોડ કરવા માંગો છો?",
+  downloadSubtitle: "PDF તરીકે સાચવવા માટે ભાષા સંસ્કરણ પસંદ કરો.",
+  downloadCancel: "રદ કરો",
 };
 
 const ku: Dict = {
@@ -1825,6 +2068,20 @@ const ku: Dict = {
   consentText: "Razî me ku agahdariyên min bên bikaranîn da ku CV-ya min bê çêkirin. Em daneyên te bi aliyan re parve nakin.",
   privacyLock: "Agahdariyên te taybet in û tu carî bê destûra te nayên parve kirin.",
   readPrivacyPolicy: "Siyaseta Nepenîtiyê Bixwîne",
+  invalidPhone: "Jimarek têlefona UK-ya derbasdar binivîse",
+  invalidEmail: "Navnîşanek e-nameya derbasdar binivîse",
+  cvReady: "CV-ya te amade ye",
+  editAnswers: "Bersivan biguherîne",
+  editLanguage: "Ziman",
+  editJobType: "Cûreya Kar",
+  editPersonalDetails: "Agahdariyên Kesane",
+  editExperience: "Ezmûn",
+  editEducation: "Perwerde",
+  editSkills: "Jêhatîbûn û Amadekarî",
+  shareMessage: "Ma tu kesekî dizanî ku pêdiviya wî/ê bi CV-yê heye? Vê xebere belav bike.",
+  downloadTitle: "Tu kîjan CV-yê dixwazî dakêşî?",
+  downloadSubtitle: "Guhertoya zimanî hilbijêre ku wek PDF tomar bikî.",
+  downloadCancel: "Betal bike",
 };
 
 const ta: Dict = {
@@ -1924,6 +2181,20 @@ const ta: Dict = {
   consentText: "என் CV உருவாக்க என் தகவல்களை பயன்படுத்த ஒப்புக்கொள்கிறேன். உங்கள் தரவை மூன்றாம் தரப்பினருடன் பகிர மாட்டோம்.",
   privacyLock: "உங்கள் தகவல் தனிப்பட்டது மற்றும் உங்கள் அனுமதி இல்லாமல் பகிரப்படாது.",
   readPrivacyPolicy: "எங்கள் தனியுரிமைக் கொள்கையைப் படியுங்கள்",
+  invalidPhone: "சரியான UK தொலைபேசி எண்ணை உள்ளிடவும்",
+  invalidEmail: "சரியான மின்னஞ்சல் முகவரியை உள்ளிடவும்",
+  cvReady: "உங்கள் CV தயார்",
+  editAnswers: "பதில்களை திருத்தவும்",
+  editLanguage: "மொழி",
+  editJobType: "வேலை வகை",
+  editPersonalDetails: "தனிப்பட்ட விவரங்கள்",
+  editExperience: "அனுபவம்",
+  editEducation: "கல்வி",
+  editSkills: "திறன்கள் மற்றும் கிடைக்கும் நேரம்",
+  shareMessage: "CV தேவைப்படும் யாரையாவது தெரியுமா? இதை பரப்புங்கள்.",
+  downloadTitle: "எந்த CV ஐ பதிவிறக்க விரும்புகிறீர்கள்?",
+  downloadSubtitle: "PDF ஆக சேமிக்க மொழி பதிப்பை தேர்வு செய்யவும்.",
+  downloadCancel: "ரத்து செய்",
 };
 
 const am: Dict = {
@@ -2023,6 +2294,20 @@ const am: Dict = {
   consentText: "CV ለመፍጠር መረጃዬ ጥቅም ላይ እንዲውል ተስማምቻለሁ። ውሂብዎን ለሦስተኛ ወገን አናጋራም።",
   privacyLock: "የእርስዎ መረጃ ግላዊ ነው እና ፈቃድዎ ከሌለ ፈጽሞ አይጋራም።",
   readPrivacyPolicy: "የእኛን የግለኝነት ፖሊሲ ያንብቡ",
+  invalidPhone: "ትክክለኛ የዩኬ ስልክ ቁጥር ያስገቡ",
+  invalidEmail: "ትክክለኛ ኢሜይል አድራሻ ያስገቡ",
+  cvReady: "CV-ህ ተዘጋጅቷል",
+  editAnswers: "መልሶችን አርትዕ ያድርጉ",
+  editLanguage: "ቋንቋ",
+  editJobType: "የሥራ ዓይነት",
+  editPersonalDetails: "የግል ዝርዝሮች",
+  editExperience: "ልምድ",
+  editEducation: "ትምህርት",
+  editSkills: "ክህሎቶች እና ዝግጁነት",
+  shareMessage: "CV የሚያስፈልጋቸው ሰው ያውቃሉ? ዜናውን ያሰራጩ።",
+  downloadTitle: "የትኛውን CV ማውረድ ይፈልጋሉ?",
+  downloadSubtitle: "እንደ PDF ለማስቀመጥ የቋንቋ ስሪት ይምረጡ።",
+  downloadCancel: "ሰርዝ",
 };
 
 const ti: Dict = {
@@ -2122,6 +2407,20 @@ const ti: Dict = {
   consentText: "ናተይ CV ንምፍጣር ሓበሬታይ ክትጥቀሙ ፍቓደኛ ኢየ። ናትካ ዳታ ናብ ሳልሳይ ኣካላት ኣይወሃቡን።",
   privacyLock: "ሓበሬታኻ ውልቃዊ እዩ ብዘይ ፍቓድካ ፈጺሙ ኣይውሃቡን።",
   readPrivacyPolicy: "ናይ ምስጢርነት ፖሊሲና ኣንብብ",
+  invalidPhone: "ቅኑዕ ናይ ዩኬ ቁጽሪ ስልኪ ኣእቱ",
+  invalidEmail: "ቅኑዕ ናይ ኢሜይል ኣድራሻ ኣእቱ",
+  cvReady: "CV-ኻ ተዳሊዩ ኣሎ",
+  editAnswers: "መልስታት ኣርትዕ",
+  editLanguage: "ቋንቋ",
+  editJobType: "ዓይነት ስራሕ",
+  editPersonalDetails: "ናይ ውልቂ ዝርዝራት",
+  editExperience: "ተመኩሮ",
+  editEducation: "ትምህርቲ",
+  editSkills: "ክእለታትን ዝርከበሉ ግዜን",
+  shareMessage: "CV ዘድልዮ ሰብ ትፈልጥ ዶ? ሓበሬታ ዘርጋሕ።",
+  downloadTitle: "ኣየናይ CV ክትጻዕን ትደሊ?",
+  downloadSubtitle: "ከም PDF ንምዕቃብ ናይ ቋንቋ ስሪት ምረጽ።",
+  downloadCancel: "ሰርዝ",
 };
 
 const translations: Record<string, Dict> = {
