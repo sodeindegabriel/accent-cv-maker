@@ -122,7 +122,7 @@ function TermsPage() {
             <Section title="13. Contact">
               <p>For any queries about these terms:</p>
               <div className="mt-2 space-y-1">
-                <p><span className="font-medium">Email:</span>{" "}<a href="mailto:hello@jebacoglobal.com" className="text-primary hover:underline">hello@jebacoglobal.com</a></p>
+                <p><span className="font-medium">Email:</span>{" "}<a href="mailto:hello@cvlingo.com" className="text-primary hover:underline">hello@cvlingo.com</a></p>
                 <p><span className="font-medium">Website:</span> cvlingo.com</p>
               </div>
             </Section>

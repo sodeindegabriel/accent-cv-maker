@@ -62,7 +62,7 @@ async function notifyPartner(entry: PartnerEntry) {
       SERVICE_ID,
       TEMPLATE_ID,
       {
-        to_email: "cvlingouk@gmail.com",
+        to_email: "hello@cvlingo.com",
         subject,
         message,
         name: entry.name,

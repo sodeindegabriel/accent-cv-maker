@@ -78,8 +78,8 @@ export function Footer() {
               Built by Jebaco Global
             </a>
           </div>
-          <a href="mailto:hello@jebacoglobal.com" className="transition-colors hover:text-accent">
-            hello@jebacoglobal.com
+          <a href="mailto:hello@cvlingo.com" className="transition-colors hover:text-accent">
+            hello@cvlingo.com
           </a>
         </div>
       </div>

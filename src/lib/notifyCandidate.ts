@@ -4,7 +4,7 @@ import type { CandidatePoolEntry } from "./candidatePool";
 const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID as string | undefined;
 const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID as string | undefined;
 const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY as string | undefined;
-const TO_EMAIL = "cvlingouk@gmail.com";
+const TO_EMAIL = "hello@cvlingo.com";
 
 export async function notifyCandidate(entry: CandidatePoolEntry): Promise<void> {
   if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
@@ -62,7 +62,7 @@ export async function notifyCandidate(entry: CandidatePoolEntry): Promise<void> 
     `What happens next:`,
     `- Employers browsing our candidate pool may contact you about relevant roles`,
     `- Your information is private and secure`,
-    `- You can request removal at any time by emailing hello@jebacoglobal.com`,
+    `- You can request removal at any time by emailing hello@cvlingo.com`,
     "",
     `Good luck with your job search!`,
     "",

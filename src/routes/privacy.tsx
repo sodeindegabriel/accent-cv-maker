@@ -31,7 +31,7 @@ function PrivacyPage() {
                 CVLingo is operated by Jebaco Global, a UK registered company. We are committed to protecting your personal data in accordance with the UK General Data Protection Regulation (UK GDPR) and the Data Protection Act 2018.
               </p>
               <div className="mt-2 space-y-1">
-                <p><span className="font-medium">Contact:</span>{" "}<a href="mailto:hello@jebacoglobal.com" className="text-primary hover:underline">hello@jebacoglobal.com</a></p>
+                <p><span className="font-medium">Contact:</span>{" "}<a href="mailto:hello@cvlingo.com" className="text-primary hover:underline">hello@cvlingo.com</a></p>
                 <p><span className="font-medium">Website:</span> cvlingo.com</p>
               </div>
             </Section>
@@ -111,7 +111,7 @@ function PrivacyPage() {
                 <li><span className="font-medium">Right to object:</span> Object to our processing of your personal data</li>
                 <li><span className="font-medium">Right to withdraw consent:</span> Withdraw consent at any time</li>
               </ul>
-              <p>To exercise any of these rights, contact us at{" "}<a href="mailto:hello@jebacoglobal.com" className="text-primary hover:underline">hello@jebacoglobal.com</a>. We will respond within 30 days.</p>
+              <p>To exercise any of these rights, contact us at{" "}<a href="mailto:hello@cvlingo.com" className="text-primary hover:underline">hello@cvlingo.com</a>. We will respond within 30 days.</p>
             </Section>
 
             <Section title="8. Candidate Pool">
@@ -119,7 +119,7 @@ function PrivacyPage() {
               <ul className="mt-2 list-disc space-y-1 pl-5">
                 <li>Your CV and contact details may be shared with employers who are actively hiring for roles that match your profile</li>
                 <li>You will only be contacted by employers through CVLingo — we never share your direct contact details without your explicit consent</li>
-                <li>You can request removal from the candidate pool at any time by emailing{" "}<a href="mailto:hello@jebacoglobal.com" className="text-primary hover:underline">hello@jebacoglobal.com</a></li>
+                <li>You can request removal from the candidate pool at any time by emailing{" "}<a href="mailto:hello@cvlingo.com" className="text-primary hover:underline">hello@cvlingo.com</a></li>
               </ul>
             </Section>
 
@@ -151,7 +151,7 @@ function PrivacyPage() {
             <Section title="13. Contact Us">
               <p>For any privacy related queries:</p>
               <div className="mt-2 space-y-1">
-                <p><span className="font-medium">Email:</span>{" "}<a href="mailto:hello@jebacoglobal.com" className="text-primary hover:underline">hello@jebacoglobal.com</a></p>
+                <p><span className="font-medium">Email:</span>{" "}<a href="mailto:hello@cvlingo.com" className="text-primary hover:underline">hello@cvlingo.com</a></p>
                 <p><span className="font-medium">Website:</span> cvlingo.com</p>
               </div>
             </Section>
