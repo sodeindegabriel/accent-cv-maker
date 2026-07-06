@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { jsPDF } from "jspdf";
+import { Download, Mail, MessageCircle, Share2, Twitter } from "lucide-react";
 import { t } from "@/lib/buildTranslations";
 import type { GeneratedCV } from "@/utils/generateCV";
 import {
@@ -353,7 +354,8 @@ function ResultPage() {
               }}
               className="rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
             >
-              {downloading ? "Preparing PDF…" : "Download PDF"}
+              <Download className="mr-2 inline-block h-4 w-4" />
+              {downloading ? "Preparing PDF…" : t(uiLang, "downloadPDF")}
             </button>
             {/* PDF language picker modal */}
             {showPdfModal && !isEnglishOnly && (
@@ -393,19 +395,19 @@ function ResultPage() {
               rel="noreferrer"
               className="rounded-xl bg-secondary px-5 py-3 font-semibold text-secondary-foreground transition hover:opacity-90"
             >
-              Share via WhatsApp
+              <MessageCircle className="mr-2 inline-block h-4 w-4" />{t(uiLang, "shareWhatsApp")}
             </a>
             <a
               href={emailHref}
               className="rounded-xl border border-border bg-background px-5 py-3 font-semibold text-foreground transition hover:bg-muted"
             >
-              Share via Email
+              <Mail className="mr-2 inline-block h-4 w-4" />{t(uiLang, "shareEmail")}
             </a>
           </div>
 
 
           <section className="no-print mt-10 rounded-2xl border border-border bg-card p-6">
-            <h2 className="text-lg font-semibold">Share CVLingo</h2>
+            <h2 className="text-lg font-semibold">{t(uiLang, "shareCVLingo")}</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               {t(uiLang, "shareMessage")}
             </p>
@@ -416,7 +418,7 @@ function ResultPage() {
                 rel="noreferrer"
                 className="rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground transition hover:opacity-90"
               >
-                Share on WhatsApp
+                <MessageCircle className="mr-2 inline-block h-4 w-4" />{t(uiLang, "shareOnWhatsApp")}
               </a>
               <a
                 href={facebookShareHref}
@@ -424,7 +426,7 @@ function ResultPage() {
                 rel="noreferrer"
                 className="rounded-xl bg-secondary px-5 py-3 font-semibold text-secondary-foreground transition hover:opacity-90"
               >
-                Share on Facebook
+                <Share2 className="mr-2 inline-block h-4 w-4" />{t(uiLang, "shareOnFacebook")}
               </a>
               <a
                 href={twitterShareHref}
@@ -432,7 +434,7 @@ function ResultPage() {
                 rel="noreferrer"
                 className="rounded-xl border border-border bg-background px-5 py-3 font-semibold text-foreground transition hover:bg-muted"
               >
-                Share on X
+                <Twitter className="mr-2 inline-block h-4 w-4" />{t(uiLang, "shareOnX")}
               </a>
             </div>
           </section>

@@ -42,7 +42,9 @@ export type TKey =
   | "cvReady" | "editAnswers"
   | "editLanguage" | "editJobType" | "editPersonalDetails" | "editExperience" | "editEducation" | "editSkills"
   | "shareMessage"
-  | "downloadTitle" | "downloadSubtitle" | "downloadCancel";
+  | "downloadTitle" | "downloadSubtitle" | "downloadCancel"
+  | "downloadPDF" | "shareWhatsApp" | "shareEmail"
+  | "shareOnWhatsApp" | "shareOnFacebook" | "shareOnX" | "shareCVLingo";
 
 
 type Dict = Partial<Record<TKey, string>>;
@@ -162,6 +164,13 @@ const en: Record<TKey, string> = {
   downloadTitle: "Which CV would you like to download?",
   downloadSubtitle: "Choose a language version to save as PDF.",
   downloadCancel: "Cancel",
+  downloadPDF: "Download PDF",
+  shareWhatsApp: "Share via WhatsApp",
+  shareEmail: "Share via Email",
+  shareOnWhatsApp: "Share on WhatsApp",
+  shareOnFacebook: "Share on Facebook",
+  shareOnX: "Share on X",
+  shareCVLingo: "Share CVLingo",
 };
 
 const pl: Dict = {
@@ -276,6 +285,13 @@ const pl: Dict = {
   downloadTitle: "Które CV chcesz pobrać?",
   downloadSubtitle: "Wybierz wersję językową do zapisania jako PDF.",
   downloadCancel: "Anuluj",
+  downloadPDF: "Pobierz PDF",
+  shareWhatsApp: "Udostępnij przez WhatsApp",
+  shareEmail: "Udostępnij przez email",
+  shareOnWhatsApp: "Udostępnij na WhatsApp",
+  shareOnFacebook: "Udostępnij na Facebooku",
+  shareOnX: "Udostępnij na X",
+  shareCVLingo: "Udostępnij CVLingo",
 };
 
 const ro: Dict = {
@@ -390,6 +406,13 @@ const ro: Dict = {
   downloadTitle: "Ce CV dorești să descarci?",
   downloadSubtitle: "Alege versiunea lingvistică pentru a salva ca PDF.",
   downloadCancel: "Anulează",
+  downloadPDF: "Descarcă PDF",
+  shareWhatsApp: "Trimite pe WhatsApp",
+  shareEmail: "Trimite pe email",
+  shareOnWhatsApp: "Distribuie pe WhatsApp",
+  shareOnFacebook: "Distribuie pe Facebook",
+  shareOnX: "Distribuie pe X",
+  shareCVLingo: "Distribuie CVLingo",
 };
 
 const es: Dict = {
@@ -504,6 +527,13 @@ const es: Dict = {
   downloadTitle: "¿Qué CV deseas descargar?",
   downloadSubtitle: "Elige la versión de idioma para guardar como PDF.",
   downloadCancel: "Cancelar",
+  downloadPDF: "Descargar PDF",
+  shareWhatsApp: "Compartir por WhatsApp",
+  shareEmail: "Compartir por correo",
+  shareOnWhatsApp: "Compartir en WhatsApp",
+  shareOnFacebook: "Compartir en Facebook",
+  shareOnX: "Compartir en X",
+  shareCVLingo: "Compartir CVLingo",
 };
 
 const pt: Dict = {
@@ -618,6 +648,13 @@ const pt: Dict = {
   downloadTitle: "Que CV queres descarregar?",
   downloadSubtitle: "Escolhe a versão de idioma para guardar como PDF.",
   downloadCancel: "Cancelar",
+  downloadPDF: "Descarregar PDF",
+  shareWhatsApp: "Partilhar pelo WhatsApp",
+  shareEmail: "Partilhar por email",
+  shareOnWhatsApp: "Partilhar no WhatsApp",
+  shareOnFacebook: "Partilhar no Facebook",
+  shareOnX: "Partilhar no X",
+  shareCVLingo: "Partilhar CVLingo",
 };
 
 const fr: Dict = {
@@ -732,6 +769,13 @@ const fr: Dict = {
   downloadTitle: "Quel CV souhaitez-vous télécharger ?",
   downloadSubtitle: "Choisissez la version linguistique à enregistrer en PDF.",
   downloadCancel: "Annuler",
+  downloadPDF: "Télécharger PDF",
+  shareWhatsApp: "Partager via WhatsApp",
+  shareEmail: "Partager par email",
+  shareOnWhatsApp: "Partager sur WhatsApp",
+  shareOnFacebook: "Partager sur Facebook",
+  shareOnX: "Partager sur X",
+  shareCVLingo: "Partager CVLingo",
 };
 
 const ar: Dict = {
@@ -846,6 +890,13 @@ const ar: Dict = {
   downloadTitle: "أي سيرة ذاتية تريد تنزيلها؟",
   downloadSubtitle: "اختر نسخة اللغة للحفظ كـ PDF.",
   downloadCancel: "إلغاء",
+  downloadPDF: "تنزيل PDF",
+  shareWhatsApp: "مشاركة عبر واتساب",
+  shareEmail: "مشاركة عبر البريد الإلكتروني",
+  shareOnWhatsApp: "شارك على واتساب",
+  shareOnFacebook: "شارك على فيسبوك",
+  shareOnX: "شارك على X",
+  shareCVLingo: "شارك CVLingo",
 };
 
 const ur: Dict = {
@@ -960,6 +1011,13 @@ const ur: Dict = {
   downloadTitle: "آپ کون سا CV ڈاؤن لوڈ کرنا چاہتے ہیں؟",
   downloadSubtitle: "PDF کے طور پر محفوظ کرنے کے لیے زبان کا ورژن منتخب کریں۔",
   downloadCancel: "منسوخ کریں",
+  downloadPDF: "PDF ڈاؤن لوڈ کریں",
+  shareWhatsApp: "واٹس ایپ پر شیئر کریں",
+  shareEmail: "ای میل پر شیئر کریں",
+  shareOnWhatsApp: "واٹس ایپ پر شیئر کریں",
+  shareOnFacebook: "فیس بک پر شیئر کریں",
+  shareOnX: "X پر شیئر کریں",
+  shareCVLingo: "CVLingo شیئر کریں",
 };
 
 const hi: Dict = {
@@ -1074,6 +1132,13 @@ const hi: Dict = {
   downloadTitle: "आप कौन सा CV डाउनलोड करना चाहते हैं?",
   downloadSubtitle: "PDF के रूप में सहेजने के लिए भाषा संस्करण चुनें।",
   downloadCancel: "रद्द करें",
+  downloadPDF: "PDF डाउनलोड करें",
+  shareWhatsApp: "WhatsApp पर साझा करें",
+  shareEmail: "ईमेल पर साझा करें",
+  shareOnWhatsApp: "WhatsApp पर शेयर करें",
+  shareOnFacebook: "Facebook पर शेयर करें",
+  shareOnX: "X पर शेयर करें",
+  shareCVLingo: "CVLingo शेयर करें",
 };
 
 const bn: Dict = {
@@ -1188,6 +1253,13 @@ const bn: Dict = {
   downloadTitle: "আপনি কোন CV ডাউনলোড করতে চান?",
   downloadSubtitle: "PDF হিসেবে সংরক্ষণ করতে ভাষার সংস্করণ বেছে নিন।",
   downloadCancel: "বাতিল করুন",
+  downloadPDF: "PDF ডাউনলোড করুন",
+  shareWhatsApp: "WhatsApp-এ শেয়ার করুন",
+  shareEmail: "ইমেইলে শেয়ার করুন",
+  shareOnWhatsApp: "WhatsApp-এ শেয়ার করুন",
+  shareOnFacebook: "Facebook-এ শেয়ার করুন",
+  shareOnX: "X-এ শেয়ার করুন",
+  shareCVLingo: "CVLingo শেয়ার করুন",
 };
 
 const so: Dict = {
@@ -1302,6 +1374,13 @@ const so: Dict = {
   downloadTitle: "Kee CV baad rabta inaad soo dejiso?",
   downloadSubtitle: "Dooro nooca luqadda si aad u keydsato PDF.",
   downloadCancel: "Jooji",
+  downloadPDF: "Soo dejiso PDF",
+  shareWhatsApp: "WhatsApp ku wadaag",
+  shareEmail: "Iimayl ku wadaag",
+  shareOnWhatsApp: "WhatsApp ku wadaag",
+  shareOnFacebook: "Facebook ku wadaag",
+  shareOnX: "X ku wadaag",
+  shareCVLingo: "CVLingo ku wadaag",
 };
 
 const tr: Dict = {
@@ -1416,6 +1495,13 @@ const tr: Dict = {
   downloadTitle: "Hangi CV'yi indirmek istersiniz?",
   downloadSubtitle: "PDF olarak kaydetmek için dil sürümünü seçin.",
   downloadCancel: "İptal",
+  downloadPDF: "PDF İndir",
+  shareWhatsApp: "WhatsApp ile paylaş",
+  shareEmail: "E-posta ile paylaş",
+  shareOnWhatsApp: "WhatsApp'ta paylaş",
+  shareOnFacebook: "Facebook'ta paylaş",
+  shareOnX: "X'te paylaş",
+  shareCVLingo: "CVLingo'yu paylaş",
 };
 
 const fa: Dict = {
@@ -1530,6 +1616,13 @@ const fa: Dict = {
   downloadTitle: "کدام رزومه را می‌خواهید دانلود کنید؟",
   downloadSubtitle: "نسخه زبانی برای ذخیره به صورت PDF را انتخاب کنید.",
   downloadCancel: "لغو",
+  downloadPDF: "دانلود PDF",
+  shareWhatsApp: "اشتراک‌گذاری از طریق واتساپ",
+  shareEmail: "اشتراک‌گذاری از طریق ایمیل",
+  shareOnWhatsApp: "اشتراک در واتساپ",
+  shareOnFacebook: "اشتراک در فیسبوک",
+  shareOnX: "اشتراک در X",
+  shareCVLingo: "اشتراک‌گذاری CVLingo",
 };
 
 const uk: Dict = {
@@ -1644,6 +1737,13 @@ const uk: Dict = {
   downloadTitle: "Яке CV ви хочете завантажити?",
   downloadSubtitle: "Оберіть мовну версію для збереження у PDF.",
   downloadCancel: "Скасувати",
+  downloadPDF: "Завантажити PDF",
+  shareWhatsApp: "Поділитися через WhatsApp",
+  shareEmail: "Поділитися електронною поштою",
+  shareOnWhatsApp: "Поділитися у WhatsApp",
+  shareOnFacebook: "Поділитися у Facebook",
+  shareOnX: "Поділитися у X",
+  shareCVLingo: "Поділитися CVLingo",
 };
 
 const zh: Dict = {
@@ -1758,6 +1858,13 @@ const zh: Dict = {
   downloadTitle: "您想下载哪份简历？",
   downloadSubtitle: "选择语言版本以保存为PDF。",
   downloadCancel: "取消",
+  downloadPDF: "下载PDF",
+  shareWhatsApp: "通过WhatsApp分享",
+  shareEmail: "通过邮件分享",
+  shareOnWhatsApp: "在WhatsApp上分享",
+  shareOnFacebook: "在Facebook上分享",
+  shareOnX: "在X上分享",
+  shareCVLingo: "分享CVLingo",
 };
 
 const pa: Dict = {
@@ -1872,6 +1979,13 @@ const pa: Dict = {
   downloadTitle: "ਤੁਸੀਂ ਕਿਹੜਾ CV ਡਾਊਨਲੋਡ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?",
   downloadSubtitle: "PDF ਵਜੋਂ ਸੁਰੱਖਿਅਤ ਕਰਨ ਲਈ ਭਾਸ਼ਾ ਦਾ ਸੰਸਕਰਣ ਚੁਣੋ।",
   downloadCancel: "ਰੱਦ ਕਰੋ",
+  downloadPDF: "PDF ਡਾਊਨਲੋਡ ਕਰੋ",
+  shareWhatsApp: "WhatsApp ਰਾਹੀਂ ਸਾਂਝਾ ਕਰੋ",
+  shareEmail: "ਈਮੇਲ ਰਾਹੀਂ ਸਾਂਝਾ ਕਰੋ",
+  shareOnWhatsApp: "WhatsApp 'ਤੇ ਸਾਂਝਾ ਕਰੋ",
+  shareOnFacebook: "Facebook 'ਤੇ ਸਾਂਝਾ ਕਰੋ",
+  shareOnX: "X 'ਤੇ ਸਾਂਝਾ ਕਰੋ",
+  shareCVLingo: "CVLingo ਸਾਂਝਾ ਕਰੋ",
 };
 
 const gu: Dict = {
@@ -1986,6 +2100,13 @@ const gu: Dict = {
   downloadTitle: "તમે કયું CV ડાઉનલોડ કરવા માંગો છો?",
   downloadSubtitle: "PDF તરીકે સાચવવા માટે ભાષા સંસ્કરણ પસંદ કરો.",
   downloadCancel: "રદ કરો",
+  downloadPDF: "PDF ડાઉનલોડ કરો",
+  shareWhatsApp: "WhatsApp દ્વારા શેર કરો",
+  shareEmail: "ઈમેઈલ દ્વારા શેર કરો",
+  shareOnWhatsApp: "WhatsApp પર શેર કરો",
+  shareOnFacebook: "Facebook પર શેર કરો",
+  shareOnX: "X પર શેર કરો",
+  shareCVLingo: "CVLingo શેર કરો",
 };
 
 const ku: Dict = {
@@ -2100,6 +2221,13 @@ const ku: Dict = {
   downloadTitle: "Tu kîjan CV-yê dixwazî dakêşî?",
   downloadSubtitle: "Guhertoya zimanî hilbijêre ku wek PDF tomar bikî.",
   downloadCancel: "Betal bike",
+  downloadPDF: "PDF Dakêşe",
+  shareWhatsApp: "Di WhatsApp de parve bike",
+  shareEmail: "Di E-nameyê de parve bike",
+  shareOnWhatsApp: "Li WhatsApp parve bike",
+  shareOnFacebook: "Li Facebook parve bike",
+  shareOnX: "Li X parve bike",
+  shareCVLingo: "CVLingo parve bike",
 };
 
 const ta: Dict = {
@@ -2214,6 +2342,13 @@ const ta: Dict = {
   downloadTitle: "எந்த CV ஐ பதிவிறக்க விரும்புகிறீர்கள்?",
   downloadSubtitle: "PDF ஆக சேமிக்க மொழி பதிப்பை தேர்வு செய்யவும்.",
   downloadCancel: "ரத்து செய்",
+  downloadPDF: "PDF பதிவிறக்கு",
+  shareWhatsApp: "WhatsApp வழியாக பகிர்",
+  shareEmail: "மின்னஞ்சல் வழியாக பகிர்",
+  shareOnWhatsApp: "WhatsApp இல் பகிர்",
+  shareOnFacebook: "Facebook இல் பகிர்",
+  shareOnX: "X இல் பகிர்",
+  shareCVLingo: "CVLingo பகிர்",
 };
 
 const am: Dict = {
@@ -2328,6 +2463,13 @@ const am: Dict = {
   downloadTitle: "የትኛውን CV ማውረድ ይፈልጋሉ?",
   downloadSubtitle: "እንደ PDF ለማስቀመጥ የቋንቋ ስሪት ይምረጡ።",
   downloadCancel: "ሰርዝ",
+  downloadPDF: "PDF አውርድ",
+  shareWhatsApp: "በWhatsApp አጋራ",
+  shareEmail: "በኢሜይል አጋራ",
+  shareOnWhatsApp: "WhatsApp ላይ አጋራ",
+  shareOnFacebook: "Facebook ላይ አጋራ",
+  shareOnX: "X ላይ አጋራ",
+  shareCVLingo: "CVLingo አጋራ",
 };
 
 const ti: Dict = {
@@ -2442,6 +2584,13 @@ const ti: Dict = {
   downloadTitle: "ኣየናይ CV ክትጻዕን ትደሊ?",
   downloadSubtitle: "ከም PDF ንምዕቃብ ናይ ቋንቋ ስሪት ምረጽ።",
   downloadCancel: "ሰርዝ",
+  downloadPDF: "PDF ጻዕን",
+  shareWhatsApp: "ብWhatsApp ካልኦት ሃበ",
+  shareEmail: "ብኢሜይል ካልኦት ሃበ",
+  shareOnWhatsApp: "ኣብ WhatsApp ካልኦት ሃበ",
+  shareOnFacebook: "ኣብ Facebook ካልኦት ሃበ",
+  shareOnX: "ኣብ X ካልኦት ሃበ",
+  shareCVLingo: "CVLingo ካልኦት ሃበ",
 };
 
 const translations: Record<string, Dict> = {
