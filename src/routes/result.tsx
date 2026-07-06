@@ -339,7 +339,7 @@ function ResultPage() {
             </div>
           </article>
 
-          {!poolConsentGiven && <CandidatePoolCard />}
+          {!poolConsentGiven && <CandidatePoolCard lang={uiLang} />}
 
           <div className="no-print mt-6 flex flex-wrap gap-3">
             <button
@@ -537,7 +537,7 @@ function EditAnswersMenu({ lang = "en" }: { lang?: string }) {
   );
 }
 
-function CandidatePoolCard() {
+function CandidatePoolCard({ lang = "en" }: { lang?: string }) {
   const [dismissed, setDismissed] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [email, setEmail] = useState("");
@@ -563,9 +563,9 @@ function CandidatePoolCard() {
   if (submitted) {
     return (
       <section className="no-print mt-8 rounded-2xl border border-border bg-card p-6 text-center">
-        <p className="text-lg font-semibold text-foreground">You're in the pool 🎉</p>
+        <p className="text-lg font-semibold text-foreground">{t(lang, "poolInPool")}</p>
         <p className="mt-2 text-sm text-muted-foreground">
-          We'll be in touch when employers are looking for someone like you.
+          {t(lang, "poolInPoolSubtext")}
         </p>
       </section>
     );
@@ -610,14 +610,14 @@ function CandidatePoolCard() {
       void notifyCandidate(entry);
       setSubmitted(true);
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError(t(lang, "poolError"));
     }
   };
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validEmail) {
-      setError("Please enter a valid email address");
+      setError(t(lang, "invalidEmail"));
       return;
     }
     if (needsConfirmation) return;
@@ -626,9 +626,9 @@ function CandidatePoolCard() {
 
   return (
     <section className="no-print mt-8 rounded-2xl border border-border bg-card p-6">
-      <h2 className="text-lg font-semibold text-foreground">Want employers to find you?</h2>
+      <h2 className="text-lg font-semibold text-foreground">{t(lang, "poolHeading")}</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Join the CVLingo candidate pool — employers hiring for your role type can view your CV and contact you directly. Free, always.
+        {t(lang, "poolSubtext")}
       </p>
       <form onSubmit={onSubmit} className="mt-4 space-y-3">
         <input
@@ -639,17 +639,17 @@ function CandidatePoolCard() {
             if (error) setError(null);
             setConfirmedEmail(null);
           }}
-          placeholder="Enter your email address"
+          placeholder={t(lang, "poolEmailPlaceholder")}
           className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
           aria-label="Email address"
         />
         {email.length > 0 && !validEmail && (
-          <p className="text-sm text-destructive">Please enter a valid email address</p>
+          <p className="text-sm text-destructive">{t(lang, "invalidEmail")}</p>
         )}
         {emailsMismatch && (
           <div className="rounded-xl border border-border bg-muted/40 p-3">
             <p className="text-sm text-foreground">
-              This is different from the email on your CV (the one in Step 3). Which one should we use?
+              {t(lang, "poolEmailMismatch")}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <button
@@ -657,7 +657,7 @@ function CandidatePoolCard() {
                 onClick={() => doSubmit(typedEmail)}
                 className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
               >
-                Use this email
+                {t(lang, "poolUseThisEmail")}
               </button>
               <button
                 type="button"
@@ -668,7 +668,7 @@ function CandidatePoolCard() {
                 }}
                 className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted"
               >
-                Use my CV email
+                {t(lang, "poolUseCvEmail")}
               </button>
             </div>
           </div>
@@ -678,19 +678,19 @@ function CandidatePoolCard() {
           disabled={!canSubmit}
           className="w-full rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
-          Add me to the candidate pool
+          {t(lang, "poolYes")}
         </button>
         {error && <p className="text-sm text-destructive">{error}</p>}
       </form>
       <p className="mt-3 text-xs text-muted-foreground">
-        We will never share your email without your permission. Unsubscribe anytime.
+        {t(lang, "poolPrivacyNote")}
       </p>
       <button
         type="button"
         onClick={() => setDismissed(true)}
         className="mt-3 text-sm text-muted-foreground underline hover:text-foreground"
       >
-        No thanks, just keep my CV
+        {t(lang, "poolNo")}
       </button>
     </section>
   );
