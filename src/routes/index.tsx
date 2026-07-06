@@ -827,7 +827,14 @@ function Index() {
         <div className="bg-background/95 backdrop-blur-sm px-2 py-3">
           <button
             type="button"
-            onClick={() => pickLanguage("en")}
+            onClick={() => {
+              try {
+                sessionStorage.removeItem("cvlingo:preselectLanguage");
+                sessionStorage.removeItem("selectedLanguage");
+                sessionStorage.removeItem("preselectLanguage");
+              } catch { /* ignore */ }
+              navigate({ to: "/build" });
+            }}
             className="w-full rounded-full bg-primary px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary/90"
           >
             Build My CV Free
