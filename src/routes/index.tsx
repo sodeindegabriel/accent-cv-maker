@@ -255,6 +255,18 @@ function Index() {
     }, 50);
     return () => clearTimeout(t);
   }, [location.hash]);
+  const [showStickyCta, setShowStickyCta] = useState(false);
+  useEffect(() => {
+    const hero = document.getElementById("hero-section");
+    if (!hero) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowStickyCta(!entry.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(hero);
+    return () => observer.disconnect();
+  }, []);
+
   const pickLanguage = (code: string) => {
     try {
       sessionStorage.setItem("cvlingo:preselectLanguage", code);
@@ -268,7 +280,7 @@ function Index() {
       <Navbar />
       <main className="flex-1">
         {/* HERO */}
-        <section className="topo-bg relative overflow-hidden">
+        <section id="hero-section" className="topo-bg relative overflow-hidden">
           <div className="mx-auto max-w-6xl px-5 pt-12 pb-20 md:pt-20 md:pb-28">
             <div className="mx-auto max-w-3xl text-center">
               <div
@@ -805,6 +817,23 @@ function Index() {
           </div>
         </section>
       </main>
+      {/* Sticky mobile CTA — appears after hero scrolls out of view */}
+      <div
+        className={`fixed bottom-0 left-0 right-0 z-50 block px-4 pb-safe sm:hidden transition-all duration-300 ${
+          showStickyCta ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
+        }`}
+        style={{ boxShadow: "0 -4px 16px rgba(0,0,0,0.10)" }}
+      >
+        <div className="bg-background/95 backdrop-blur-sm px-2 py-3">
+          <button
+            type="button"
+            onClick={() => pickLanguage("en")}
+            className="w-full rounded-full bg-primary px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary/90"
+          >
+            Build My CV Free
+          </button>
+        </div>
+      </div>
       <Footer />
     </div>
   );
