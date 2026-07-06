@@ -793,7 +793,7 @@ function Step4Experience({ data, update, displayLang, originalLang, onToggleLang
                 <div className="grid gap-4 sm:grid-cols-2">
                   <TextField label={t(displayLang, "roleOrActivity")} value={experience.title} onChange={(value) => updateExperience(index, "title", value)} placeholder={t(displayLang, "rolePlaceholder")} />
                   <TextField label={t(displayLang, "company")} value={experience.place} onChange={(value) => updateExperience(index, "place", value)} placeholder={t(displayLang, "placePlaceholder")} />
-                  <TextField label={t(displayLang, "country")} value={experience.country} onChange={(value) => updateExperience(index, "country", value)} placeholder={t(displayLang, "countryPlaceholder")} />
+                  <CountrySelect label={t(displayLang, "country")} value={experience.country} onChange={(value) => updateExperience(index, "country", value)} placeholder={t(displayLang, "selectCountry")} />
                   <TextField label={t(displayLang, "dates")} value={experience.duration} onChange={(value) => updateExperience(index, "duration", value)} placeholder="2022–2024" />
                   <TextField label={t(displayLang, "whatYouDid")} value={experience.description} onChange={(value) => updateExperience(index, "description", value)} placeholder={t(displayLang, "descriptionPlaceholder")} />
                 </div>
@@ -897,11 +897,11 @@ function Step5Education({ data, update, displayLang, originalLang, onToggleLang,
                     onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, institution: v } : e))}
                     placeholder="e.g. City College, Birmingham Adult Education"
                   />
-                  <TextField
+                  <CountrySelect
                     label={t(displayLang, "country")}
                     value={edu.country}
                     onChange={(v) => update("education", data.education.map((e, i) => i === index ? { ...e, country: v } : e))}
-                    placeholder={t(displayLang, "countryPlaceholder")}
+                    placeholder={t(displayLang, "selectCountry")}
                   />
                   <TextField
                     label={t(displayLang, "yearCompleted")}
@@ -1288,6 +1288,91 @@ function TextField({
         placeholder={placeholder}
         className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
       />
+    </div>
+  );
+}
+
+const COUNTRIES = [
+  "United Kingdom", "Poland", "Romania", "India", "Pakistan", "Portugal", "Spain",
+  "Saudi Arabia", "Bangladesh", "France", "Turkey", "Nigeria", "Somalia", "China",
+  "Iran", "Ukraine", "Kosovo", "Sri Lanka", "Ethiopia", "Eritrea", "Afghanistan",
+  "Albania", "Algeria", "Angola", "Argentina", "Australia", "Austria", "Azerbaijan",
+  "Bahrain", "Belarus", "Belgium", "Bolivia", "Bosnia", "Brazil", "Bulgaria",
+  "Cambodia", "Cameroon", "Canada", "Chile", "Colombia", "Congo", "Croatia", "Cuba",
+  "Czech Republic", "Denmark", "Dominican Republic", "Ecuador", "Egypt", "El Salvador",
+  "Finland", "Georgia", "Germany", "Ghana", "Greece", "Guatemala", "Guinea", "Haiti",
+  "Honduras", "Hungary", "Indonesia", "Iraq", "Ireland", "Israel", "Italy",
+  "Ivory Coast", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kuwait",
+  "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Libya", "Lithuania", "Macedonia",
+  "Madagascar", "Malawi", "Malaysia", "Mali", "Mexico", "Moldova", "Mongolia",
+  "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nepal", "Netherlands",
+  "New Zealand", "Nicaragua", "Niger", "North Korea", "Norway", "Oman", "Palestine",
+  "Panama", "Paraguay", "Peru", "Philippines", "Qatar", "Russia", "Rwanda", "Senegal",
+  "Serbia", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "South Africa",
+  "South Korea", "South Sudan", "Sudan", "Sweden", "Switzerland", "Syria", "Taiwan",
+  "Tajikistan", "Tanzania", "Thailand", "Togo", "Tunisia", "Turkmenistan", "Uganda",
+  "United Arab Emirates", "United States", "Uruguay", "Uzbekistan", "Venezuela",
+  "Vietnam", "Yemen", "Zambia", "Zimbabwe", "Other",
+];
+
+function CountrySelect({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+}) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const filtered = query
+    ? COUNTRIES.filter((c) => c.toLowerCase().includes(query.toLowerCase()))
+    : COUNTRIES;
+
+  return (
+    <div className="relative">
+      <label className="mb-2 block text-sm font-medium text-foreground">{label}</label>
+      <button
+        type="button"
+        onClick={() => { setOpen((v) => !v); setQuery(""); }}
+        className="flex w-full items-center justify-between rounded-xl border border-border bg-background px-4 py-3 text-left text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
+      >
+        <span className={value ? "text-foreground" : "text-muted-foreground"}>{value || placeholder}</span>
+        <span className="ml-2 text-muted-foreground">▾</span>
+      </button>
+      {open && (
+        <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-border bg-card shadow-lg">
+          <div className="p-2">
+            <input
+              autoFocus
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search..."
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+            />
+          </div>
+          <ul className="max-h-52 overflow-y-auto">
+            {filtered.map((country) => (
+              <li key={country}>
+                <button
+                  type="button"
+                  onClick={() => { onChange(country); setOpen(false); setQuery(""); }}
+                  className={`w-full px-4 py-2 text-left text-sm transition hover:bg-muted ${value === country ? "bg-primary/10 font-medium text-primary" : "text-foreground"}`}
+                >
+                  {country}
+                </button>
+              </li>
+            ))}
+            {filtered.length === 0 && (
+              <li className="px-4 py-3 text-sm text-muted-foreground">No results</li>
+            )}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
