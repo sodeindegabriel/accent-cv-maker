@@ -21,24 +21,13 @@ function FooterAnchor({ hash, children }: { hash: string; children: ReactNode })
   );
 }
 
-function BridgeIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 32" fill="none" className={className} aria-hidden="true">
-      <path d="M3 22c4-6 9-9 13-9s9 3 13 9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-      <path d="M3 22h26" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-      <path d="M8 22v-5M14 22v-7M18 22v-7M24 22v-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 export function Footer() {
   return (
     <footer className="bg-footer text-footer-foreground">
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 md:grid-cols-3">
         <div>
           <div className="flex items-center gap-2 text-white">
-            <BridgeIcon className="h-7 w-7" />
-            <span className="font-serif text-2xl">CVLingo</span>
+            <img src="/cvlingo-logo.svg" alt="CVLingo" className="h-12 w-12 rounded-full" />
           </div>
           <p className="mt-4 text-sm text-white/70">Bridging talent with opportunity.</p>
           <p className="mt-3 text-sm font-semibold text-accent">Free for jobseekers. Always.</p>

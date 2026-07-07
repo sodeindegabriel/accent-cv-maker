@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
-import { BridgeIcon } from "@/components/BridgeIcon";
 
 const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID as string | undefined;
 const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID as string | undefined;
@@ -198,8 +197,7 @@ function PartnersPage() {
       >
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link to="/" className="flex items-center gap-2 text-primary transition hover:opacity-80">
-            <BridgeIcon className="h-7 w-7" />
-            <span className="font-serif text-2xl">CVLingo</span>
+            <img src="/cvlingo-logo.svg" alt="CVLingo" className="h-10 w-10 rounded-full" />
           </Link>
           <button
             onClick={scrollToForm}

@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { generateCV } from "@/utils/generateCV";
 import { GeneratingOverlay } from "@/components/GeneratingOverlay";
-import { BridgeIcon } from "@/components/BridgeIcon";
 import { Clock } from "lucide-react";
 import { t, type TKey } from "@/lib/buildTranslations";
 import { addCandidate } from "@/lib/candidatePool";
@@ -256,8 +255,7 @@ function BuildPage() {
             className="flex items-center gap-2 text-primary transition hover:opacity-80"
             aria-label="CVLingo — back to home"
           >
-            <BridgeIcon className="h-7 w-7" />
-            <span className="font-serif text-2xl">CVLingo</span>
+            <img src="/cvlingo-logo.svg" alt="CVLingo" className="h-8 w-8 rounded-full" />
           </Link>
           <Link
             to="/"
