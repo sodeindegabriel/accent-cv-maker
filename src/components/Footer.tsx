@@ -30,7 +30,7 @@ export function Footer() {
             <img src="/cvlingo-logo.svg" alt="CVLingo" className="h-12 w-12 rounded-full" />
           </div>
           <p className="mt-4 text-sm text-white/70">Bridging talent with opportunity.</p>
-          <p className="mt-3 text-sm font-semibold text-accent">Free for jobseekers. Always.</p>
+          <p className="mt-3 text-sm font-semibold text-accent">Free for jobseekers.</p>
         </div>
 
         <div>

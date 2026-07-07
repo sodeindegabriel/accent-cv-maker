@@ -104,7 +104,7 @@ const benefits = [
   {
     icon: "💼",
     title: "Free for Your Members",
-    body: "Every CV build is completely free for the people you support. Always.",
+    body: "Every CV build is completely free for the people you support.",
   },
   {
     icon: "📊",
