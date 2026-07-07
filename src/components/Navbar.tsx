@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
-import { BridgeIcon } from "@/components/BridgeIcon";
+
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -43,8 +43,7 @@ export function Navbar() {
     >
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
         <Link to="/" className="flex items-center gap-2 text-primary">
-          <BridgeIcon className="h-7 w-7" />
-          <span className="font-serif text-2xl">CVLingo</span>
+          <img src="/cvlingo-logo.svg" alt="CVLingo" className="h-10 w-10 rounded-full" />
         </Link>
 
         <div className="hidden items-center gap-8 md:flex">

@@ -54,9 +54,9 @@ export const Route = createRootRoute({
       { name: "twitter:image", content: "https://cvlingo.com/__l5e/assets-v1/29ac1884-adaf-4a86-b8bb-b8f27ea8b8c0/cvlingo-og.png" },
     ],
     links: [
-      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
-      { rel: "shortcut icon", href: "/favicon.svg" },
-      { rel: "apple-touch-icon", href: "/favicon.svg" },
+      { rel: "icon", type: "image/svg+xml", href: "/cvlingo-logo.svg" },
+      { rel: "shortcut icon", href: "/cvlingo-logo.svg" },
+      { rel: "apple-touch-icon", href: "/cvlingo-logo.svg" },
       { rel: "stylesheet", href: appCss },
 
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
