@@ -819,12 +819,10 @@ function Index() {
       </main>
       {/* Sticky mobile CTA — appears after hero scrolls out of view */}
       <div
-        className={`fixed bottom-0 left-0 right-0 z-50 block px-4 pb-safe sm:hidden transition-all duration-300 ${
+        className={`fixed bottom-0 left-0 right-0 z-50 block px-4 pb-4 sm:hidden transition-all duration-300 ${
           showStickyCta ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
         }`}
-        style={{ boxShadow: "0 -4px 16px rgba(0,0,0,0.10)" }}
       >
-        <div className="bg-background/95 backdrop-blur-sm px-2 py-3">
           <button
             type="button"
             onClick={() => {
@@ -839,7 +837,6 @@ function Index() {
           >
             Build My CV Free
           </button>
-        </div>
       </div>
       <Footer />
     </div>
