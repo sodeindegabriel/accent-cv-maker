@@ -6,6 +6,8 @@ import { Clock } from "lucide-react";
 import { t, type TKey } from "@/lib/buildTranslations";
 import { addCandidate } from "@/lib/candidatePool";
 import { notifyCandidate } from "@/lib/notifyCandidate";
+import { supabase } from "@/lib/supabaseClient";
+import { useAuth } from "@/context/AuthContext";
 
 type Experience = {
   title: string;
@@ -1015,6 +1017,7 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
   onEdit: (step: number) => void;
 }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [consent, setConsent] = useState(false);
@@ -1028,6 +1031,17 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
       sessionStorage.setItem("cvlingo:result", JSON.stringify(result));
       sessionStorage.setItem("cvlingo:input", JSON.stringify(data));
       localStorage.removeItem("cvlingo_form_data");
+
+      // Record the CV document for logged-in users
+      if (user) {
+        const title = data.jobTypes.length > 0
+          ? `${data.personalDetails.name} — ${data.jobTypes[0]}`
+          : data.personalDetails.name || "My CV";
+        void supabase
+          .from("cv_documents")
+          .insert({ user_id: user.id, title, status: "draft" });
+      }
+
       if (data.candidatePoolConsent === true) {
         const referralSource = (() => {
           try {
