@@ -149,14 +149,15 @@ const availabilityOptions: { value: string; tKey: TKey }[] = [
 
 function BuildPage() {
   const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [step, setStep] = useState(() => {
     try {
-      // If a language was pre-selected from the landing page, start at the auth gate (step 0)
-      // so the confirmation modal can appear immediately. Otherwise start at language selection.
-      return sessionStorage.getItem("cvlingo:preselectLanguage") ? 0 : 1;
-    } catch {
-      return 1;
-    }
+      // Login mode (returning user from nav) → go straight to the auth gate
+      if (sessionStorage.getItem("cvlingo:loginMode") === "returning") return 0;
+      // Pre-selected language from landing page → also start at auth gate for confirmation modal
+      if (sessionStorage.getItem("cvlingo:preselectLanguage")) return 0;
+    } catch { /* ignore */ }
+    return 1;
   });
   const [data, setData] = useState<CVData>(() => {
     try {
@@ -176,6 +177,13 @@ function BuildPage() {
   });
   const [forceEnglish, setForceEnglish] = useState(false);
   const [preselectModalLang, setPreselectModalLang] = useState<typeof languages[number] | null>(null);
+  const [loginMode] = useState(() => {
+    try {
+      const v = sessionStorage.getItem("cvlingo:loginMode");
+      if (v === "returning") { sessionStorage.removeItem("cvlingo:loginMode"); return true; }
+    } catch { /* ignore */ }
+    return false;
+  });
 
   // Scroll to top on mount and on every step change
   useEffect(() => {
@@ -262,8 +270,19 @@ function BuildPage() {
       return Math.min(7, current + 1);
     });
   const back = () => setStep((current) => Math.max(1, current - 1));
-  // Language was always chosen before reaching StepAuth now — go straight to job type.
-  const advanceFromAuth = () => setStep(2);
+  // After auth: check if the user was redirected here from another page (e.g. /dashboard).
+  // If so, go back there instead of advancing into the CV build flow.
+  const advanceFromAuth = () => {
+    try {
+      const dest = sessionStorage.getItem("cvlingo:redirectAfterAuth");
+      if (dest) {
+        sessionStorage.removeItem("cvlingo:redirectAfterAuth");
+        navigate({ to: dest as "/" });
+        return;
+      }
+    } catch { /* ignore */ }
+    setStep(2);
+  };
 
   const originalLang = data.questionLanguageCode || "en";
   const displayLang = forceEnglish ? "en" : originalLang;
@@ -294,7 +313,7 @@ function BuildPage() {
           </Link>
         </div>
       </header>
-      {step === 0 && <StepAuth onSuccess={advanceFromAuth} authLoading={authLoading} lang={data.languageCode || "en"} />}
+      {step === 0 && <StepAuth onSuccess={advanceFromAuth} authLoading={authLoading} lang={data.languageCode || "en"} loginMode={loginMode} />}
       {step === 1 && <Step1Language data={data} update={update} onNext={next} />}
       {step === 2 && <Step2JobType {...stepProps} onBack={back} onNext={next} />}
       {step === 3 && <Step3PersonalDetails {...stepProps} onBack={back} onNext={next} />}
@@ -334,7 +353,7 @@ function friendlyAuthError(msg: string, lang: string): string {
   return t(lang, "authErrorGeneric");
 }
 
-function StepAuth({ onSuccess, authLoading, lang }: { onSuccess: () => void; authLoading: boolean; lang: string }) {
+function StepAuth({ onSuccess, authLoading, lang, loginMode }: { onSuccess: () => void; authLoading: boolean; lang: string; loginMode?: boolean }) {
   const { sendOtp, verifyOtp, signIn, signUp } = useAuth();
 
   const [screen, setScreen] = useState<AuthScreen>("capture");
@@ -359,7 +378,7 @@ function StepAuth({ onSuccess, authLoading, lang }: { onSuccess: () => void; aut
   async function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!firstName.trim()) { setError(t(lang, "authValidFirstName")); return; }
+    if (!loginMode && !firstName.trim()) { setError(t(lang, "authValidFirstName")); return; }
     if (!isValidEmail(email)) { setError(t(lang, "authValidEmail")); return; }
     setSubmitting(true);
     const { error: err } = await sendOtp(email.trim(), firstName.trim());
@@ -392,7 +411,7 @@ function StepAuth({ onSuccess, authLoading, lang }: { onSuccess: () => void; aut
   async function handlePassword(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!firstName.trim()) { setError(t(lang, "authValidFirstName")); return; }
+    if (!loginMode && !firstName.trim()) { setError(t(lang, "authValidFirstName")); return; }
     if (!isValidEmail(email)) { setError(t(lang, "authValidEmail")); return; }
     if (password.length < 6) { setError(t(lang, "authValidPassword")); return; }
     setSubmitting(true);
@@ -424,9 +443,11 @@ function StepAuth({ onSuccess, authLoading, lang }: { onSuccess: () => void; aut
       <div className="mx-auto max-w-sm">
         <div className="mb-8 text-center">
           <img src="/cvlingo-logo.svg" alt="CVLingo" className="mx-auto mb-4 h-14 w-14 rounded-full" />
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t(lang, "authHeading")}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            {loginMode ? "Welcome back" : t(lang, "authHeading")}
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            {t(lang, "authSubtitle")}
+            {loginMode ? "Enter your email to receive a login code." : t(lang, "authSubtitle")}
           </p>
         </div>
 
@@ -489,21 +510,23 @@ function StepAuth({ onSuccess, authLoading, lang }: { onSuccess: () => void; aut
           {/* ── Capture / password screens ── */}
           {screen !== "otp" && (
             <form onSubmit={screen === "password" ? handlePassword : handleSendOtp} noValidate>
-              <div className="mb-4">
-                <label className="mb-1 block text-sm font-medium text-foreground" htmlFor="auth-firstname">
-                  {t(lang, "authFirstName")}
-                </label>
-                <input
-                  id="auth-firstname"
-                  type="text"
-                  autoComplete="given-name"
-                  value={firstName}
-                  onChange={(e) => { setFirstName(e.target.value); setError(null); }}
-                  placeholder={t(lang, "authFirstNamePlaceholder")}
-                  className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                  autoFocus
-                />
-              </div>
+              {!loginMode && (
+                <div className="mb-4">
+                  <label className="mb-1 block text-sm font-medium text-foreground" htmlFor="auth-firstname">
+                    {t(lang, "authFirstName")}
+                  </label>
+                  <input
+                    id="auth-firstname"
+                    type="text"
+                    autoComplete="given-name"
+                    value={firstName}
+                    onChange={(e) => { setFirstName(e.target.value); setError(null); }}
+                    placeholder={t(lang, "authFirstNamePlaceholder")}
+                    className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    autoFocus
+                  />
+                </div>
+              )}
 
               <div className="mb-1">
                 <label className="mb-1 block text-sm font-medium text-foreground" htmlFor="auth-email">
@@ -516,6 +539,7 @@ function StepAuth({ onSuccess, authLoading, lang }: { onSuccess: () => void; aut
                   value={email}
                   onChange={(e) => { setEmail(e.target.value); setError(null); }}
                   placeholder="you@example.com"
+                  autoFocus={loginMode}
                   className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
               </div>

@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 
 export function Navbar() {
@@ -8,6 +9,7 @@ export function Navbar() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -69,21 +71,46 @@ export function Navbar() {
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            try {
-              sessionStorage.removeItem("cvlingo:preselectLanguage");
-              sessionStorage.removeItem("selectedLanguage");
-              sessionStorage.removeItem("preselectLanguage");
-              localStorage.removeItem("cvlingo_form_data");
-            } catch { /* ignore */ }
-            navigate({ to: "/build" });
-          }}
-          className="hidden md:inline-flex items-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md"
-        >
-          Build My CV Free
-        </button>
+        <div className="hidden md:flex items-center gap-3">
+          {user ? (
+            <Link
+              to="/dashboard"
+              className="inline-flex items-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md"
+            >
+              My Dashboard
+            </Link>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  try {
+                    sessionStorage.setItem("cvlingo:loginMode", "returning");
+                  } catch { /* ignore */ }
+                  navigate({ to: "/build" });
+                }}
+                className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+              >
+                Log in
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  try {
+                    sessionStorage.removeItem("cvlingo:preselectLanguage");
+                    sessionStorage.removeItem("selectedLanguage");
+                    sessionStorage.removeItem("preselectLanguage");
+                    localStorage.removeItem("cvlingo_form_data");
+                  } catch { /* ignore */ }
+                  navigate({ to: "/build" });
+                }}
+                className="inline-flex items-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md"
+              >
+                Build My CV Free
+              </button>
+            </>
+          )}
+        </div>
 
         <button
           aria-label="Toggle menu"
@@ -122,22 +149,45 @@ export function Navbar() {
               </a>
             )
           )}
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
-              try {
-                sessionStorage.removeItem("cvlingo:preselectLanguage");
-                sessionStorage.removeItem("selectedLanguage");
-                sessionStorage.removeItem("preselectLanguage");
-                localStorage.removeItem("cvlingo_form_data");
-              } catch { /* ignore */ }
-              navigate({ to: "/build" });
-            }}
-            className="mt-2 inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground"
-          >
-            Build My CV Free
-          </button>
+          {user ? (
+            <Link
+              to="/dashboard"
+              onClick={() => setOpen(false)}
+              className="mt-2 inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground"
+            >
+              My Dashboard
+            </Link>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  try { sessionStorage.setItem("cvlingo:loginMode", "returning"); } catch { /* ignore */ }
+                  navigate({ to: "/build" });
+                }}
+                className="rounded-lg px-3 py-3 text-base font-medium text-foreground hover:bg-secondary text-left"
+              >
+                Log in
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  try {
+                    sessionStorage.removeItem("cvlingo:preselectLanguage");
+                    sessionStorage.removeItem("selectedLanguage");
+                    sessionStorage.removeItem("preselectLanguage");
+                    localStorage.removeItem("cvlingo_form_data");
+                  } catch { /* ignore */ }
+                  navigate({ to: "/build" });
+                }}
+                className="mt-2 inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground"
+              >
+                Build My CV Free
+              </button>
+            </>
+          )}
         </div>
       </div>
     </header>

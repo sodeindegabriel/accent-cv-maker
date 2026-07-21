@@ -9,23 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ResultRouteImport } from './routes/result'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PartnersRouteImport } from './routes/partners'
 import { Route as EmployerRouteImport } from './routes/employer'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CandidatesRouteImport } from './routes/candidates'
 import { Route as BuildRouteImport } from './routes/build'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RefCodeRouteImport } from './routes/ref.$code'
 import { Route as AdminPartnersRouteImport } from './routes/admin.partners'
 
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -49,6 +44,11 @@ const PartnersRoute = PartnersRouteImport.update({
 const EmployerRoute = EmployerRouteImport.update({
   id: '/employer',
   path: '/employer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CandidatesRoute = CandidatesRouteImport.update({
@@ -80,8 +80,8 @@ const AdminPartnersRoute = AdminPartnersRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/build': typeof BuildRoute
-  '/dashboard': typeof DashboardRoute
   '/candidates': typeof CandidatesRoute
+  '/dashboard': typeof DashboardRoute
   '/employer': typeof EmployerRoute
   '/partners': typeof PartnersRoute
   '/privacy': typeof PrivacyRoute
@@ -93,8 +93,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/build': typeof BuildRoute
-  '/dashboard': typeof DashboardRoute
   '/candidates': typeof CandidatesRoute
+  '/dashboard': typeof DashboardRoute
   '/employer': typeof EmployerRoute
   '/partners': typeof PartnersRoute
   '/privacy': typeof PrivacyRoute
@@ -107,8 +107,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/build': typeof BuildRoute
-  '/dashboard': typeof DashboardRoute
   '/candidates': typeof CandidatesRoute
+  '/dashboard': typeof DashboardRoute
   '/employer': typeof EmployerRoute
   '/partners': typeof PartnersRoute
   '/privacy': typeof PrivacyRoute
@@ -122,8 +122,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/build'
-    | '/dashboard'
     | '/candidates'
+    | '/dashboard'
     | '/employer'
     | '/partners'
     | '/privacy'
@@ -135,8 +135,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/build'
-    | '/dashboard'
     | '/candidates'
+    | '/dashboard'
     | '/employer'
     | '/partners'
     | '/privacy'
@@ -148,8 +148,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/build'
-    | '/dashboard'
     | '/candidates'
+    | '/dashboard'
     | '/employer'
     | '/partners'
     | '/privacy'
@@ -162,8 +162,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BuildRoute: typeof BuildRoute
-  DashboardRoute: typeof DashboardRoute
   CandidatesRoute: typeof CandidatesRoute
+  DashboardRoute: typeof DashboardRoute
   EmployerRoute: typeof EmployerRoute
   PartnersRoute: typeof PartnersRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -175,13 +175,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -215,6 +208,13 @@ declare module '@tanstack/react-router' {
       path: '/employer'
       fullPath: '/employer'
       preLoaderRoute: typeof EmployerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/candidates': {
@@ -258,8 +258,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BuildRoute: BuildRoute,
-  DashboardRoute: DashboardRoute,
   CandidatesRoute: CandidatesRoute,
+  DashboardRoute: DashboardRoute,
   EmployerRoute: EmployerRoute,
   PartnersRoute: PartnersRoute,
   PrivacyRoute: PrivacyRoute,

@@ -10,18 +10,11 @@ interface Profile {
   default_cv_language: string | null;
 }
 
-interface CVLanguageVersion {
-  id: string;
-  language_code: string;
-  language_name: string;
-}
-
 interface CVDocument {
   id: string;
   title: string;
   status: string;
   created_at: string;
-  cv_language_versions: CVLanguageVersion[];
 }
 
 function DashboardPage() {
@@ -38,6 +31,7 @@ function DashboardPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
+      try { sessionStorage.setItem("cvlingo:redirectAfterAuth", "/dashboard"); } catch { /* ignore */ }
       navigate({ to: "/build" });
     }
   }, [authLoading, user, navigate]);
@@ -57,7 +51,7 @@ function DashboardPage() {
             .maybeSingle(),
           supabase
             .from("cv_documents")
-            .select("id, title, status, created_at, cv_language_versions(id, language_code, language_name)")
+            .select("id, title, status, created_at")
             .eq("user_id", user!.id)
             .order("created_at", { ascending: false }),
           supabase
@@ -66,13 +60,34 @@ function DashboardPage() {
             .eq("user_id", user!.id),
         ]);
 
-        if (profileRes.error) throw profileRes.error;
-        if (cvsRes.error) throw cvsRes.error;
+        if (profileRes.error) {
+          console.error("Dashboard: profiles query error:", profileRes.error);
+          throw profileRes.error;
+        }
+        if (cvsRes.error) {
+          console.error("Dashboard: cv_documents query error:", cvsRes.error);
+          throw cvsRes.error;
+        }
+        if (downloadsRes.error) {
+          console.error("Dashboard: downloads query error:", downloadsRes.error);
+        }
 
-        setProfile(profileRes.data ?? null);
+        // If no profile row exists yet, create one from auth user_metadata
+        let resolvedProfile = profileRes.data;
+        if (!resolvedProfile) {
+          const metaName = (user!.user_metadata as { full_name?: string })?.full_name ?? null;
+          const { error: upsertErr } = await supabase
+            .from("profiles")
+            .upsert({ id: user!.id, full_name: metaName });
+          if (upsertErr) console.error("Dashboard: profile upsert error:", upsertErr);
+          resolvedProfile = { full_name: metaName, preferred_ui_language: null, default_cv_language: null };
+        }
+
+        setProfile(resolvedProfile);
         setCVs((cvsRes.data as CVDocument[]) ?? []);
         setDownloadCount(downloadsRes.count ?? 0);
-      } catch {
+      } catch (err) {
+        console.error("Dashboard: load failed:", err);
         setError("error");
       } finally {
         setDataLoading(false);
@@ -84,7 +99,10 @@ function DashboardPage() {
 
   if (authLoading || (!user && !authLoading)) return null;
 
-  const firstName = profile?.full_name?.split(" ")[0] ?? user?.email ?? "";
+  const fullName = profile?.full_name
+    ?? (user?.user_metadata as { full_name?: string })?.full_name
+    ?? null;
+  const firstName = fullName?.split(" ")[0] ?? user?.email ?? "";
   const FREE_LIMIT = 2;
 
   function formatDate(iso: string) {
@@ -201,11 +219,6 @@ function CVCard({
         <div className="min-w-0">
           <p className="font-medium text-gray-900 truncate">{cv.title || "CV"}</p>
           <p className="text-sm text-gray-500 mt-0.5">{t(lang, "dashboardCVCreated", { date: formatDate(cv.created_at) })}</p>
-          {cv.cv_language_versions && cv.cv_language_versions.length > 0 && (
-            <p className="text-xs text-gray-400 mt-1">
-              {t(lang, "dashboardLanguageVersions")}: {cv.cv_language_versions.map((v) => v.language_name).join(", ")}
-            </p>
-          )}
           <span className="inline-block mt-2 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
             {t(lang, "dashboardStatusDraft")}
           </span>
