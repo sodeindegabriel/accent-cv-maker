@@ -177,7 +177,7 @@ function BuildPage() {
   });
   const [forceEnglish, setForceEnglish] = useState(false);
   const [preselectModalLang, setPreselectModalLang] = useState<typeof languages[number] | null>(null);
-  const [loginMode] = useState(() => {
+  const [loginMode, setLoginMode] = useState(() => {
     try {
       const v = sessionStorage.getItem("cvlingo:loginMode");
       if (v === "returning") { sessionStorage.removeItem("cvlingo:loginMode"); return true; }
@@ -313,7 +313,7 @@ function BuildPage() {
           </Link>
         </div>
       </header>
-      {step === 0 && <StepAuth onSuccess={advanceFromAuth} authLoading={authLoading} lang={data.languageCode || "en"} loginMode={loginMode} />}
+      {step === 0 && <StepAuth onSuccess={advanceFromAuth} authLoading={authLoading} lang={data.languageCode || "en"} loginMode={loginMode} onSwitchToLogin={() => setLoginMode(true)} />}
       {step === 1 && <Step1Language data={data} update={update} onNext={next} />}
       {step === 2 && <Step2JobType {...stepProps} onBack={back} onNext={next} />}
       {step === 3 && <Step3PersonalDetails {...stepProps} onBack={back} onNext={next} />}
@@ -353,7 +353,13 @@ function friendlyAuthError(msg: string, lang: string): string {
   return t(lang, "authErrorGeneric");
 }
 
-function StepAuth({ onSuccess, authLoading, lang, loginMode }: { onSuccess: () => void; authLoading: boolean; lang: string; loginMode?: boolean }) {
+function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: {
+  onSuccess: () => void;
+  authLoading: boolean;
+  lang: string;
+  loginMode?: boolean;
+  onSwitchToLogin?: () => void;
+}) {
   const { sendOtp, verifyOtp, signIn, signUp } = useAuth();
 
   const [screen, setScreen] = useState<AuthScreen>("capture");
@@ -584,7 +590,7 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode }: { onSuccess: () =
                 {submitting
                   ? t(lang, "authVerifying")
                   : screen === "password"
-                  ? t(lang, "authConfirm")
+                  ? t(lang, "authSignIn")
                   : t(lang, "authContinueOtp")}
               </button>
 
@@ -597,13 +603,27 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode }: { onSuccess: () =
                   {t(lang, "authForgotPassword")}
                 </button>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => { setScreen("password"); setError(null); }}
-                  className="mt-3 block w-full text-center text-xs text-muted-foreground underline-offset-2 hover:underline"
-                >
-                  {t(lang, "authUsePassword")}
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => { setScreen("password"); setError(null); }}
+                    className="mt-3 block w-full text-center text-xs text-muted-foreground underline-offset-2 hover:underline"
+                  >
+                    {t(lang, "authUsePassword")}
+                  </button>
+                  {!loginMode && onSwitchToLogin && (
+                    <p className="mt-4 text-center text-xs text-muted-foreground">
+                      Already have an account?{" "}
+                      <button
+                        type="button"
+                        onClick={() => { onSwitchToLogin(); setError(null); }}
+                        className="font-medium text-primary underline-offset-2 hover:underline"
+                      >
+                        Log in
+                      </button>
+                    </p>
+                  )}
+                </>
               )}
             </form>
           )}

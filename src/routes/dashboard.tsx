@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import { t } from "@/lib/buildTranslations";
@@ -36,66 +36,65 @@ function DashboardPage() {
     }
   }, [authLoading, user, navigate]);
 
-  useEffect(() => {
+  const loadData = useCallback(async () => {
     if (!user) return;
+    setDataLoading(true);
+    setError(null);
+    try {
+      const [profileRes, cvsRes, downloadsRes] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("full_name, preferred_ui_language, default_cv_language")
+          .eq("id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("cv_documents")
+          .select("id, title, status, created_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("downloads")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id),
+      ]);
 
-    async function loadData() {
-      setDataLoading(true);
-      setError(null);
-      try {
-        const [profileRes, cvsRes, downloadsRes] = await Promise.all([
-          supabase
-            .from("profiles")
-            .select("full_name, preferred_ui_language, default_cv_language")
-            .eq("id", user!.id)
-            .maybeSingle(),
-          supabase
-            .from("cv_documents")
-            .select("id, title, status, created_at")
-            .eq("user_id", user!.id)
-            .order("created_at", { ascending: false }),
-          supabase
-            .from("downloads")
-            .select("id", { count: "exact", head: true })
-            .eq("user_id", user!.id),
-        ]);
-
-        if (profileRes.error) {
-          console.error("Dashboard: profiles query error:", profileRes.error);
-          throw profileRes.error;
-        }
-        if (cvsRes.error) {
-          console.error("Dashboard: cv_documents query error:", cvsRes.error);
-          throw cvsRes.error;
-        }
-        if (downloadsRes.error) {
-          console.error("Dashboard: downloads query error:", downloadsRes.error);
-        }
-
-        // If no profile row exists yet, create one from auth user_metadata
-        let resolvedProfile = profileRes.data;
-        if (!resolvedProfile) {
-          const metaName = (user!.user_metadata as { full_name?: string })?.full_name ?? null;
-          const { error: upsertErr } = await supabase
-            .from("profiles")
-            .upsert({ id: user!.id, full_name: metaName });
-          if (upsertErr) console.error("Dashboard: profile upsert error:", upsertErr);
-          resolvedProfile = { full_name: metaName, preferred_ui_language: null, default_cv_language: null };
-        }
-
-        setProfile(resolvedProfile);
-        setCVs((cvsRes.data as CVDocument[]) ?? []);
-        setDownloadCount(downloadsRes.count ?? 0);
-      } catch (err) {
-        console.error("Dashboard: load failed:", err);
-        setError("error");
-      } finally {
-        setDataLoading(false);
+      if (profileRes.error) {
+        console.error("Dashboard: profiles query error:", profileRes.error);
+        throw profileRes.error;
       }
-    }
+      if (cvsRes.error) {
+        console.error("Dashboard: cv_documents query error:", cvsRes.error);
+        throw cvsRes.error;
+      }
+      if (downloadsRes.error) {
+        console.error("Dashboard: downloads query error:", downloadsRes.error);
+      }
 
-    loadData();
+      // If no profile row exists yet, create one from auth user_metadata
+      let resolvedProfile = profileRes.data;
+      if (!resolvedProfile) {
+        const metaName = (user.user_metadata as { full_name?: string })?.full_name ?? null;
+        const { error: upsertErr } = await supabase
+          .from("profiles")
+          .upsert({ id: user.id, full_name: metaName });
+        if (upsertErr) console.error("Dashboard: profile upsert error:", upsertErr);
+        resolvedProfile = { full_name: metaName, preferred_ui_language: null, default_cv_language: null };
+      }
+
+      setProfile(resolvedProfile);
+      setCVs((cvsRes.data as CVDocument[]) ?? []);
+      setDownloadCount(downloadsRes.count ?? 0);
+    } catch (err) {
+      console.error("Dashboard: load failed:", err);
+      setError("error");
+    } finally {
+      setDataLoading(false);
+    }
   }, [user]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   if (authLoading || (!user && !authLoading)) return null;
 
@@ -135,7 +134,15 @@ function DashboardPage() {
         {dataLoading ? (
           <p className="text-gray-500">{t(lang, "dashboardLoading")}</p>
         ) : error ? (
-          <p className="text-red-600">{t(lang, "dashboardError")}</p>
+          <div className="bg-white rounded-lg border border-red-200 p-6 text-center space-y-3">
+            <p className="text-red-600">{t(lang, "dashboardError")}</p>
+            <button
+              onClick={() => loadData()}
+              className="text-sm text-blue-600 hover:underline font-medium"
+            >
+              Retry
+            </button>
+          </div>
         ) : (
           <>
             {/* Build new CV */}
@@ -273,5 +280,6 @@ function ProfileRow({ label, value }: { label: string; value: string }) {
 }
 
 export const Route = createFileRoute("/dashboard")({
+  codeSplitGroupings: [],
   component: DashboardPage,
 });

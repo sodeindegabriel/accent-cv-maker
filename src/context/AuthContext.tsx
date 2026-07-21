@@ -21,15 +21,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      setLoading(false);
-    });
-
+    // In Supabase v2, onAuthStateChange fires INITIAL_SESSION with the
+    // properly-refreshed session, making it the authoritative source of truth.
+    // Setting loading=false here (not in getSession) prevents a race where
+    // getSession returns a stale/expired token and wrongly triggers the auth guard.
     const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
+      setLoading(false);
     });
 
     return () => listener.subscription.unsubscribe();

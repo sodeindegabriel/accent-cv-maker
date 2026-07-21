@@ -50,7 +50,7 @@ export type TKey =
   | "shareOnWhatsApp" | "shareOnFacebook" | "shareOnX" | "shareCVLingo"
   | "authHeading" | "authSubtitle"
   | "authFirstName" | "authFirstNamePlaceholder" | "authEmailAddress"
-  | "authNoPassword" | "authContinueOtp" | "authUsePassword"
+  | "authNoPassword" | "authContinueOtp" | "authUsePassword" | "authSignIn"
   | "authTermsPrefix" | "authTerms" | "authTermsAnd" | "authPrivacy"
   | "authOtpSent" | "authEnterCode" | "authConfirm" | "authVerifying"
   | "authResendIn" | "authResend" | "authChangeEmail"
@@ -208,6 +208,7 @@ const en: Record<TKey, string> = {
   authEmailAddress: "Email address",
   authNoPassword: "No password needed. No credit card required.",
   authContinueOtp: "Continue with email code",
+  authSignIn: "Log in",
   authUsePassword: "Use a password instead",
   authTermsPrefix: "By continuing you agree to our",
   authTerms: "Terms",
