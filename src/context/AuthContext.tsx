@@ -49,7 +49,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signOut() {
+    const SS_KEYS = [
+      "cvlingo:result", "cvlingo:input", "cvlingo:cvDocumentId",
+      "cvlingo:redirectAfterAuth", "cvlingo:loginMode", "cvlingo:editStep",
+      "cvlingo:preselectLanguage",
+    ];
+    try {
+      SS_KEYS.forEach((k) => sessionStorage.removeItem(k));
+      localStorage.removeItem("cvlingo_form_data");
+    } catch { /* ignore */ }
     await supabase.auth.signOut();
+    window.location.href = "/";
   }
 
   async function sendOtp(email: string, fullName: string) {

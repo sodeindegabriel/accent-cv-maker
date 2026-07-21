@@ -1372,12 +1372,27 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [consent, setConsent] = useState(false);
+  const [cvLimitReached, setCvLimitReached] = useState(false);
 
   const handleGenerate = async () => {
     if (!consent || data.candidatePoolConsent === null) return;
     setGenerating(true);
     setError(null);
+    setCvLimitReached(false);
     try {
+      // Pre-check CV limit before generating (saves API cost if already at limit)
+      if (user) {
+        const { count, error: limitErr } = await supabase
+          .from("cv_documents")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id);
+        if (!limitErr && (count ?? 0) >= 2) {
+          setCvLimitReached(true);
+          setGenerating(false);
+          return;
+        }
+      }
+
       const result = await generateCV(data);
       sessionStorage.setItem("cvlingo:result", JSON.stringify(result));
       sessionStorage.setItem("cvlingo:input", JSON.stringify(data));
@@ -1556,6 +1571,15 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
 
 
         </div>
+        {cvLimitReached && (
+          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-5">
+            <p className="font-semibold text-amber-900">You've used all 2 free CVs</p>
+            <p className="mt-1 text-sm text-amber-700">Upgrade to build unlimited CVs and unlock more downloads.</p>
+            <button disabled className="mt-3 inline-flex items-center rounded-lg bg-primary/60 cursor-not-allowed px-4 py-2 text-sm font-semibold text-primary-foreground">
+              Upgrade — Coming Soon
+            </button>
+          </div>
+        )}
         {error && (
           <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
             <p className="font-medium">{t(displayLang, "somethingWrong")}</p>

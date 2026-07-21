@@ -42,6 +42,7 @@ export type TKey =
   | "poolPrivacyNote" | "poolError"
   | "consentText" | "privacyLock" | "readPrivacyPolicy"
   | "invalidPhone" | "invalidEmail"
+  | "resultBackToDashboard"
   | "cvReady" | "editAnswers"
   | "editLanguage" | "editJobType" | "editPersonalDetails" | "editExperience" | "editEducation" | "editSkills"
   | "shareMessage"
@@ -182,6 +183,7 @@ const en: Record<TKey, string> = {
   readPrivacyPolicy: "Read our Privacy Policy",
   invalidPhone: "Please enter a valid UK phone number",
   invalidEmail: "Please enter a valid email address",
+  resultBackToDashboard: "← Back to Dashboard",
   cvReady: "Your CV is ready",
   editAnswers: "Edit answers",
   editLanguage: "Language",

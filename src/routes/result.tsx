@@ -25,6 +25,9 @@ function ResultPage() {
   const [tab, setTab] = useState<"native" | "english">("native");
   const [downloading, setDownloading] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
+  const [downloadCount, setDownloadCount] = useState<number | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showDownloadToast, setShowDownloadToast] = useState(false);
   const [poolConsentGiven] = useState<boolean>(() => {
     try {
       const raw = sessionStorage.getItem("cvlingo:input");
@@ -66,6 +69,22 @@ function ResultPage() {
     }
   }, [navigate]);
 
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("downloads")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .then(({ count }) => setDownloadCount(count ?? 0));
+  }, [user]);
+
+  // Auto-dismiss download toast after 5s
+  useEffect(() => {
+    if (!showDownloadToast) return;
+    const timer = setTimeout(() => setShowDownloadToast(false), 5000);
+    return () => clearTimeout(timer);
+  }, [showDownloadToast]);
+
   const activeHtml = useMemo(() => {
     if (!result) return "";
     return sanitizeCvHtml(tab === "native" ? result.native : result.english);
@@ -100,6 +119,11 @@ function ResultPage() {
   const nativeLabel = result.language ? `${result.language} CV` : "Native CV";
 
   const downloadPdf = async (whichTab: "native" | "english") => {
+    if (user && downloadCount !== null && downloadCount >= 2) {
+      setShowPdfModal(false);
+      setShowUpgradeModal(true);
+      return;
+    }
     setDownloading(true);
     setShowPdfModal(false);
     const langForFile = whichTab === "english" ? "English" : result.language || "Native";
@@ -211,7 +235,18 @@ function ResultPage() {
           language: whichTab === "native" ? langCode : "en",
           format: "pdf",
         });
-        if (dlErr) console.error("downloads insert error:", dlErr);
+        if (dlErr) {
+          if (dlErr.code === "P0001") {
+            setShowUpgradeModal(true);
+          } else {
+            console.error("downloads insert error:", dlErr);
+          }
+        } else {
+          const newCount = (downloadCount ?? 0) + 1;
+          setDownloadCount(newCount);
+          if (newCount === 1) setShowDownloadToast(true);
+          else if (newCount >= 2) setShowUpgradeModal(true);
+        }
       }
     } catch (err) {
       console.error("PDF error:", err);
@@ -323,7 +358,7 @@ function ResultPage() {
           {user && (
             <div className="no-print mb-4">
               <a href="/dashboard" className="text-sm text-primary hover:underline font-medium">
-                ← Back to Dashboard
+                {t(uiLang, "resultBackToDashboard")}
               </a>
             </div>
           )}
@@ -385,6 +420,29 @@ function ResultPage() {
               <Download className="mr-2 inline-block h-4 w-4" />
               {downloading ? "Preparing PDF…" : t(uiLang, "downloadPDF")}
             </button>
+            {/* Download limit toast */}
+            {showDownloadToast && (
+              <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm font-medium text-amber-900 shadow-lg">
+                1 free download left — upgrade for unlimited
+              </div>
+            )}
+
+            {/* Upgrade modal */}
+            {showUpgradeModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-xl text-center">
+                  <p className="text-lg font-semibold text-foreground">You've used all 2 free downloads</p>
+                  <p className="mt-2 text-sm text-muted-foreground">Upgrade to download unlimited CVs and access more features.</p>
+                  <button disabled className="mt-5 w-full rounded-xl bg-primary/60 px-5 py-3 text-sm font-semibold text-primary-foreground cursor-not-allowed">
+                    Upgrade — Coming Soon
+                  </button>
+                  <button type="button" onClick={() => setShowUpgradeModal(false)} className="mt-3 text-sm text-muted-foreground hover:text-foreground">
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* PDF language picker modal */}
             {showPdfModal && !isEnglishOnly && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
