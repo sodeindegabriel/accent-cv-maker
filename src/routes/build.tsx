@@ -195,7 +195,12 @@ function BuildPage() {
     }
   }, [data]);
 
-  // Once auth resolves, decide whether to show auth gate or jump straight in
+  // Runs ONCE when the initial session check resolves (authLoading: true → false).
+  // If the user was already signed in from a prior visit, skip the auth gate.
+  // After this point, step changes only happen through explicit advanceFromAuth() calls
+  // in StepAuth — NOT by reacting to onAuthStateChange events. This prevents stale
+  // localStorage sessions, email-scanner magic-link completions, or any other ambient
+  // SIGNED_IN event from silently advancing the flow mid-OTP-entry.
   useEffect(() => {
     if (authLoading) return;
     if (user) {
@@ -206,12 +211,10 @@ function BuildPage() {
           if (n >= 2 && n <= 7) { setStep(n); sessionStorage.removeItem("cvlingo:editStep"); return; }
         }
       } catch { /* ignore */ }
-      // Only advance from the auth gate (step 0). If the user is already on step 1
-      // (language selection, nav-CTA path), keep them there until they choose a language.
       setStep((current) => (current === 0 ? 2 : current));
     }
-    // Not signed in — remain on whatever step was initialised (0 or 1)
-  }, [authLoading, user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading]); // intentionally omits `user` — see comment above
 
   useEffect(() => {
     try {
