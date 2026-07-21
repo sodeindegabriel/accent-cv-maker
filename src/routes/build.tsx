@@ -276,7 +276,7 @@ function BuildPage() {
           </Link>
         </div>
       </header>
-      {step === 0 && <StepAuth onSuccess={advanceFromAuth} authLoading={authLoading} />}
+      {step === 0 && <StepAuth onSuccess={advanceFromAuth} authLoading={authLoading} lang={preselectModalLang?.code || "en"} />}
       {step === 1 && <Step1Language data={data} update={update} onNext={next} />}
       {step === 2 && <Step2JobType {...stepProps} onBack={back} onNext={next} />}
       {step === 3 && <Step3PersonalDetails {...stepProps} onBack={back} onNext={next} />}
@@ -305,18 +305,18 @@ function BuildPage() {
 
 type AuthScreen = "capture" | "otp" | "password";
 
-function friendlyAuthError(msg: string): string {
+function friendlyAuthError(msg: string, lang: string): string {
   const m = msg.toLowerCase();
-  if (m.includes("rate limit") || m.includes("too many")) return "Too many attempts. Please wait a minute and try again.";
-  if (m.includes("invalid") && m.includes("otp")) return "That code didn't work. Check it and try again, or request a new one.";
-  if (m.includes("expired")) return "That code has expired. Request a new one below.";
-  if (m.includes("invalid login") || m.includes("invalid credentials") || m.includes("wrong password")) return "Incorrect password. Try again or use an email code instead.";
-  if (m.includes("email") && m.includes("valid")) return "Please enter a valid email address.";
-  if (m.includes("network") || m.includes("fetch")) return "Connection problem. Check your internet and try again.";
-  return "Something went wrong. Please try again.";
+  if (m.includes("rate limit") || m.includes("too many")) return t(lang, "authErrorTooManyAttempts");
+  if (m.includes("invalid") && m.includes("otp")) return t(lang, "authErrorWrongCode");
+  if (m.includes("expired")) return t(lang, "authErrorExpiredCode");
+  if (m.includes("invalid login") || m.includes("invalid credentials") || m.includes("wrong password")) return t(lang, "authErrorWrongPassword");
+  if (m.includes("email") && m.includes("valid")) return t(lang, "authErrorInvalidEmail");
+  if (m.includes("network") || m.includes("fetch")) return t(lang, "authErrorNetwork");
+  return t(lang, "authErrorGeneric");
 }
 
-function StepAuth({ onSuccess, authLoading }: { onSuccess: () => void; authLoading: boolean }) {
+function StepAuth({ onSuccess, authLoading, lang }: { onSuccess: () => void; authLoading: boolean; lang: string }) {
   const { sendOtp, verifyOtp, signIn, signUp } = useAuth();
 
   const [screen, setScreen] = useState<AuthScreen>("capture");
@@ -341,12 +341,12 @@ function StepAuth({ onSuccess, authLoading }: { onSuccess: () => void; authLoadi
   async function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!firstName.trim()) { setError("Please enter your first name."); return; }
-    if (!isValidEmail(email)) { setError("Please enter a valid email address."); return; }
+    if (!firstName.trim()) { setError(t(lang, "authValidFirstName")); return; }
+    if (!isValidEmail(email)) { setError(t(lang, "authValidEmail")); return; }
     setSubmitting(true);
     const { error: err } = await sendOtp(email.trim(), firstName.trim());
     setSubmitting(false);
-    if (err) { setError(friendlyAuthError(err)); return; }
+    if (err) { setError(friendlyAuthError(err, lang)); return; }
     setScreen("otp");
     setResendCooldown(30);
   }
@@ -355,11 +355,11 @@ function StepAuth({ onSuccess, authLoading }: { onSuccess: () => void; authLoadi
     e.preventDefault();
     setError(null);
     const token = otp.replace(/\s/g, "");
-    if (token.length !== 6) { setError("Please enter the 6-digit code from your email."); return; }
+    if (token.length !== 6) { setError(t(lang, "authValidCode")); return; }
     setSubmitting(true);
     const { error: err } = await verifyOtp(email.trim(), token);
     setSubmitting(false);
-    if (err) { setError(friendlyAuthError(err)); return; }
+    if (err) { setError(friendlyAuthError(err, lang)); return; }
     onSuccess();
   }
 
@@ -367,29 +367,29 @@ function StepAuth({ onSuccess, authLoading }: { onSuccess: () => void; authLoadi
     if (resendCooldown > 0) return;
     setError(null);
     const { error: err } = await sendOtp(email.trim(), firstName.trim());
-    if (err) { setError(friendlyAuthError(err)); return; }
+    if (err) { setError(friendlyAuthError(err, lang)); return; }
     setResendCooldown(30);
   }
 
   async function handlePassword(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!firstName.trim()) { setError("Please enter your first name."); return; }
-    if (!isValidEmail(email)) { setError("Please enter a valid email address."); return; }
-    if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
+    if (!firstName.trim()) { setError(t(lang, "authValidFirstName")); return; }
+    if (!isValidEmail(email)) { setError(t(lang, "authValidEmail")); return; }
+    if (password.length < 6) { setError(t(lang, "authValidPassword")); return; }
     setSubmitting(true);
     // Try sign-in first; if user not found, sign up
     const { error: signInErr } = await signIn(email.trim(), password);
     if (!signInErr) { onSuccess(); return; }
     if (signInErr.toLowerCase().includes("invalid") || signInErr.toLowerCase().includes("credentials") || signInErr.toLowerCase().includes("wrong")) {
       setSubmitting(false);
-      setError(friendlyAuthError(signInErr));
+      setError(friendlyAuthError(signInErr, lang));
       return;
     }
     // Likely a new user — try sign up
     const { error: signUpErr } = await signUp(email.trim(), password, firstName.trim());
     setSubmitting(false);
-    if (signUpErr) { setError(friendlyAuthError(signUpErr)); return; }
+    if (signUpErr) { setError(friendlyAuthError(signUpErr, lang)); return; }
     onSuccess();
   }
 
@@ -406,9 +406,9 @@ function StepAuth({ onSuccess, authLoading }: { onSuccess: () => void; authLoadi
       <div className="mx-auto max-w-sm">
         <div className="mb-8 text-center">
           <img src="/cvlingo-logo.svg" alt="CVLingo" className="mx-auto mb-4 h-14 w-14 rounded-full" />
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Build your free CV</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t(lang, "authHeading")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Save your progress and access your CV from any device.
+            {t(lang, "authSubtitle")}
           </p>
         </div>
 
@@ -418,12 +418,12 @@ function StepAuth({ onSuccess, authLoading }: { onSuccess: () => void; authLoadi
           {screen === "otp" && (
             <form onSubmit={handleVerifyOtp} noValidate>
               <p className="mb-1 text-sm font-medium text-foreground">
-                We sent a 6-digit code to
+                {t(lang, "authOtpSent")}
               </p>
               <p className="mb-5 truncate text-sm font-semibold text-primary">{email}</p>
 
               <label className="mb-1 block text-sm font-medium text-foreground" htmlFor="otp-input">
-                Enter code
+                {t(lang, "authEnterCode")}
               </label>
               <input
                 id="otp-input"
@@ -445,7 +445,7 @@ function StepAuth({ onSuccess, authLoading }: { onSuccess: () => void; authLoadi
                 disabled={submitting || otp.length < 6}
                 className="mt-4 inline-flex min-h-[52px] w-full items-center justify-center rounded-xl bg-primary px-6 font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {submitting ? "Verifying…" : "Confirm code"}
+                {submitting ? t(lang, "authVerifying") : t(lang, "authConfirm")}
               </button>
 
               <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
@@ -455,14 +455,14 @@ function StepAuth({ onSuccess, authLoading }: { onSuccess: () => void; authLoadi
                   disabled={resendCooldown > 0}
                   className="underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
+                  {resendCooldown > 0 ? t(lang, "authResendIn", { n: String(resendCooldown) }) : t(lang, "authResend")}
                 </button>
                 <button
                   type="button"
                   onClick={() => { setScreen("capture"); setOtp(""); setError(null); }}
                   className="underline-offset-2 hover:underline"
                 >
-                  Change email
+                  {t(lang, "authChangeEmail")}
                 </button>
               </div>
             </form>
@@ -473,7 +473,7 @@ function StepAuth({ onSuccess, authLoading }: { onSuccess: () => void; authLoadi
             <form onSubmit={screen === "password" ? handlePassword : handleSendOtp} noValidate>
               <div className="mb-4">
                 <label className="mb-1 block text-sm font-medium text-foreground" htmlFor="auth-firstname">
-                  First name
+                  {t(lang, "authFirstName")}
                 </label>
                 <input
                   id="auth-firstname"
@@ -481,7 +481,7 @@ function StepAuth({ onSuccess, authLoading }: { onSuccess: () => void; authLoadi
                   autoComplete="given-name"
                   value={firstName}
                   onChange={(e) => { setFirstName(e.target.value); setError(null); }}
-                  placeholder="Your first name"
+                  placeholder={t(lang, "authFirstNamePlaceholder")}
                   className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   autoFocus
                 />
@@ -489,7 +489,7 @@ function StepAuth({ onSuccess, authLoading }: { onSuccess: () => void; authLoadi
 
               <div className="mb-1">
                 <label className="mb-1 block text-sm font-medium text-foreground" htmlFor="auth-email">
-                  Email address
+                  {t(lang, "authEmailAddress")}
                 </label>
                 <input
                   id="auth-email"
@@ -503,13 +503,13 @@ function StepAuth({ onSuccess, authLoading }: { onSuccess: () => void; authLoadi
               </div>
 
               <p className="mb-4 text-xs text-muted-foreground">
-                No password needed. No credit card required.
+                {t(lang, "authNoPassword")}
               </p>
 
               {screen === "password" && (
                 <div className="mb-4">
                   <label className="mb-1 block text-sm font-medium text-foreground" htmlFor="auth-password">
-                    Password
+                    {t(lang, "authPassword")}
                   </label>
                   <div className="relative">
                     <input
@@ -518,7 +518,7 @@ function StepAuth({ onSuccess, authLoading }: { onSuccess: () => void; authLoadi
                       autoComplete="current-password"
                       value={password}
                       onChange={(e) => { setPassword(e.target.value); setError(null); }}
-                      placeholder="At least 6 characters"
+                      placeholder={t(lang, "authPasswordPlaceholder")}
                       className="w-full rounded-xl border border-border bg-background px-4 py-3 pr-12 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                     />
                     <button
@@ -526,7 +526,7 @@ function StepAuth({ onSuccess, authLoading }: { onSuccess: () => void; authLoadi
                       onClick={() => setShowPassword((v) => !v)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
                     >
-                      {showPassword ? "Hide" : "Show"}
+                      {showPassword ? t(lang, "authHidePassword") : t(lang, "authShowPassword")}
                     </button>
                   </div>
                 </div>
@@ -540,10 +540,10 @@ function StepAuth({ onSuccess, authLoading }: { onSuccess: () => void; authLoadi
                 className="inline-flex min-h-[52px] w-full items-center justify-center rounded-xl bg-primary px-6 font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {submitting
-                  ? "Please wait…"
+                  ? t(lang, "authVerifying")
                   : screen === "password"
-                  ? "Continue"
-                  : "Continue with email code"}
+                  ? t(lang, "authConfirm")
+                  : t(lang, "authContinueOtp")}
               </button>
 
               {screen === "password" ? (
@@ -552,7 +552,7 @@ function StepAuth({ onSuccess, authLoading }: { onSuccess: () => void; authLoadi
                   onClick={() => { setScreen("capture"); setPassword(""); setError(null); }}
                   className="mt-3 block w-full text-center text-xs text-muted-foreground underline-offset-2 hover:underline"
                 >
-                  Forgot password? Use email code instead
+                  {t(lang, "authForgotPassword")}
                 </button>
               ) : (
                 <button
@@ -560,7 +560,7 @@ function StepAuth({ onSuccess, authLoading }: { onSuccess: () => void; authLoadi
                   onClick={() => { setScreen("password"); setError(null); }}
                   className="mt-3 block w-full text-center text-xs text-muted-foreground underline-offset-2 hover:underline"
                 >
-                  Use a password instead
+                  {t(lang, "authUsePassword")}
                 </button>
               )}
             </form>
@@ -568,10 +568,10 @@ function StepAuth({ onSuccess, authLoading }: { onSuccess: () => void; authLoadi
         </div>
 
         <p className="mt-5 text-center text-xs text-muted-foreground">
-          By continuing you agree to our{" "}
-          <a href="/terms" className="underline underline-offset-2 hover:text-foreground">Terms</a>
-          {" "}and{" "}
-          <a href="/privacy" className="underline underline-offset-2 hover:text-foreground">Privacy Policy</a>.
+          {t(lang, "authTermsPrefix")}{" "}
+          <a href="/terms" className="underline underline-offset-2 hover:text-foreground">{t(lang, "authTerms")}</a>
+          {" "}{t(lang, "authTermsAnd")}{" "}
+          <a href="/privacy" className="underline underline-offset-2 hover:text-foreground">{t(lang, "authPrivacy")}</a>.
         </p>
       </div>
     </section>
