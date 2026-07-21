@@ -148,7 +148,8 @@ const availabilityOptions: { value: string; tKey: TKey }[] = [
 ];
 
 function BuildPage() {
-  const [step, setStep] = useState(1);
+  const { user, loading: authLoading } = useAuth();
+  const [step, setStep] = useState(0);
   const [data, setData] = useState<CVData>(() => {
     try {
       const saved = localStorage.getItem("cvlingo_form_data");
@@ -186,6 +187,23 @@ function BuildPage() {
     }
   }, [data]);
 
+  // Once auth resolves, decide whether to show auth gate or jump straight in
+  useEffect(() => {
+    if (authLoading) return;
+    // Already signed in — skip auth gate and go to step 1 (or restore edit step)
+    if (user) {
+      try {
+        const editStep = sessionStorage.getItem("cvlingo:editStep");
+        if (editStep) {
+          const n = parseInt(editStep, 10);
+          if (n >= 1 && n <= 7) { setStep(n); sessionStorage.removeItem("cvlingo:editStep"); return; }
+        }
+      } catch { /* ignore */ }
+      setStep(1);
+    }
+    // Not signed in — step stays at 0 (auth gate)
+  }, [authLoading, user]);
+
   useEffect(() => {
     try {
       const inputRaw = sessionStorage.getItem("cvlingo:input");
@@ -199,32 +217,22 @@ function BuildPage() {
         const lang = languages.find((l) => l.code === preselect);
         if (lang) {
           if (lang.code === "en") {
-            // English fast path: skip Step 1, go straight to Step 2
             setData((current) => ({
               ...current,
               languageCode: lang.code,
               language: lang.name,
               questionLanguageCode: "en",
             }));
-            setStep(2);
           } else {
-            // Non-English: skip Step 1, go to Step 2, show popup immediately
             setData((current) => ({
               ...current,
               languageCode: lang.code,
               language: lang.name,
             }));
-            setStep(2);
             setPreselectModalLang(lang);
           }
         }
         sessionStorage.removeItem("cvlingo:preselectLanguage");
-      }
-      const editStep = sessionStorage.getItem("cvlingo:editStep");
-      if (editStep) {
-        const n = parseInt(editStep, 10);
-        if (n >= 1 && n <= 7) setStep(n);
-        sessionStorage.removeItem("cvlingo:editStep");
       }
     } catch {
       /* ignore */
@@ -237,6 +245,7 @@ function BuildPage() {
 
   const next = () => setStep((current) => Math.min(7, current + 1));
   const back = () => setStep((current) => Math.max(1, current - 1));
+  const advanceFromAuth = () => setStep(preselectModalLang ? 2 : 1);
 
   const originalLang = data.questionLanguageCode || "en";
   const displayLang = forceEnglish ? "en" : originalLang;
@@ -267,6 +276,7 @@ function BuildPage() {
           </Link>
         </div>
       </header>
+      {step === 0 && <StepAuth onSuccess={advanceFromAuth} authLoading={authLoading} />}
       {step === 1 && <Step1Language data={data} update={update} onNext={next} />}
       {step === 2 && <Step2JobType {...stepProps} onBack={back} onNext={next} />}
       {step === 3 && <Step3PersonalDetails {...stepProps} onBack={back} onNext={next} />}
@@ -290,6 +300,285 @@ function BuildPage() {
     </main>
   );
 }
+
+// ─── Auth gate (Step 0) ──────────────────────────────────────────────────────
+
+type AuthScreen = "capture" | "otp" | "password";
+
+function friendlyAuthError(msg: string): string {
+  const m = msg.toLowerCase();
+  if (m.includes("rate limit") || m.includes("too many")) return "Too many attempts. Please wait a minute and try again.";
+  if (m.includes("invalid") && m.includes("otp")) return "That code didn't work. Check it and try again, or request a new one.";
+  if (m.includes("expired")) return "That code has expired. Request a new one below.";
+  if (m.includes("invalid login") || m.includes("invalid credentials") || m.includes("wrong password")) return "Incorrect password. Try again or use an email code instead.";
+  if (m.includes("email") && m.includes("valid")) return "Please enter a valid email address.";
+  if (m.includes("network") || m.includes("fetch")) return "Connection problem. Check your internet and try again.";
+  return "Something went wrong. Please try again.";
+}
+
+function StepAuth({ onSuccess, authLoading }: { onSuccess: () => void; authLoading: boolean }) {
+  const { sendOtp, verifyOtp, signIn, signUp } = useAuth();
+
+  const [screen, setScreen] = useState<AuthScreen>("capture");
+  const [firstName, setFirstName] = useState("");
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  // Countdown timer for resend cooldown
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const id = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(id);
+  }, [resendCooldown]);
+
+  const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
+
+  async function handleSendOtp(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (!firstName.trim()) { setError("Please enter your first name."); return; }
+    if (!isValidEmail(email)) { setError("Please enter a valid email address."); return; }
+    setSubmitting(true);
+    const { error: err } = await sendOtp(email.trim(), firstName.trim());
+    setSubmitting(false);
+    if (err) { setError(friendlyAuthError(err)); return; }
+    setScreen("otp");
+    setResendCooldown(30);
+  }
+
+  async function handleVerifyOtp(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    const token = otp.replace(/\s/g, "");
+    if (token.length !== 6) { setError("Please enter the 6-digit code from your email."); return; }
+    setSubmitting(true);
+    const { error: err } = await verifyOtp(email.trim(), token);
+    setSubmitting(false);
+    if (err) { setError(friendlyAuthError(err)); return; }
+    onSuccess();
+  }
+
+  async function handleResendOtp() {
+    if (resendCooldown > 0) return;
+    setError(null);
+    const { error: err } = await sendOtp(email.trim(), firstName.trim());
+    if (err) { setError(friendlyAuthError(err)); return; }
+    setResendCooldown(30);
+  }
+
+  async function handlePassword(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (!firstName.trim()) { setError("Please enter your first name."); return; }
+    if (!isValidEmail(email)) { setError("Please enter a valid email address."); return; }
+    if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
+    setSubmitting(true);
+    // Try sign-in first; if user not found, sign up
+    const { error: signInErr } = await signIn(email.trim(), password);
+    if (!signInErr) { onSuccess(); return; }
+    if (signInErr.toLowerCase().includes("invalid") || signInErr.toLowerCase().includes("credentials") || signInErr.toLowerCase().includes("wrong")) {
+      setSubmitting(false);
+      setError(friendlyAuthError(signInErr));
+      return;
+    }
+    // Likely a new user — try sign up
+    const { error: signUpErr } = await signUp(email.trim(), password, firstName.trim());
+    setSubmitting(false);
+    if (signUpErr) { setError(friendlyAuthError(signUpErr)); return; }
+    onSuccess();
+  }
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  return (
+    <section className="px-4 pb-12 pt-10 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-sm">
+        <div className="mb-8 text-center">
+          <img src="/cvlingo-logo.svg" alt="CVLingo" className="mx-auto mb-4 h-14 w-14 rounded-full" />
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Build your free CV</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Save your progress and access your CV from any device.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+
+          {/* ── OTP verification screen ── */}
+          {screen === "otp" && (
+            <form onSubmit={handleVerifyOtp} noValidate>
+              <p className="mb-1 text-sm font-medium text-foreground">
+                We sent a 6-digit code to
+              </p>
+              <p className="mb-5 truncate text-sm font-semibold text-primary">{email}</p>
+
+              <label className="mb-1 block text-sm font-medium text-foreground" htmlFor="otp-input">
+                Enter code
+              </label>
+              <input
+                id="otp-input"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={7}
+                value={otp}
+                onChange={(e) => { setOtp(e.target.value.replace(/[^0-9]/g, "")); setError(null); }}
+                placeholder="123456"
+                className="mb-1 w-full rounded-xl border border-border bg-background px-4 py-3 text-center text-2xl font-semibold tracking-[0.4em] text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                autoFocus
+              />
+
+              {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+
+              <button
+                type="submit"
+                disabled={submitting || otp.length < 6}
+                className="mt-4 inline-flex min-h-[52px] w-full items-center justify-center rounded-xl bg-primary px-6 font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {submitting ? "Verifying…" : "Confirm code"}
+              </button>
+
+              <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  disabled={resendCooldown > 0}
+                  className="underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setScreen("capture"); setOtp(""); setError(null); }}
+                  className="underline-offset-2 hover:underline"
+                >
+                  Change email
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* ── Capture / password screens ── */}
+          {screen !== "otp" && (
+            <form onSubmit={screen === "password" ? handlePassword : handleSendOtp} noValidate>
+              <div className="mb-4">
+                <label className="mb-1 block text-sm font-medium text-foreground" htmlFor="auth-firstname">
+                  First name
+                </label>
+                <input
+                  id="auth-firstname"
+                  type="text"
+                  autoComplete="given-name"
+                  value={firstName}
+                  onChange={(e) => { setFirstName(e.target.value); setError(null); }}
+                  placeholder="Your first name"
+                  className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  autoFocus
+                />
+              </div>
+
+              <div className="mb-1">
+                <label className="mb-1 block text-sm font-medium text-foreground" htmlFor="auth-email">
+                  Email address
+                </label>
+                <input
+                  id="auth-email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); setError(null); }}
+                  placeholder="you@example.com"
+                  className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+
+              <p className="mb-4 text-xs text-muted-foreground">
+                No password needed. No credit card required.
+              </p>
+
+              {screen === "password" && (
+                <div className="mb-4">
+                  <label className="mb-1 block text-sm font-medium text-foreground" htmlFor="auth-password">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="auth-password"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(e) => { setPassword(e.target.value); setError(null); }}
+                      placeholder="At least 6 characters"
+                      className="w-full rounded-xl border border-border bg-background px-4 py-3 pr-12 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      {showPassword ? "Hide" : "Show"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {error && <p className="mb-3 text-sm text-destructive">{error}</p>}
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="inline-flex min-h-[52px] w-full items-center justify-center rounded-xl bg-primary px-6 font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {submitting
+                  ? "Please wait…"
+                  : screen === "password"
+                  ? "Continue"
+                  : "Continue with email code"}
+              </button>
+
+              {screen === "password" ? (
+                <button
+                  type="button"
+                  onClick={() => { setScreen("capture"); setPassword(""); setError(null); }}
+                  className="mt-3 block w-full text-center text-xs text-muted-foreground underline-offset-2 hover:underline"
+                >
+                  Forgot password? Use email code instead
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => { setScreen("password"); setError(null); }}
+                  className="mt-3 block w-full text-center text-xs text-muted-foreground underline-offset-2 hover:underline"
+                >
+                  Use a password instead
+                </button>
+              )}
+            </form>
+          )}
+        </div>
+
+        <p className="mt-5 text-center text-xs text-muted-foreground">
+          By continuing you agree to our{" "}
+          <a href="/terms" className="underline underline-offset-2 hover:text-foreground">Terms</a>
+          {" "}and{" "}
+          <a href="/privacy" className="underline underline-offset-2 hover:text-foreground">Privacy Policy</a>.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 type StepProps = {
   data: CVData;
