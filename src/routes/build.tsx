@@ -149,7 +149,15 @@ const availabilityOptions: { value: string; tKey: TKey }[] = [
 
 function BuildPage() {
   const { user, loading: authLoading } = useAuth();
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(() => {
+    try {
+      // If a language was pre-selected from the landing page, start at the auth gate (step 0)
+      // so the confirmation modal can appear immediately. Otherwise start at language selection.
+      return sessionStorage.getItem("cvlingo:preselectLanguage") ? 0 : 1;
+    } catch {
+      return 1;
+    }
+  });
   const [data, setData] = useState<CVData>(() => {
     try {
       const saved = localStorage.getItem("cvlingo_form_data");
@@ -190,18 +198,19 @@ function BuildPage() {
   // Once auth resolves, decide whether to show auth gate or jump straight in
   useEffect(() => {
     if (authLoading) return;
-    // Already signed in — skip auth gate and go to step 1 (or restore edit step)
     if (user) {
       try {
         const editStep = sessionStorage.getItem("cvlingo:editStep");
         if (editStep) {
           const n = parseInt(editStep, 10);
-          if (n >= 1 && n <= 7) { setStep(n); sessionStorage.removeItem("cvlingo:editStep"); return; }
+          if (n >= 2 && n <= 7) { setStep(n); sessionStorage.removeItem("cvlingo:editStep"); return; }
         }
       } catch { /* ignore */ }
-      setStep(1);
+      // Only advance from the auth gate (step 0). If the user is already on step 1
+      // (language selection, nav-CTA path), keep them there until they choose a language.
+      setStep((current) => (current === 0 ? 2 : current));
     }
-    // Not signed in — step stays at 0 (auth gate)
+    // Not signed in — remain on whatever step was initialised (0 or 1)
   }, [authLoading, user]);
 
   useEffect(() => {
@@ -243,9 +252,15 @@ function BuildPage() {
     setData((current) => ({ ...current, [key]: value }));
   };
 
-  const next = () => setStep((current) => Math.min(7, current + 1));
+  const next = () =>
+    setStep((current) => {
+      // After language selection: unauthenticated users go to the auth gate; authenticated go straight to job type.
+      if (current === 1) return user ? 2 : 0;
+      return Math.min(7, current + 1);
+    });
   const back = () => setStep((current) => Math.max(1, current - 1));
-  const advanceFromAuth = () => setStep(preselectModalLang ? 2 : 1);
+  // Language was always chosen before reaching StepAuth now — go straight to job type.
+  const advanceFromAuth = () => setStep(2);
 
   const originalLang = data.questionLanguageCode || "en";
   const displayLang = forceEnglish ? "en" : originalLang;
@@ -276,7 +291,7 @@ function BuildPage() {
           </Link>
         </div>
       </header>
-      {step === 0 && <StepAuth onSuccess={advanceFromAuth} authLoading={authLoading} lang={preselectModalLang?.code || "en"} />}
+      {step === 0 && <StepAuth onSuccess={advanceFromAuth} authLoading={authLoading} lang={data.languageCode || "en"} />}
       {step === 1 && <Step1Language data={data} update={update} onNext={next} />}
       {step === 2 && <Step2JobType {...stepProps} onBack={back} onNext={next} />}
       {step === 3 && <Step3PersonalDetails {...stepProps} onBack={back} onNext={next} />}
