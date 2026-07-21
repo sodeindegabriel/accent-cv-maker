@@ -138,7 +138,7 @@ function DashboardPage() {
             <p className="text-red-600">{t(lang, "dashboardError")}</p>
             <button
               onClick={() => loadData()}
-              className="text-sm text-blue-600 hover:underline font-medium"
+              className="text-sm text-primary hover:underline font-medium"
             >
               Retry
             </button>
@@ -149,7 +149,7 @@ function DashboardPage() {
             <div>
               <button
                 onClick={() => navigate({ to: "/build" })}
-                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-3 rounded-lg transition-colors"
+                className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5 py-3 rounded-lg transition-colors"
               >
                 + {t(lang, "dashboardNewCV")}
               </button>
@@ -233,13 +233,13 @@ function CVCard({
         <div className="flex items-center gap-2 shrink-0">
           <a
             href={`/result?cv=${cv.id}`}
-            className="text-sm text-blue-600 hover:underline"
+            className="text-sm text-primary hover:underline"
           >
             {t(lang, "dashboardView")}
           </a>
           <a
             href={`/result?cv=${cv.id}&download=1`}
-            className="text-sm text-blue-600 hover:underline"
+            className="text-sm text-primary hover:underline"
           >
             {t(lang, "dashboardDownload")}
           </a>
@@ -262,7 +262,7 @@ function UsageTile({ label, used, limit }: { label: string; used: number; limit:
       <p className="text-sm text-gray-700 mb-1">{label}</p>
       <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
         <div
-          className={`h-full rounded-full ${pct >= 100 ? "bg-red-500" : "bg-blue-500"}`}
+          className={`h-full rounded-full ${pct >= 100 ? "bg-destructive" : "bg-primary"}`}
           style={{ width: `${pct}%` }}
         />
       </div>

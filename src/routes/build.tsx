@@ -1388,9 +1388,16 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
         const title = data.jobTypes.length > 0
           ? `${data.personalDetails.name} — ${data.jobTypes[0]}`
           : data.personalDetails.name || "My CV";
-        void supabase
+        const { data: cvData, error: cvErr } = await supabase
           .from("cv_documents")
-          .insert({ user_id: user.id, title, status: "draft" });
+          .insert({ user_id: user.id, title, status: "draft" })
+          .select("id")
+          .single();
+        if (cvErr) {
+          console.error("cv_documents insert error:", cvErr);
+        } else if (cvData?.id) {
+          try { sessionStorage.setItem("cvlingo:cvDocumentId", cvData.id); } catch { /* ignore */ }
+        }
       }
 
       if (data.candidatePoolConsent === true) {

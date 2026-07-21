@@ -11,13 +11,17 @@ import {
   type CandidatePoolEntry,
 } from "@/lib/candidatePool";
 import { notifyCandidate } from "@/lib/notifyCandidate";
+import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/lib/supabaseClient";
 
 
 function ResultPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [result, setResult] = useState<GeneratedCV | null>(null);
   const [name, setName] = useState<string>("");
   const [langCode, setLangCode] = useState<string>("en");
+  const [cvDocumentId, setCvDocumentId] = useState<string | null>(null);
   const [tab, setTab] = useState<"native" | "english">("native");
   const [downloading, setDownloading] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
@@ -51,6 +55,12 @@ function ResultPage() {
         setName(parsed?.personalDetails?.name ?? "");
         setLangCode(parsed?.languageCode ?? "en");
       }
+    } catch {
+      /* ignore */
+    }
+    try {
+      const docId = sessionStorage.getItem("cvlingo:cvDocumentId");
+      if (docId) setCvDocumentId(docId);
     } catch {
       /* ignore */
     }
@@ -192,6 +202,17 @@ function ResultPage() {
       pdf.setFont("helvetica", "normal"); pdf.setFontSize(8); pdf.setTextColor(180, 180, 180);
       pdf.text("Created with CVLingo · cvlingo.com", W / 2, y, { align: "center" });
       pdf.save(filename);
+
+      // Track download for authenticated users
+      if (user) {
+        const { error: dlErr } = await supabase.from("downloads").insert({
+          user_id: user.id,
+          ...(cvDocumentId ? { cv_document_id: cvDocumentId } : {}),
+          language: whichTab === "native" ? langCode : "en",
+          format: "pdf",
+        });
+        if (dlErr) console.error("downloads insert error:", dlErr);
+      }
     } catch (err) {
       console.error("PDF error:", err);
       alert("PDF error: " + (err as Error).message);
@@ -299,6 +320,13 @@ function ResultPage() {
 
       <section className="px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl">
+          {user && (
+            <div className="no-print mb-4">
+              <a href="/dashboard" className="text-sm text-primary hover:underline font-medium">
+                ← Back to Dashboard
+              </a>
+            </div>
+          )}
           <div className="no-print mb-6 flex items-center justify-between gap-3">
             <h1 className="text-2xl font-semibold sm:text-3xl">{t(uiLang, "cvReady")}</h1>
             <EditAnswersMenu lang={uiLang} />
