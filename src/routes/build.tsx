@@ -373,7 +373,7 @@ function StepAuth({ onSuccess, authLoading, lang }: { onSuccess: () => void; aut
     e.preventDefault();
     setError(null);
     const token = otp.replace(/\s/g, "");
-    if (token.length !== 6) { setError(t(lang, "authValidCode")); return; }
+    if (!/^\d{6,10}$/.test(token)) { setError(t(lang, "authValidCode")); return; }
     setSubmitting(true);
     const { error: err } = await verifyOtp(email.trim(), token);
     setSubmitting(false);
@@ -448,11 +448,11 @@ function StepAuth({ onSuccess, authLoading, lang }: { onSuccess: () => void; aut
                 type="text"
                 inputMode="numeric"
                 autoComplete="one-time-code"
-                maxLength={7}
+                maxLength={10}
                 value={otp}
                 onChange={(e) => { setOtp(e.target.value.replace(/[^0-9]/g, "")); setError(null); }}
-                placeholder="123456"
-                className="mb-1 w-full rounded-xl border border-border bg-background px-4 py-3 text-center text-2xl font-semibold tracking-[0.4em] text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                placeholder="12345678"
+                className="mb-1 w-full rounded-xl border border-border bg-background px-4 py-3 text-center text-2xl font-semibold tracking-[0.3em] text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                 autoFocus
               />
 
@@ -460,7 +460,7 @@ function StepAuth({ onSuccess, authLoading, lang }: { onSuccess: () => void; aut
 
               <button
                 type="submit"
-                disabled={submitting || otp.length < 6}
+                disabled={submitting || !/^\d{6,10}$/.test(otp)}
                 className="mt-4 inline-flex min-h-[52px] w-full items-center justify-center rounded-xl bg-primary px-6 font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {submitting ? t(lang, "authVerifying") : t(lang, "authConfirm")}

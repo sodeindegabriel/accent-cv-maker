@@ -227,7 +227,7 @@ const en: Record<TKey, string> = {
   authValidFirstName: "Please enter your first name.",
   authValidEmail: "Please enter a valid email address.",
   authValidPassword: "Password must be at least 6 characters.",
-  authValidCode: "Please enter the 6-digit code from your email.",
+  authValidCode: "Please enter the code from your email.",
 };
 
 const pl: Dict = {
@@ -391,7 +391,7 @@ const pl: Dict = {
   authValidFirstName: "Podaj swoje imię.",
   authValidEmail: "Podaj prawidłowy adres e-mail.",
   authValidPassword: "Hasło musi mieć co najmniej 6 znaków.",
-  authValidCode: "Podaj 6-cyfrowy kod z e-maila.",
+  authValidCode: "Podaj kod z e-maila.",
 };
 
 const ro: Dict = {
@@ -555,7 +555,7 @@ const ro: Dict = {
   authValidFirstName: "Introduceți prenumele dumneavoastră.",
   authValidEmail: "Introduceți o adresă e-mail validă.",
   authValidPassword: "Parola trebuie să aibă cel puțin 6 caractere.",
-  authValidCode: "Introduceți codul de 6 cifre din e-mailul dumneavoastră.",
+  authValidCode: "Introduceți codul din e-mailul dumneavoastră.",
 };
 
 const es: Dict = {
@@ -719,7 +719,7 @@ const es: Dict = {
   authValidFirstName: "Por favor, introduce tu nombre.",
   authValidEmail: "Por favor, introduce una dirección de email válida.",
   authValidPassword: "La contraseña debe tener al menos 6 caracteres.",
-  authValidCode: "Por favor, introduce el código de 6 dígitos de tu email.",
+  authValidCode: "Por favor, introduce el código de tu email.",
 };
 
 const pt: Dict = {
@@ -883,7 +883,7 @@ const pt: Dict = {
   authValidFirstName: "Por favor, introduza o seu nome.",
   authValidEmail: "Por favor, introduza um endereço de e-mail válido.",
   authValidPassword: "A palavra-passe deve ter pelo menos 6 caracteres.",
-  authValidCode: "Por favor, introduza o código de 6 dígitos do seu e-mail.",
+  authValidCode: "Por favor, introduza o código do seu e-mail.",
 };
 
 const fr: Dict = {
@@ -1047,7 +1047,7 @@ const fr: Dict = {
   authValidFirstName: "Veuillez entrer votre prénom.",
   authValidEmail: "Veuillez entrer une adresse e-mail valide.",
   authValidPassword: "Le mot de passe doit comporter au moins 6 caractères.",
-  authValidCode: "Veuillez entrer le code à 6 chiffres de votre e-mail.",
+  authValidCode: "Veuillez entrer le code de votre e-mail.",
 };
 
 const ar: Dict = {
@@ -1211,7 +1211,7 @@ const ar: Dict = {
   authValidFirstName: "يرجى إدخال اسمك الأول.",
   authValidEmail: "يرجى إدخال عنوان بريد إلكتروني صحيح.",
   authValidPassword: "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل.",
-  authValidCode: "يرجى إدخال الرمز المكوّن من 6 أرقام من بريدك الإلكتروني.",
+  authValidCode: "يرجى إدخال الرمز من بريدك الإلكتروني.",
 };
 
 const ur: Dict = {
@@ -1375,7 +1375,7 @@ const ur: Dict = {
   authValidFirstName: "براہ کرم اپنا پہلا نام درج کریں۔",
   authValidEmail: "براہ کرم ایک درست ای میل پتہ درج کریں۔",
   authValidPassword: "پاسورڈ کم از کم 6 حروف کا ہونا چاہیے۔",
-  authValidCode: "براہ کرم اپنی ای میل سے 6 ہندسوں کا کوڈ درج کریں۔",
+  authValidCode: "براہ کرم اپنی ای میل سے کوڈ درج کریں۔",
 };
 
 const hi: Dict = {
@@ -1539,7 +1539,7 @@ const hi: Dict = {
   authValidFirstName: "कृपया अपना पहला नाम दर्ज करें।",
   authValidEmail: "कृपया एक वैध ईमेल पता दर्ज करें।",
   authValidPassword: "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।",
-  authValidCode: "कृपया अपने ईमेल से 6 अंकों का कोड दर्ज करें।",
+  authValidCode: "कृपया अपने ईमेल से कोड दर्ज करें।",
 };
 
 const bn: Dict = {
@@ -1703,7 +1703,7 @@ const bn: Dict = {
   authValidFirstName: "অনুগ্রহ করে আপনার প্রথম নাম লিখুন।",
   authValidEmail: "অনুগ্রহ করে একটি বৈধ ইমেল ঠিকানা লিখুন।",
   authValidPassword: "পাসওয়ার্ড কমপক্ষে 6 অক্ষরের হতে হবে।",
-  authValidCode: "অনুগ্রহ করে আপনার ইমেল থেকে 6 সংখ্যার কোড লিখুন।",
+  authValidCode: "অনুগ্রহ করে আপনার ইমেল থেকে কোড লিখুন।",
 };
 
 const so: Dict = {
@@ -1867,7 +1867,7 @@ const so: Dict = {
   authValidFirstName: "Fadlan geli magacaaga hore.",
   authValidEmail: "Fadlan geli ciwaanka email ee saxda ah.",
   authValidPassword: "Fur sireedku waa inuu leeyahay ugu yaraan 6 xaraf.",
-  authValidCode: "Fadlan geli koodka 6-lambaraha ah ee email-kaaga.",
+  authValidCode: "Fadlan geli koodka email-kaaga.",
 };
 
 const tr: Dict = {
@@ -2031,7 +2031,7 @@ const tr: Dict = {
   authValidFirstName: "Lütfen adınızı girin.",
   authValidEmail: "Lütfen geçerli bir e-posta adresi girin.",
   authValidPassword: "Şifre en az 6 karakter olmalıdır.",
-  authValidCode: "Lütfen e-postanızdaki 6 haneli kodu girin.",
+  authValidCode: "Lütfen e-postanızdaki kodu girin.",
 };
 
 const fa: Dict = {
@@ -2195,7 +2195,7 @@ const fa: Dict = {
   authValidFirstName: "لطفاً نام خود را وارد کنید.",
   authValidEmail: "لطفاً یک آدرس ایمیل معتبر وارد کنید.",
   authValidPassword: "رمز عبور باید حداقل ۶ کاراکتر باشد.",
-  authValidCode: "لطفاً کد ۶ رقمی موجود در ایمیل خود را وارد کنید.",
+  authValidCode: "لطفاً کد موجود در ایمیل خود را وارد کنید.",
 };
 
 const uk: Dict = {
@@ -2359,7 +2359,7 @@ const uk: Dict = {
   authValidFirstName: "Будь ласка, введіть ваше ім'я.",
   authValidEmail: "Будь ласка, введіть дійсну адресу електронної пошти.",
   authValidPassword: "Пароль має містити не менше 6 символів.",
-  authValidCode: "Будь ласка, введіть 6-значний код з вашого email.",
+  authValidCode: "Будь ласка, введіть код з вашого email.",
 };
 
 const zh: Dict = {
@@ -2523,7 +2523,7 @@ const zh: Dict = {
   authValidFirstName: "请输入您的名字。",
   authValidEmail: "请输入有效的电子邮件地址。",
   authValidPassword: "密码至少需要6个字符。",
-  authValidCode: "请输入邮件中的6位验证码。",
+  authValidCode: "请输入邮件中的验证码。",
 };
 
 const pa: Dict = {
@@ -2687,7 +2687,7 @@ const pa: Dict = {
   authValidFirstName: "ਕਿਰਪਾ ਕਰਕੇ ਆਪਣਾ ਪਹਿਲਾ ਨਾਮ ਦਰਜ ਕਰੋ।",
   authValidEmail: "ਕਿਰਪਾ ਕਰਕੇ ਇੱਕ ਵੈਧ ਈਮੇਲ ਪਤਾ ਦਰਜ ਕਰੋ।",
   authValidPassword: "ਪਾਸਵਰਡ ਘੱਟੋ-ਘੱਟ 6 ਅੱਖਰਾਂ ਦਾ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ।",
-  authValidCode: "ਕਿਰਪਾ ਕਰਕੇ ਆਪਣੇ ਈਮੇਲ ਤੋਂ 6 ਅੰਕਾਂ ਦਾ ਕੋਡ ਦਰਜ ਕਰੋ।",
+  authValidCode: "ਕਿਰਪਾ ਕਰਕੇ ਆਪਣੇ ਈਮੇਲ ਤੋਂ ਕੋਡ ਦਰਜ ਕਰੋ।",
 };
 
 const gu: Dict = {
@@ -2851,7 +2851,7 @@ const gu: Dict = {
   authValidFirstName: "કૃપા કરીને તમારું પ્રથમ નામ દાખલ કરો.",
   authValidEmail: "કૃપા કરીને માન્ય ઈ-મેઈલ સરનામું દાખલ કરો.",
   authValidPassword: "પાસવર્ડ ઓછામાં ઓછા 6 અક્ષરનો હોવો જોઈએ.",
-  authValidCode: "કૃપા કરીને તમારી ઈ-મેઈલ માંથી 6 અંકનો કોડ દાખલ કરો.",
+  authValidCode: "કૃપા કરીને તમારી ઈ-મેઈલ માંથી કોડ દાખલ કરો.",
 };
 
 const ku: Dict = {
@@ -3015,7 +3015,7 @@ const ku: Dict = {
   authValidFirstName: "Ji kerema xwe navê yekem binivîsin.",
   authValidEmail: "Ji kerema xwe navnîşana e-nameyeke derbasdar binivîsin.",
   authValidPassword: "Şîfre divê herî kêm 6 tîp hebe.",
-  authValidCode: "Ji kerema xwe koda 6-reqemî ya e-nameya xwe binivîsin.",
+  authValidCode: "Ji kerema xwe koda e-nameya xwe binivîsin.",
 };
 
 const ta: Dict = {
@@ -3179,7 +3179,7 @@ const ta: Dict = {
   authValidFirstName: "தயவுசெய்து உங்கள் முதல் பெயரை உள்ளிடுங்கள்.",
   authValidEmail: "தயவுசெய்து சரியான மின்னஞ்சல் முகவரியை உள்ளிடுங்கள்.",
   authValidPassword: "கடவுச்சொல் குறைந்தது 6 எழுத்துக்கள் இருக்க வேண்டும்.",
-  authValidCode: "தயவுசெய்து உங்கள் மின்னஞ்சலிலிருந்து 6 இலக்க குறியீட்டை உள்ளிடுங்கள்.",
+  authValidCode: "தயவுசெய்து உங்கள் மின்னஞ்சலிலிருந்து குறியீட்டை உள்ளிடுங்கள்.",
 };
 
 const am: Dict = {
@@ -3343,7 +3343,7 @@ const am: Dict = {
   authValidFirstName: "እባክዎ የመጀመሪያ ስምዎን ያስገቡ።",
   authValidEmail: "እባክዎ ትክክለኛ የኢሜይል አድራሻ ያስገቡ።",
   authValidPassword: "የይለፍ ቃሉ ቢያንስ 6 ፊደሎች ሊኖሩት ይገባል።",
-  authValidCode: "እባክዎ ከኢሜይልዎ 6-አሃዝ ኮዱን ያስገቡ።",
+  authValidCode: "እባክዎ ከኢሜይልዎ ኮዱን ያስገቡ።",
 };
 
 const ti: Dict = {
@@ -3507,7 +3507,7 @@ const ti: Dict = {
   authValidFirstName: "ባኮ መጀመርታ ስምካ ኣእቱ።",
   authValidEmail: "ባኮ ቅኑዕ ናይ ኢሜይል ኣድራሻ ኣእቱ።",
   authValidPassword: "ፓስዎርድ ቢወሓዱ 6 ፊደላት ክህሉ ኣለዎ።",
-  authValidCode: "ባኮ ካብ ኢሜይልካ 6-ቁጽሪ ኮዱ ኣእቱ።",
+  authValidCode: "ባኮ ካብ ኢሜይልካ ኮዱ ኣእቱ።",
 };
 
 const translations: Record<string, Dict> = {
