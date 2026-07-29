@@ -261,6 +261,10 @@ function ResultPage() {
     <main className="min-h-screen bg-background text-foreground">
       <style>{`
         #cv-print {
+          -webkit-user-select: none;
+          -moz-user-select: none;
+          -ms-user-select: none;
+          user-select: none;
           max-width: 680px;
           margin: 0 auto;
           padding: 48px 48px 40px;
@@ -394,7 +398,7 @@ function ResultPage() {
             className="rounded-2xl border border-border bg-white shadow-sm"
             style={{ minHeight: "60vh" }}
           >
-            <div id="cv-print">
+            <div id="cv-print" onContextMenu={(e) => e.preventDefault()}>
               <div dangerouslySetInnerHTML={{ __html: activeHtml }} />
               <div className="cv-watermark">
                 Created with <a href="https://cvlingo.com" target="_blank" rel="noreferrer">CVLingo · cvlingo.com</a>

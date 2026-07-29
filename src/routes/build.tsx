@@ -9,25 +9,34 @@ import { notifyCandidate } from "@/lib/notifyCandidate";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/context/AuthContext";
 
-// Attributes the signup to a partner referral if cvlingo:referralCode is set
-// in sessionStorage. For OTP signups, checks whether a profile row exists to
-// distinguish new vs returning users. For password signups, pass isNew=true.
-async function maybeAttributeReferral(userId: string, isNew = false): Promise<void> {
+// Attributes the current session's referral code to the given user.
+// Skips silently if no code is set or the user was already attributed.
+async function maybeAttributeReferral(userId: string): Promise<void> {
   let code: string | null = null;
   try { code = sessionStorage.getItem("cvlingo:referralCode"); } catch { /* ignore */ }
   if (!code) return;
 
-  if (!isNew) {
-    const { data } = await supabase.from("profiles").select("id").eq("id", userId).maybeSingle();
-    isNew = !data;
+  // Guard against duplicate attribution regardless of whether profiles row exists
+  const { data: existing, error: checkErr } = await supabase
+    .from("partner_referrals")
+    .select("id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (checkErr) console.error("partner_referrals check error:", checkErr);
+  if (existing) {
+    // Already attributed — clear the code so it doesn't re-fire
+    try { sessionStorage.removeItem("cvlingo:referralCode"); } catch { /* ignore */ }
+    return;
   }
-  if (!isNew) return;
 
   const { error } = await supabase
     .from("partner_referrals")
     .insert({ user_id: userId, partner_name: code, referral_code: code });
-  if (error) console.error("partner_referrals insert error:", error);
-  try { sessionStorage.removeItem("cvlingo:referralCode"); } catch { /* ignore */ }
+  if (error) {
+    console.error("partner_referrals insert error:", error);
+  } else {
+    try { sessionStorage.removeItem("cvlingo:referralCode"); } catch { /* ignore */ }
+  }
 }
 
 type Experience = {
@@ -424,7 +433,7 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
     const { error: err } = await verifyOtp(email.trim(), token);
     if (err) { setSubmitting(false); setError(friendlyAuthError(err, lang)); return; }
     const { data: { user: authedUser } } = await supabase.auth.getUser();
-    if (authedUser) await maybeAttributeReferral(authedUser.id, false);
+    if (authedUser) await maybeAttributeReferral(authedUser.id);
     setSubmitting(false);
     onSuccess();
   }
@@ -456,7 +465,7 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
     const { error: signUpErr } = await signUp(email.trim(), password, firstName.trim());
     if (signUpErr) { setSubmitting(false); setError(friendlyAuthError(signUpErr, lang)); return; }
     const { data: { user: newUser } } = await supabase.auth.getUser();
-    if (newUser) await maybeAttributeReferral(newUser.id, true);
+    if (newUser) await maybeAttributeReferral(newUser.id);
     setSubmitting(false);
     onSuccess();
   }
@@ -1437,6 +1446,13 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
           console.error("cv_documents insert error:", cvErr);
         } else if (cvData?.id) {
           try { sessionStorage.setItem("cvlingo:cvDocumentId", cvData.id); } catch { /* ignore */ }
+        }
+        // Persist chosen language to profile so admin analytics reflect real usage
+        if (data.languageCode) {
+          void supabase.from("profiles").upsert(
+            { id: user.id, default_cv_language: data.languageCode, preferred_ui_language: data.languageCode },
+            { onConflict: "id" },
+          );
         }
       }
 
