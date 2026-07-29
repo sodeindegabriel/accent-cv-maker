@@ -43,6 +43,8 @@ export type TKey =
   | "consentText" | "privacyLock" | "readPrivacyPolicy"
   | "invalidPhone" | "invalidEmail"
   | "resultBackToDashboard"
+  | "feedbackTitle" | "feedbackRatingLabel" | "feedbackCommentLabel"
+  | "feedbackSubmit" | "feedbackThanks" | "feedbackAtLeastOne"
   | "cvReady" | "editAnswers"
   | "editLanguage" | "editJobType" | "editPersonalDetails" | "editExperience" | "editEducation" | "editSkills"
   | "shareMessage"
@@ -184,6 +186,12 @@ const en: Record<TKey, string> = {
   invalidPhone: "Please enter a valid UK phone number",
   invalidEmail: "Please enter a valid email address",
   resultBackToDashboard: "← Back to Dashboard",
+  feedbackTitle: "Share your feedback",
+  feedbackRatingLabel: "How was your experience building your CV?",
+  feedbackCommentLabel: "What's one thing we could improve?",
+  feedbackSubmit: "Submit feedback",
+  feedbackThanks: "Thanks for your feedback! 🎉",
+  feedbackAtLeastOne: "Please add a rating or a comment",
   cvReady: "Your CV is ready",
   editAnswers: "Edit answers",
   editLanguage: "Language",

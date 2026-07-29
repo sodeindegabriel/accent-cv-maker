@@ -19,6 +19,7 @@ import { Route as CandidatesRouteImport } from './routes/candidates'
 import { Route as BuildRouteImport } from './routes/build'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RefCodeRouteImport } from './routes/ref.$code'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AdminPartnersRouteImport } from './routes/admin.partners'
 
 const TermsRoute = TermsRouteImport.update({
@@ -71,6 +72,11 @@ const RefCodeRoute = RefCodeRouteImport.update({
   path: '/ref/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminPartnersRoute = AdminPartnersRouteImport.update({
   id: '/admin/partners',
   path: '/admin/partners',
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/result': typeof ResultRoute
   '/terms': typeof TermsRoute
+  '/admin': typeof AdminRoute
   '/admin/partners': typeof AdminPartnersRoute
   '/ref/$code': typeof RefCodeRoute
 }
@@ -100,6 +107,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/result': typeof ResultRoute
   '/terms': typeof TermsRoute
+  '/admin': typeof AdminRoute
   '/admin/partners': typeof AdminPartnersRoute
   '/ref/$code': typeof RefCodeRoute
 }
@@ -114,6 +122,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/result': typeof ResultRoute
   '/terms': typeof TermsRoute
+  '/admin': typeof AdminRoute
   '/admin/partners': typeof AdminPartnersRoute
   '/ref/$code': typeof RefCodeRoute
 }
@@ -129,6 +138,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/result'
     | '/terms'
+    | '/admin'
     | '/admin/partners'
     | '/ref/$code'
   fileRoutesByTo: FileRoutesByTo
@@ -142,6 +152,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/result'
     | '/terms'
+    | '/admin'
     | '/admin/partners'
     | '/ref/$code'
   id:
@@ -155,6 +166,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/result'
     | '/terms'
+    | '/admin'
     | '/admin/partners'
     | '/ref/$code'
   fileRoutesById: FileRoutesById
@@ -169,6 +181,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   ResultRoute: typeof ResultRoute
   TermsRoute: typeof TermsRoute
+  AdminRoute: typeof AdminRoute
   AdminPartnersRoute: typeof AdminPartnersRoute
   RefCodeRoute: typeof RefCodeRoute
 }
@@ -245,6 +258,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RefCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/partners': {
       id: '/admin/partners'
       path: '/admin/partners'
@@ -265,6 +285,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   ResultRoute: ResultRoute,
   TermsRoute: TermsRoute,
+  AdminRoute: AdminRoute,
   AdminPartnersRoute: AdminPartnersRoute,
   RefCodeRoute: RefCodeRoute,
 }

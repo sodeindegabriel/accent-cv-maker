@@ -1,6 +1,6 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/context/AuthContext";
-
+import { useEffect } from "react";
 import appCss from "../styles.css?url";
 
 
@@ -91,6 +91,17 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  useEffect(() => {
+    try {
+      const ref = new URLSearchParams(window.location.search).get("ref");
+      if (ref) {
+        const clean = ref.trim().toLowerCase().slice(0, 64);
+        sessionStorage.setItem("cvlingo:referralCode", clean);
+        localStorage.setItem("cvlingo_referral", clean);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
   return (
     <AuthProvider>
       <Outlet />

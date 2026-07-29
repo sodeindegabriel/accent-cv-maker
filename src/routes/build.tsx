@@ -9,6 +9,27 @@ import { notifyCandidate } from "@/lib/notifyCandidate";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/context/AuthContext";
 
+// Attributes the signup to a partner referral if cvlingo:referralCode is set
+// in sessionStorage. For OTP signups, checks whether a profile row exists to
+// distinguish new vs returning users. For password signups, pass isNew=true.
+async function maybeAttributeReferral(userId: string, isNew = false): Promise<void> {
+  let code: string | null = null;
+  try { code = sessionStorage.getItem("cvlingo:referralCode"); } catch { /* ignore */ }
+  if (!code) return;
+
+  if (!isNew) {
+    const { data } = await supabase.from("profiles").select("id").eq("id", userId).maybeSingle();
+    isNew = !data;
+  }
+  if (!isNew) return;
+
+  const { error } = await supabase
+    .from("partner_referrals")
+    .insert({ user_id: userId, partner_name: code, referral_code: code });
+  if (error) console.error("partner_referrals insert error:", error);
+  try { sessionStorage.removeItem("cvlingo:referralCode"); } catch { /* ignore */ }
+}
+
 type Experience = {
   title: string;
   place: string;
@@ -401,8 +422,10 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
     if (!/^\d{6,10}$/.test(token)) { setError(t(lang, "authValidCode")); return; }
     setSubmitting(true);
     const { error: err } = await verifyOtp(email.trim(), token);
+    if (err) { setSubmitting(false); setError(friendlyAuthError(err, lang)); return; }
+    const { data: { user: authedUser } } = await supabase.auth.getUser();
+    if (authedUser) await maybeAttributeReferral(authedUser.id, false);
     setSubmitting(false);
-    if (err) { setError(friendlyAuthError(err, lang)); return; }
     onSuccess();
   }
 
@@ -431,8 +454,10 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
     }
     // Likely a new user — try sign up
     const { error: signUpErr } = await signUp(email.trim(), password, firstName.trim());
+    if (signUpErr) { setSubmitting(false); setError(friendlyAuthError(signUpErr, lang)); return; }
+    const { data: { user: newUser } } = await supabase.auth.getUser();
+    if (newUser) await maybeAttributeReferral(newUser.id, true);
     setSubmitting(false);
-    if (signUpErr) { setError(friendlyAuthError(signUpErr, lang)); return; }
     onSuccess();
   }
 
