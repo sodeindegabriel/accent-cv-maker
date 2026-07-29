@@ -1448,11 +1448,19 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
           try { sessionStorage.setItem("cvlingo:cvDocumentId", cvData.id); } catch { /* ignore */ }
         }
         // Persist chosen language to profile so admin analytics reflect real usage
+        console.log("[handleGenerate] saving language to profile — languageCode:", data.languageCode, "user:", user.id);
         if (data.languageCode) {
-          void supabase.from("profiles").upsert(
-            { id: user.id, default_cv_language: data.languageCode, preferred_ui_language: data.languageCode },
-            { onConflict: "id" },
-          );
+          const { error: langErr } = await supabase
+            .from("profiles")
+            .update({ default_cv_language: data.languageCode, preferred_ui_language: data.languageCode })
+            .eq("id", user.id);
+          if (langErr) {
+            console.error("[handleGenerate] profiles language update error:", langErr);
+          } else {
+            console.log("[handleGenerate] profiles language update OK:", data.languageCode);
+          }
+        } else {
+          console.warn("[handleGenerate] languageCode is empty — skipping profile update");
         }
       }
 

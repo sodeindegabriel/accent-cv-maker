@@ -411,7 +411,7 @@ function ResultPage() {
           <div className="no-print mt-6 flex flex-wrap gap-3">
             <button
               type="button"
-              disabled={downloading}
+              disabled={downloading || (user !== null && downloadCount === null)}
               onClick={() => {
                 if (isEnglishOnly) {
                   downloadPdf("english");
@@ -422,7 +422,7 @@ function ResultPage() {
               className="rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
             >
               <Download className="mr-2 inline-block h-4 w-4" />
-              {downloading ? "Preparing PDF…" : t(uiLang, "downloadPDF")}
+              {downloading ? "Preparing PDF…" : (user !== null && downloadCount === null) ? "Loading…" : t(uiLang, "downloadPDF")}
             </button>
             {/* Download limit toast */}
             {showDownloadToast && (
