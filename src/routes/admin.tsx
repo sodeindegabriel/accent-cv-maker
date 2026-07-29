@@ -39,10 +39,15 @@ interface ReferralRow {
   created_at: string;
 }
 
+interface DownloadRow {
+  language: string | null;
+}
+
 interface AdminData {
   profiles: ProfileRow[];
   cvDocs: CVDocRow[];
   downloadCount: number;
+  downloads: DownloadRow[];
   feedback: FeedbackRow[];
   referrals: ReferralRow[];
 }
@@ -124,7 +129,7 @@ function AdminPage() {
               .order("created_at"),
             supabase
               .from("downloads")
-              .select("id", { count: "exact", head: true }),
+              .select("language"),
             supabase
               .from("feedback")
               .select("id, user_id, rating, comment, created_at")
@@ -141,7 +146,8 @@ function AdminPage() {
         setData({
           profiles: (profilesRes.data as ProfileRow[]) ?? [],
           cvDocs: (cvsRes.data as CVDocRow[]) ?? [],
-          downloadCount: dlRes.count ?? 0,
+          downloadCount: (dlRes.data as DownloadRow[])?.length ?? 0,
+          downloads: (dlRes.data as DownloadRow[]) ?? [],
           feedback: (feedbackRes.data as FeedbackRow[]) ?? [],
           referrals: (referralsRes.data as ReferralRow[]) ?? [],
         });
@@ -199,6 +205,10 @@ function AdminPage() {
 
   const langData = toBarData(
     groupBy(data.profiles, (p) => p.preferred_ui_language || "en"),
+  );
+
+  const downloadLangData = toBarData(
+    groupBy(data.downloads, (d) => d.language || "unknown"),
   );
 
   const jobTypeData = toBarData(
@@ -293,7 +303,28 @@ function AdminPage() {
           </div>
         </section>
 
-        {/* 4. Job/role type breakdown */}
+        {/* 4. Downloads by language */}
+        <section>
+          <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide mb-4">
+            Downloads by language
+          </h2>
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            {downloadLangData.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-8">No downloads yet</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={downloadLangData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                  <Tooltip formatter={(v: number) => [v, "Downloads"]} />
+                  <Bar dataKey="count" fill="#0D6E6E" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </section>
+
+        {/* 5. Job/role type breakdown (from CV titles) */}
         <section>
           <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide mb-4">
             Job type breakdown (from CV titles)
