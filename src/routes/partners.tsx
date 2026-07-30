@@ -113,21 +113,19 @@ const benefits = [
   },
 ];
 
-const testimonials = [
+type PartnerShowcaseEntry = {
+  name: string;
+  location: string;
+  since: string;
+  tagline: string;
+};
+
+const partnerShowcase: PartnerShowcaseEntry[] = [
   {
-    quote:
-      "CVLingo helped 27 of our members create professional CVs in their own language. Eight have already found work.",
-    author: "Support Worker, Refugee Charity, Bristol",
-  },
-  {
-    quote:
-      "Simple, free, and it actually works. Our Arabic and Somali speaking clients could use it without any help from staff.",
-    author: "Employment Advisor, Community Centre, Birmingham",
-  },
-  {
-    quote:
-      "We recommended CVLingo at our jobs fair and the feedback was overwhelmingly positive. Will be using it again.",
-    author: "Volunteer Coordinator, Migrants Support Group, London",
+    name: "Wiltshire Refugee Network",
+    location: "Wiltshire, UK",
+    since: "July 2026",
+    tagline: "Helping their members build CVs in their own language.",
   },
 ];
 
@@ -238,22 +236,30 @@ function PartnersPage() {
         </div>
       </section>
 
-      {/* SOCIAL PROOF */}
+      {/* PARTNER SHOWCASE */}
       <section className="bg-secondary/40 py-14">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <p className="text-center text-sm font-medium uppercase tracking-wider text-muted-foreground">
-            Trusted by community organisations supporting immigrants across the UK
+            Our partners
           </p>
-          <div className="mt-8 grid gap-5 md:grid-cols-3">
-            {testimonials.map((t) => (
-              <figure key={t.author} className="rounded-2xl border border-border bg-card p-6">
-                <blockquote className="text-sm leading-relaxed text-foreground">
-                  "{t.quote}"
-                </blockquote>
-                <figcaption className="mt-4 text-xs font-medium text-muted-foreground">
-                  — {t.author}
-                </figcaption>
-              </figure>
+          <div className="mt-8 flex flex-wrap justify-center gap-5">
+            {partnerShowcase.map((p) => (
+              <div
+                key={p.name}
+                className="w-full max-w-sm rounded-2xl border border-border bg-card p-6"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">
+                    {p.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground">{p.name}</p>
+                    <p className="text-xs text-muted-foreground">{p.location}</p>
+                  </div>
+                </div>
+                <p className="mt-4 text-sm text-muted-foreground">{p.tagline}</p>
+                <p className="mt-3 text-xs font-medium text-primary">Partner since {p.since}</p>
+              </div>
             ))}
           </div>
         </div>
