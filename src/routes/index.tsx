@@ -277,16 +277,9 @@ function SocialProofToast() {
 
   if (!current) return null;
 
-  const minutesAgo = Math.round((Date.now() - new Date(current.created_at).getTime()) / 60000);
-  const timeLabel = minutesAgo < 2
-    ? "just now"
-    : minutesAgo < 60
-      ? `${minutesAgo}m ago`
-      : `${Math.round(minutesAgo / 60)}h ago`;
-
   return (
     <div
-      className={`fixed bottom-24 left-4 z-40 transition-all duration-500 sm:bottom-6 ${
+      className={`fixed bottom-6 left-4 z-40 hidden md:block transition-all duration-500 ${
         visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
       }`}
     >
@@ -296,9 +289,8 @@ function SocialProofToast() {
         </div>
         <div className="min-w-0 max-w-[180px]">
           <p className="truncate text-xs font-semibold text-foreground">
-            {current.first_name} just completed a CV
+            {current.first_name} just built a CV
           </p>
-          <p className="text-[10px] text-muted-foreground">{timeLabel}</p>
         </div>
       </div>
     </div>
