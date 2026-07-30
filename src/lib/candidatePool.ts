@@ -1,13 +1,25 @@
+import { supabase } from "@/lib/supabaseClient";
+
 export type CandidatePoolEntry = {
   email: string;
   name: string;
+  phone: string | null;
   jobTypes: string[];
   language: string;
   rightToWork: string;
   city: string;
   postcode: string | null;
+  skills: string[];
+  availability: string[];
   referralSource: string | null;
   timestamp: string;
+};
+
+export type SupabaseCandidateInsert = CandidatePoolEntry & {
+  userId: string | null;
+  cvDocumentId: string | null;
+  cvEnglish: { html: string } | null;
+  cvNative: { html: string } | null;
 };
 
 const STORAGE_KEY = "cvlingo:candidatePool";
@@ -34,6 +46,29 @@ export function addCandidate(entry: CandidatePoolEntry) {
 export function hasSubmittedThisSession(): boolean {
   if (typeof window === "undefined") return false;
   return sessionStorage.getItem(SUBMITTED_FLAG) === "1";
+}
+
+export async function insertCandidateToSupabase(entry: SupabaseCandidateInsert): Promise<void> {
+  const { error } = await supabase.from("candidates").insert({
+    user_id: entry.userId || null,
+    name: entry.name,
+    email: entry.email,
+    phone: entry.phone || null,
+    city: entry.city,
+    postcode: entry.postcode || null,
+    right_to_work: entry.rightToWork,
+    language: entry.language,
+    job_types: entry.jobTypes,
+    skills: entry.skills,
+    availability: entry.availability,
+    cv_english: entry.cvEnglish,
+    cv_native: entry.cvNative,
+    cv_document_id: entry.cvDocumentId || null,
+    referral_source: entry.referralSource || null,
+  });
+  if (error) {
+    console.error("[insertCandidateToSupabase] error:", error);
+  }
 }
 
 export function isValidEmail(email: string): boolean {
@@ -63,15 +98,9 @@ export function isValidEmail(email: string): boolean {
 
 export function toCSV(entries: CandidatePoolEntry[]): string {
   const headers = [
-    "timestamp",
-    "email",
-    "name",
-    "jobTypes",
-    "language",
-    "rightToWork",
-    "city",
-    "postcode",
-    "referralSource",
+    "timestamp", "email", "name", "phone",
+    "jobTypes", "language", "rightToWork",
+    "city", "postcode", "skills", "availability", "referralSource",
   ];
   const escape = (v: string) => `"${(v ?? "").replace(/"/g, '""')}"`;
   const rows = entries.map((e) =>
@@ -79,11 +108,14 @@ export function toCSV(entries: CandidatePoolEntry[]): string {
       e.timestamp,
       e.email,
       e.name,
+      e.phone ?? "",
       e.jobTypes.join("; "),
       e.language,
       e.rightToWork,
       e.city,
       e.postcode ?? "",
+      (e.skills ?? []).join("; "),
+      (e.availability ?? []).join("; "),
       e.referralSource ?? "",
     ]
       .map((v) => escape(String(v)))

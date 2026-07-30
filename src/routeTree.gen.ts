@@ -9,67 +9,23 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TermsRouteImport } from './routes/terms'
-import { Route as ResultRouteImport } from './routes/result'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as PartnersRouteImport } from './routes/partners'
-import { Route as EmployerRouteImport } from './routes/employer'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as CandidatesRouteImport } from './routes/candidates'
-import { Route as BuildRouteImport } from './routes/build'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as RefCodeRouteImport } from './routes/ref.$code'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as BuildRouteImport } from './routes/build'
+import { Route as CandidatesRouteImport } from './routes/candidates'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as EmployerRouteImport } from './routes/employer'
+import { Route as PartnersRouteImport } from './routes/partners'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as ResultRouteImport } from './routes/result'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as AdminCandidatesRouteImport } from './routes/admin.candidates'
 import { Route as AdminPartnersRouteImport } from './routes/admin.partners'
+import { Route as RefCodeRouteImport } from './routes/ref.$code'
 
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResultRoute = ResultRouteImport.update({
-  id: '/result',
-  path: '/result',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PartnersRoute = PartnersRouteImport.update({
-  id: '/partners',
-  path: '/partners',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EmployerRoute = EmployerRouteImport.update({
-  id: '/employer',
-  path: '/employer',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CandidatesRoute = CandidatesRouteImport.update({
-  id: '/candidates',
-  path: '/candidates',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BuildRoute = BuildRouteImport.update({
-  id: '/build',
-  path: '/build',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RefCodeRoute = RefCodeRouteImport.update({
-  id: '/ref/$code',
-  path: '/ref/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -77,14 +33,65 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BuildRoute = BuildRouteImport.update({
+  id: '/build',
+  path: '/build',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CandidatesRoute = CandidatesRouteImport.update({
+  id: '/candidates',
+  path: '/candidates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmployerRoute = EmployerRouteImport.update({
+  id: '/employer',
+  path: '/employer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartnersRoute = PartnersRouteImport.update({
+  id: '/partners',
+  path: '/partners',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResultRoute = ResultRouteImport.update({
+  id: '/result',
+  path: '/result',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCandidatesRoute = AdminCandidatesRouteImport.update({
+  id: '/candidates',
+  path: '/candidates',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPartnersRoute = AdminPartnersRouteImport.update({
-  id: '/admin/partners',
-  path: '/admin/partners',
+  id: '/partners',
+  path: '/partners',
+  getParentRoute: () => AdminRoute,
+} as any)
+const RefCodeRoute = RefCodeRouteImport.update({
+  id: '/ref/$code',
+  path: '/ref/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/build': typeof BuildRoute
   '/candidates': typeof CandidatesRoute
   '/dashboard': typeof DashboardRoute
@@ -93,12 +100,13 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/result': typeof ResultRoute
   '/terms': typeof TermsRoute
-  '/admin': typeof AdminRoute
+  '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/partners': typeof AdminPartnersRoute
   '/ref/$code': typeof RefCodeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/build': typeof BuildRoute
   '/candidates': typeof CandidatesRoute
   '/dashboard': typeof DashboardRoute
@@ -107,13 +115,14 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/result': typeof ResultRoute
   '/terms': typeof TermsRoute
-  '/admin': typeof AdminRoute
+  '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/partners': typeof AdminPartnersRoute
   '/ref/$code': typeof RefCodeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/build': typeof BuildRoute
   '/candidates': typeof CandidatesRoute
   '/dashboard': typeof DashboardRoute
@@ -122,7 +131,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/result': typeof ResultRoute
   '/terms': typeof TermsRoute
-  '/admin': typeof AdminRoute
+  '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/partners': typeof AdminPartnersRoute
   '/ref/$code': typeof RefCodeRoute
 }
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/build'
     | '/candidates'
     | '/dashboard'
@@ -138,12 +148,13 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/result'
     | '/terms'
-    | '/admin'
+    | '/admin/candidates'
     | '/admin/partners'
     | '/ref/$code'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/build'
     | '/candidates'
     | '/dashboard'
@@ -152,12 +163,13 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/result'
     | '/terms'
-    | '/admin'
+    | '/admin/candidates'
     | '/admin/partners'
     | '/ref/$code'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/build'
     | '/candidates'
     | '/dashboard'
@@ -166,13 +178,14 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/result'
     | '/terms'
-    | '/admin'
+    | '/admin/candidates'
     | '/admin/partners'
     | '/ref/$code'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
   BuildRoute: typeof BuildRoute
   CandidatesRoute: typeof CandidatesRoute
   DashboardRoute: typeof DashboardRoute
@@ -181,81 +194,16 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   ResultRoute: typeof ResultRoute
   TermsRoute: typeof TermsRoute
-  AdminRoute: typeof AdminRoute
-  AdminPartnersRoute: typeof AdminPartnersRoute
   RefCodeRoute: typeof RefCodeRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/result': {
-      id: '/result'
-      path: '/result'
-      fullPath: '/result'
-      preLoaderRoute: typeof ResultRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/partners': {
-      id: '/partners'
-      path: '/partners'
-      fullPath: '/partners'
-      preLoaderRoute: typeof PartnersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/employer': {
-      id: '/employer'
-      path: '/employer'
-      fullPath: '/employer'
-      preLoaderRoute: typeof EmployerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/candidates': {
-      id: '/candidates'
-      path: '/candidates'
-      fullPath: '/candidates'
-      preLoaderRoute: typeof CandidatesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/build': {
-      id: '/build'
-      path: '/build'
-      fullPath: '/build'
-      preLoaderRoute: typeof BuildRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ref/$code': {
-      id: '/ref/$code'
-      path: '/ref/$code'
-      fullPath: '/ref/$code'
-      preLoaderRoute: typeof RefCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -265,18 +213,101 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/build': {
+      id: '/build'
+      path: '/build'
+      fullPath: '/build'
+      preLoaderRoute: typeof BuildRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/candidates': {
+      id: '/candidates'
+      path: '/candidates'
+      fullPath: '/candidates'
+      preLoaderRoute: typeof CandidatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/employer': {
+      id: '/employer'
+      path: '/employer'
+      fullPath: '/employer'
+      preLoaderRoute: typeof EmployerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partners': {
+      id: '/partners'
+      path: '/partners'
+      fullPath: '/partners'
+      preLoaderRoute: typeof PartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/result': {
+      id: '/result'
+      path: '/result'
+      fullPath: '/result'
+      preLoaderRoute: typeof ResultRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/candidates': {
+      id: '/admin/candidates'
+      path: '/candidates'
+      fullPath: '/admin/candidates'
+      preLoaderRoute: typeof AdminCandidatesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/partners': {
       id: '/admin/partners'
-      path: '/admin/partners'
+      path: '/partners'
       fullPath: '/admin/partners'
       preLoaderRoute: typeof AdminPartnersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/ref/$code': {
+      id: '/ref/$code'
+      path: '/ref/$code'
+      fullPath: '/ref/$code'
+      preLoaderRoute: typeof RefCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
 }
 
+interface AdminRouteChildren {
+  AdminCandidatesRoute: typeof AdminCandidatesRoute
+  AdminPartnersRoute: typeof AdminPartnersRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminCandidatesRoute: AdminCandidatesRoute,
+  AdminPartnersRoute: AdminPartnersRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
   BuildRoute: BuildRoute,
   CandidatesRoute: CandidatesRoute,
   DashboardRoute: DashboardRoute,
@@ -285,19 +316,8 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   ResultRoute: ResultRoute,
   TermsRoute: TermsRoute,
-  AdminRoute: AdminRoute,
-  AdminPartnersRoute: AdminPartnersRoute,
   RefCodeRoute: RefCodeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

@@ -239,6 +239,45 @@ interface ActivityEntry {
   created_at: string;
 }
 
+function StatsSection() {
+  const [cvCount, setCvCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    supabase.rpc("get_platform_stats").then(({ data }) => {
+      if (data && typeof data === "object" && "cv_count" in data) {
+        setCvCount(Number((data as { cv_count: number }).cv_count));
+      }
+    });
+  }, []);
+
+  return (
+    <section className="bg-background py-16">
+      <div className="mx-auto grid max-w-6xl gap-10 px-5 text-center md:grid-cols-3">
+        <div>
+          <div className="font-serif text-5xl text-foreground md:text-6xl">
+            <CountUp value={20} />
+          </div>
+          <p className="mt-2 text-sm uppercase tracking-widest text-muted-foreground">Languages Supported</p>
+        </div>
+        <div>
+          <div className="font-serif text-5xl text-foreground md:text-6xl">
+            <CountUp value={100} suffix="%" />
+          </div>
+          <p className="mt-2 text-sm uppercase tracking-widest text-muted-foreground">Free for Jobseekers</p>
+        </div>
+        <div>
+          <div className="font-serif text-5xl text-foreground md:text-6xl">
+            {cvCount !== null ? <CountUp value={cvCount} suffix="+" /> : "UK Format"}
+          </div>
+          <p className="mt-2 text-sm uppercase tracking-widest text-muted-foreground">
+            {cvCount !== null ? "CVs Built" : "Job Market Ready"}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function SocialProofToast() {
   const [entries, setEntries] = useState<ActivityEntry[]>([]);
   const [current, setCurrent] = useState<ActivityEntry | null>(null);
@@ -717,26 +756,7 @@ function Index() {
         </section>
 
         {/* STATS */}
-        <section className="bg-background py-16">
-          <div className="mx-auto grid max-w-6xl gap-10 px-5 text-center md:grid-cols-3">
-            <div>
-              <div className="font-serif text-5xl text-foreground md:text-6xl">
-                <CountUp value={20} />
-              </div>
-              <p className="mt-2 text-sm uppercase tracking-widest text-muted-foreground">Languages Supported</p>
-            </div>
-            <div>
-              <div className="font-serif text-5xl text-foreground md:text-6xl">
-                <CountUp value={100} suffix="%" />
-              </div>
-              <p className="mt-2 text-sm uppercase tracking-widest text-muted-foreground">Free for Jobseekers</p>
-            </div>
-            <div>
-              <div className="font-serif text-5xl text-foreground md:text-6xl">UK Format</div>
-              <p className="mt-2 text-sm uppercase tracking-widest text-muted-foreground">Job Market Ready</p>
-            </div>
-          </div>
-        </section>
+        <StatsSection />
 
         {/* LANGUAGES */}
         <section id="languages" className="bg-background py-20 md:py-28">

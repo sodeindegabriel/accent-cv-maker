@@ -6,9 +6,8 @@ import { t } from "@/lib/buildTranslations";
 import type { GeneratedCV } from "@/utils/generateCV";
 import {
   addCandidate,
+  insertCandidateToSupabase,
   hasSubmittedThisSession,
-  isValidEmail,
-  type CandidatePoolEntry,
 } from "@/lib/candidatePool";
 import { notifyCandidate } from "@/lib/notifyCandidate";
 import { useAuth } from "@/context/AuthContext";
@@ -657,163 +656,101 @@ function EditAnswersMenu({ lang = "en" }: { lang?: string }) {
 }
 
 function CandidatePoolCard({ lang = "en" }: { lang?: string }) {
+  const { user } = useAuth();
   const [dismissed, setDismissed] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [cvEmail, setCvEmail] = useState<string>("");
-  const [confirmedEmail, setConfirmedEmail] = useState<string | null>(null);
+  const [joining, setJoining] = useState(false);
 
   useEffect(() => {
     if (hasSubmittedThisSession()) setSubmitted(true);
-    try {
-      const inputRaw = sessionStorage.getItem("cvlingo:input");
-      if (inputRaw) {
-        const parsed = JSON.parse(inputRaw);
-        setCvEmail((parsed?.personalDetails?.email ?? "").trim());
-      }
-    } catch {
-      /* ignore */
-    }
   }, []);
 
   if (dismissed) return null;
 
   if (submitted) {
     return (
-      <section className="no-print mt-8 rounded-2xl border border-border bg-card p-6 text-center">
-        <p className="text-lg font-semibold text-foreground">{t(lang, "poolInPool")}</p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {t(lang, "poolInPoolSubtext")}
-        </p>
+      <section className="no-print mt-8 rounded-2xl border-2 border-primary/30 bg-primary/5 p-6 text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/15 text-2xl">✓</div>
+        <p className="mt-3 text-lg font-semibold text-foreground">{t(lang, "poolInPool")}</p>
+        <p className="mt-2 text-sm text-muted-foreground">{t(lang, "poolInPoolSubtext")}</p>
       </section>
     );
   }
 
-  const validEmail = isValidEmail(email);
-  const typedEmail = email.trim();
-  const emailsMismatch =
-    validEmail && cvEmail && typedEmail.toLowerCase() !== cvEmail.toLowerCase();
-  const needsConfirmation = !!emailsMismatch && !confirmedEmail;
-  const canSubmit = validEmail && !needsConfirmation;
-
-  const doSubmit = (finalEmail: string) => {
+  const doSubmit = async () => {
+    setJoining(true);
     try {
       const inputRaw = sessionStorage.getItem("cvlingo:input");
+      const resultRaw = sessionStorage.getItem("cvlingo:result");
       const input = inputRaw ? JSON.parse(inputRaw) : {};
+      const cvResult = resultRaw ? JSON.parse(resultRaw) : null;
+      const cvDocId = (() => { try { return sessionStorage.getItem("cvlingo:cvDocumentId") || null; } catch { return null; } })();
       let referralSource: string | null = null;
-      try {
-        referralSource =
-          localStorage.getItem("cvlingo_referral") ||
-          localStorage.getItem("cvlingo:referral") ||
-          localStorage.getItem("referral") ||
-          localStorage.getItem("referralCode") ||
-          null;
-      } catch {
-        /* ignore */
-      }
-      const entry: CandidatePoolEntry = {
-        email: finalEmail.trim(),
+      try { referralSource = localStorage.getItem("cvlingo_referral") || localStorage.getItem("cvlingo:referral") || null; } catch { /* ignore */ }
+      const entry = {
+        email: (input?.personalDetails?.email ?? "").trim(),
         name: input?.personalDetails?.name ?? "",
+        phone: input?.personalDetails?.phone || null,
         jobTypes: Array.isArray(input?.jobTypes) ? input.jobTypes : [],
         language: input?.language ?? "",
         rightToWork: input?.personalDetails?.rightToWork ?? "",
         city: input?.personalDetails?.city ?? "",
-        postcode: input?.personalDetails?.postcode
-          ? String(input.personalDetails.postcode)
-          : null,
+        postcode: input?.personalDetails?.postcode ? String(input.personalDetails.postcode) : null,
+        skills: Array.isArray(input?.skills) ? input.skills : [],
+        availability: Array.isArray(input?.availability) ? input.availability : [],
         referralSource,
         timestamp: new Date().toISOString(),
       };
       addCandidate(entry);
       void notifyCandidate(entry);
+      void insertCandidateToSupabase({
+        ...entry,
+        userId: user?.id ?? null,
+        cvDocumentId: cvDocId,
+        cvEnglish: cvResult?.english ? { html: cvResult.english } : null,
+        cvNative: cvResult?.native ? { html: cvResult.native } : null,
+      });
       setSubmitted(true);
     } catch {
-      setError(t(lang, "poolError"));
+      setJoining(false);
     }
-  };
-
-  const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validEmail) {
-      setError(t(lang, "invalidEmail"));
-      return;
-    }
-    if (needsConfirmation) return;
-    doSubmit(confirmedEmail ?? typedEmail);
   };
 
   return (
-    <section className="no-print mt-8 rounded-2xl border border-border bg-card p-6">
-      <h2 className="text-lg font-semibold text-foreground">{t(lang, "poolHeading")}</h2>
-      <p className="mt-1 text-sm text-muted-foreground">
-        {t(lang, "poolSubtext")}
-      </p>
-      <form onSubmit={onSubmit} className="mt-4 space-y-3">
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-            if (error) setError(null);
-            setConfirmedEmail(null);
-          }}
-          placeholder={t(lang, "poolEmailPlaceholder")}
-          className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
-          aria-label="Email address"
-        />
-        {email.length > 0 && !validEmail && (
-          <p className="text-sm text-destructive">{t(lang, "invalidEmail")}</p>
-        )}
-        {emailsMismatch && (
-          <div className="rounded-xl border border-border bg-muted/40 p-3">
-            <p className="text-sm text-foreground">
-              {t(lang, "poolEmailMismatch")}
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => doSubmit(typedEmail)}
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
-              >
-                {t(lang, "poolUseThisEmail")}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail(cvEmail);
-                  setConfirmedEmail(cvEmail);
-                  doSubmit(cvEmail);
-                }}
-                className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted"
-              >
-                {t(lang, "poolUseCvEmail")}
-              </button>
-            </div>
+    <section className="no-print mt-8 rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-6 sm:p-8">
+      <div className="flex items-start gap-4">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/15 text-2xl">💼</div>
+        <div className="flex-1">
+          <h2 className="text-xl font-bold text-foreground">{t(lang, "poolHeading")}</h2>
+          <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">
+            {t(lang, "poolSubtext")}
+          </p>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={doSubmit}
+              disabled={joining}
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-sm transition hover:opacity-90 disabled:opacity-60"
+            >
+              {joining ? "…" : "✓"} {t(lang, "poolYes")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setDismissed(true)}
+              className="inline-flex items-center rounded-xl border border-border bg-background px-5 py-3 font-semibold text-foreground transition hover:bg-muted"
+            >
+              {t(lang, "poolNo")}
+            </button>
           </div>
-        )}
-        <button
-          type="submit"
-          disabled={!canSubmit}
-          className="w-full rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-        >
-          {t(lang, "poolYes")}
-        </button>
-        {error && <p className="text-sm text-destructive">{error}</p>}
-      </form>
-      <p className="mt-3 text-xs text-muted-foreground">
-        {t(lang, "poolPrivacyNote")}
-      </p>
-      <button
-        type="button"
-        onClick={() => setDismissed(true)}
-        className="mt-3 text-sm text-muted-foreground underline hover:text-foreground"
-      >
-        {t(lang, "poolNo")}
-      </button>
+          <p className="mt-4 text-xs text-muted-foreground">
+            🔒 {t(lang, "poolPrivacyNote")}
+          </p>
+        </div>
+      </div>
     </section>
   );
 }
+
 
 
 export const Route = createFileRoute("/result")({

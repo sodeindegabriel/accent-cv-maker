@@ -74,7 +74,10 @@ export type TKey =
   | "dashboardReferralCopy" | "dashboardReferralCopied"
   | "dashboardChangePassword" | "dashboardNewPassword" | "dashboardConfirmPassword"
   | "dashboardPasswordSave" | "dashboardPasswordSaved"
-  | "dashboardPasswordMismatch" | "dashboardPasswordTooShort" | "dashboardPasswordError";
+  | "dashboardPasswordMismatch" | "dashboardPasswordTooShort" | "dashboardPasswordError"
+  | "poolDashboardInPool" | "poolDashboardNotInPool"
+  | "poolDashboardOptOut" | "poolDashboardOptIn"
+  | "poolDashboardRemoving" | "poolDashboardJoining";
 
 
 type Dict = Partial<Record<TKey, string>>;
@@ -288,6 +291,12 @@ const en: Record<TKey, string> = {
   dashboardPasswordMismatch: "Passwords don't match",
   dashboardPasswordTooShort: "Password must be at least 8 characters",
   dashboardPasswordError: "Could not update password. Please try again.",
+  poolDashboardInPool: "In the talent pool",
+  poolDashboardNotInPool: "Not in the talent pool",
+  poolDashboardOptOut: "Remove me",
+  poolDashboardOptIn: "Join the talent pool",
+  poolDashboardRemoving: "Removing…",
+  poolDashboardJoining: "Joining…",
 };
 
 const pl: Dict = {

@@ -4,7 +4,7 @@ import { generateCV, type GeneratedCV } from "@/utils/generateCV";
 import { GeneratingOverlay } from "@/components/GeneratingOverlay";
 import { Clock, Lock } from "lucide-react";
 import { t, type TKey } from "@/lib/buildTranslations";
-import { addCandidate } from "@/lib/candidatePool";
+import { addCandidate, insertCandidateToSupabase } from "@/lib/candidatePool";
 import { notifyCandidate } from "@/lib/notifyCandidate";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/context/AuthContext";
@@ -1497,19 +1497,32 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
             return localStorage.getItem("cvlingo_referral") || null;
           } catch { return null; }
         })();
+        const cvDocId = (() => {
+          try { return sessionStorage.getItem("cvlingo:cvDocumentId") || null; } catch { return null; }
+        })();
         const entry = {
           email: data.personalDetails.email,
           name: data.personalDetails.name,
+          phone: data.personalDetails.phone || null,
           jobTypes: data.jobTypes,
           language: data.language,
           rightToWork: data.personalDetails.rightToWork,
           city: data.personalDetails.city,
           postcode: data.personalDetails.postcode || null,
+          skills: data.skills,
+          availability: data.availability,
           referralSource,
           timestamp: new Date().toISOString(),
         };
         addCandidate(entry);
         void notifyCandidate(entry);
+        void insertCandidateToSupabase({
+          ...entry,
+          userId: user?.id ?? null,
+          cvDocumentId: cvDocId,
+          cvEnglish: result ? { html: result.english } : null,
+          cvNative: result ? { html: result.native } : null,
+        });
       }
       navigate({ to: "/result", search: { cv: undefined } });
     } catch (e) {

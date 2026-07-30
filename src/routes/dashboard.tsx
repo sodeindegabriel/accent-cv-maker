@@ -286,6 +286,13 @@ function DashboardPage() {
             )}
           </div>
 
+          {/* Talent pool status */}
+          {user && (
+            <div className="bg-white rounded-xl border border-gray-200 p-4">
+              <CandidatePoolStatus lang={lang} userId={user.id} />
+            </div>
+          )}
+
           {/* Change password */}
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <ChangePasswordForm lang={lang} />
@@ -457,6 +464,89 @@ function CVCard({
           {t(lang, "shareEmail")}
         </a>
       </div>
+    </div>
+  );
+}
+
+// ── Candidate Pool Status ──────────────────────────────────────────────────
+function CandidatePoolStatus({ lang, userId }: { lang: string; userId: string }) {
+  const [inPool, setInPool] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    supabase
+      .from("candidates")
+      .select("id, is_active")
+      .eq("user_id", userId)
+      .eq("is_active", true)
+      .maybeSingle()
+      .then(({ data }) => setInPool(data != null));
+  }, [userId]);
+
+  async function handleOptOut() {
+    setBusy(true);
+    await supabase
+      .from("candidates")
+      .update({ is_active: false })
+      .eq("user_id", userId);
+    setInPool(false);
+    setBusy(false);
+  }
+
+  async function handleOptIn() {
+    setBusy(true);
+    // Check if a soft-deleted row exists; if so, reactivate it
+    const { data: existing } = await supabase
+      .from("candidates")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("is_active", false)
+      .maybeSingle();
+    if (existing) {
+      await supabase.from("candidates").update({ is_active: true, opted_in_at: new Date().toISOString() }).eq("id", existing.id);
+    } else {
+      // No row at all — can't create without full CV data; redirect to build
+    }
+    setInPool(true);
+    setBusy(false);
+  }
+
+  if (inPool === null) return null;
+
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Talent Pool</p>
+      {inPool ? (
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5">
+            <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
+            <span className="text-sm font-medium text-gray-700">{t(lang, "poolDashboardInPool")}</span>
+          </div>
+          <button
+            type="button"
+            onClick={handleOptOut}
+            disabled={busy}
+            className="text-xs text-muted-foreground underline hover:text-foreground disabled:opacity-50"
+          >
+            {busy ? t(lang, "poolDashboardRemoving") : t(lang, "poolDashboardOptOut")}
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5">
+            <span className="inline-block h-2 w-2 rounded-full bg-gray-300" />
+            <span className="text-sm text-gray-500">{t(lang, "poolDashboardNotInPool")}</span>
+          </div>
+          <button
+            type="button"
+            onClick={handleOptIn}
+            disabled={busy}
+            className="text-xs font-semibold text-primary underline hover:opacity-80 disabled:opacity-50"
+          >
+            {busy ? t(lang, "poolDashboardJoining") : t(lang, "poolDashboardOptIn")}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
