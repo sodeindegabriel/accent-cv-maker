@@ -69,7 +69,12 @@ export type TKey =
   | "dashboardUsageTitle" | "dashboardDownloadsUsed" | "dashboardEditsUsed"
   | "dashboardProfileTitle" | "dashboardProfileName" | "dashboardProfileEmail"
   | "dashboardProfileUILang" | "dashboardProfileCVLang"
-  | "dashboardLoading" | "dashboardError" | "dashboardLanguageVersions";
+  | "dashboardLoading" | "dashboardError" | "dashboardLanguageVersions"
+  | "dashboardReferralTitle" | "dashboardReferralDesc"
+  | "dashboardReferralCopy" | "dashboardReferralCopied"
+  | "dashboardChangePassword" | "dashboardNewPassword" | "dashboardConfirmPassword"
+  | "dashboardPasswordSave" | "dashboardPasswordSaved"
+  | "dashboardPasswordMismatch" | "dashboardPasswordTooShort" | "dashboardPasswordError";
 
 
 type Dict = Partial<Record<TKey, string>>;
@@ -271,6 +276,18 @@ const en: Record<TKey, string> = {
   dashboardLoading: "Loading…",
   dashboardError: "Something went wrong loading your data.",
   dashboardLanguageVersions: "Language versions",
+  dashboardReferralTitle: "Share CVLingo",
+  dashboardReferralDesc: "Invite someone who needs a free UK CV.",
+  dashboardReferralCopy: "Copy",
+  dashboardReferralCopied: "Copied!",
+  dashboardChangePassword: "Change password",
+  dashboardNewPassword: "New password",
+  dashboardConfirmPassword: "Confirm password",
+  dashboardPasswordSave: "Save password",
+  dashboardPasswordSaved: "Password updated",
+  dashboardPasswordMismatch: "Passwords don't match",
+  dashboardPasswordTooShort: "Password must be at least 8 characters",
+  dashboardPasswordError: "Could not update password. Please try again.",
 };
 
 const pl: Dict = {

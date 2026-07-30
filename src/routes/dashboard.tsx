@@ -1,14 +1,27 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
+import {
+  Check,
+  Copy,
+  FileDown,
+  Lock,
+  LogOut,
+  Mail,
+  MessageCircle,
+  Share2,
+  Twitter,
+} from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import { t } from "@/lib/buildTranslations";
 import { notifyFeedback } from "@/lib/notifyFeedback";
 
+// ── Types ──────────────────────────────────────────────────────────────────
 interface Profile {
   full_name: string | null;
   preferred_ui_language: string | null;
   default_cv_language: string | null;
+  referral_code: string | null;
 }
 
 interface CVDocument {
@@ -18,6 +31,25 @@ interface CVDocument {
   created_at: string;
 }
 
+const FREE_LIMIT = 2;
+
+// Derive a stable 10-char hex code from user UUID (unique by construction)
+function deriveReferralCode(userId: string): string {
+  return userId.replace(/-/g, "").slice(0, 10);
+}
+
+// ── Share URL helpers (mirrors result.tsx "Share CVLingo" pattern) ─────────
+function makeCVLingoShareUrls(referralLink: string) {
+  const msg = `Build your free UK CV in your own language — no English needed. Try CVLingo free: ${referralLink}`;
+  return {
+    whatsapp: `https://wa.me/?text=${encodeURIComponent(msg)}`,
+    email: `mailto:?subject=${encodeURIComponent("Free UK CV builder — CVLingo")}&body=${encodeURIComponent(msg)}`,
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}&quote=${encodeURIComponent(msg)}`,
+    twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(msg)}`,
+  };
+}
+
+// ── Main page ──────────────────────────────────────────────────────────────
 function DashboardPage() {
   const { user, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
@@ -26,6 +58,7 @@ function DashboardPage() {
   const [downloadCount, setDownloadCount] = useState(0);
   const [dataLoading, setDataLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
   const lang = profile?.preferred_ui_language || "en";
 
@@ -41,11 +74,12 @@ function DashboardPage() {
     if (!user) return;
     setDataLoading(true);
     setError(null);
+    setErrorDetail(null);
     try {
       const [profileRes, cvsRes, downloadsRes] = await Promise.all([
         supabase
           .from("profiles")
-          .select("full_name, preferred_ui_language, default_cv_language")
+          .select("full_name, preferred_ui_language, default_cv_language, referral_code")
           .eq("id", user.id)
           .maybeSingle(),
         supabase
@@ -61,25 +95,40 @@ function DashboardPage() {
 
       if (profileRes.error) {
         console.error("Dashboard: profiles query error:", profileRes.error);
+        setErrorDetail(`profiles: ${profileRes.error.code} — ${profileRes.error.message}`);
         throw profileRes.error;
       }
       if (cvsRes.error) {
         console.error("Dashboard: cv_documents query error:", cvsRes.error);
+        setErrorDetail(`cv_documents: ${cvsRes.error.code} — ${cvsRes.error.message}`);
         throw cvsRes.error;
       }
       if (downloadsRes.error) {
         console.error("Dashboard: downloads query error:", downloadsRes.error);
       }
 
-      // If no profile row exists yet, create one from auth user_metadata
-      let resolvedProfile = profileRes.data;
+      let resolvedProfile = profileRes.data as Profile | null;
+      const generatedCode = deriveReferralCode(user.id);
+
       if (!resolvedProfile) {
         const metaName = (user.user_metadata as { full_name?: string })?.full_name ?? null;
         const { error: upsertErr } = await supabase
           .from("profiles")
-          .upsert({ id: user.id, full_name: metaName });
+          .upsert({ id: user.id, full_name: metaName, referral_code: generatedCode });
         if (upsertErr) console.error("Dashboard: profile upsert error:", upsertErr);
-        resolvedProfile = { full_name: metaName, preferred_ui_language: null, default_cv_language: null };
+        resolvedProfile = {
+          full_name: metaName,
+          preferred_ui_language: null,
+          default_cv_language: null,
+          referral_code: generatedCode,
+        };
+      } else if (!resolvedProfile.referral_code) {
+        const { error: rcErr } = await supabase
+          .from("profiles")
+          .update({ referral_code: generatedCode })
+          .eq("id", user.id);
+        if (rcErr) console.error("Dashboard: referral_code update error:", rcErr);
+        resolvedProfile = { ...resolvedProfile, referral_code: generatedCode };
       }
 
       setProfile(resolvedProfile);
@@ -93,21 +142,27 @@ function DashboardPage() {
     }
   }, [user]);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  useEffect(() => { loadData(); }, [loadData]);
 
   if (authLoading || (!user && !authLoading)) return null;
 
-  const fullName = profile?.full_name
-    ?? (user?.user_metadata as { full_name?: string })?.full_name
-    ?? null;
-  const firstName = fullName?.split(" ")[0] ?? user?.email ?? "";
-  const FREE_LIMIT = 2;
+  const fullName =
+    profile?.full_name ??
+    (user?.user_metadata as { full_name?: string })?.full_name ??
+    null;
+  const firstName = fullName?.split(" ")[0] ?? user?.email?.split("@")[0] ?? "";
+  const initials = firstName.slice(0, 2).toUpperCase();
+  const referralCode = profile?.referral_code ?? deriveReferralCode(user?.id ?? "");
+  const referralLink = `https://cvlingo.com/?ref=${referralCode}`;
+  const usagePct = Math.min(100, Math.round((downloadCount / FREE_LIMIT) * 100));
 
   function formatDate(iso: string) {
     try {
-      return new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+      return new Date(iso).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
     } catch {
       return iso;
     }
@@ -115,150 +170,387 @@ function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-4 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">{t(lang, "dashboardTitle")}</h1>
+      {/* ── Header ── */}
+      <header className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+        <a href="/" className="text-sm font-bold text-primary tracking-tight">CVLingo</a>
+        <p className="hidden sm:block text-sm text-gray-500">
+          {t(lang, "dashboardWelcome", { name: firstName })}
+        </p>
         <button
-          onClick={() => signOut().then(() => navigate({ to: "/" }))}
-          className="text-sm text-gray-600 hover:text-gray-900 underline"
+          type="button"
+          onClick={() => void signOut()}
+          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
         >
-          {t(lang, "dashboardLogout")}
+          <LogOut className="h-4 w-4" />
+          <span className="hidden sm:inline">{t(lang, "dashboardLogout")}</span>
         </button>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
-        {/* Welcome */}
-        <p className="text-gray-700 text-lg">
-          {t(lang, "dashboardWelcome", { name: firstName })}
-        </p>
+      {/* ── Two-column layout ── */}
+      <div className="mx-auto max-w-6xl px-4 py-6 lg:grid lg:grid-cols-[272px_1fr] lg:gap-8 lg:items-start">
 
-        {dataLoading ? (
-          <p className="text-gray-500">{t(lang, "dashboardLoading")}</p>
-        ) : error ? (
-          <div className="bg-white rounded-lg border border-red-200 p-6 text-center space-y-3">
-            <p className="text-red-600">{t(lang, "dashboardError")}</p>
-            <button
-              onClick={() => loadData()}
-              className="text-sm text-primary hover:underline font-medium"
-            >
-              Retry
-            </button>
-          </div>
-        ) : (
-          <>
-            {/* Build new CV */}
-            <div>
-              <button
-                onClick={() => navigate({ to: "/build" })}
-                className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5 py-3 rounded-lg transition-colors"
-              >
-                + {t(lang, "dashboardNewCV")}
-              </button>
+        {/* ── SIDEBAR ── */}
+        <aside className="mb-5 lg:mb-0 lg:sticky lg:top-[57px] space-y-3">
+
+          {/* Profile + usage */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
+            {/* Avatar + name/email */}
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <span className="text-sm font-bold text-primary">{initials}</span>
+              </div>
+              <div className="min-w-0">
+                <p className="font-semibold text-gray-900 text-sm truncate">{fullName || firstName}</p>
+                <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+              </div>
             </div>
 
-            {/* My CVs */}
-            <section>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">{t(lang, "dashboardMyCVs")}</h2>
-              {cvs.length === 0 ? (
-                <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
-                  <p className="text-gray-500 mb-4">{t(lang, "dashboardNoCVsMsg")}</p>
-                  <button
-                    onClick={() => navigate({ to: "/build" })}
-                    className="text-blue-600 hover:underline font-medium"
-                  >
-                    {t(lang, "dashboardBuildFirst")}
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {cvs.map((cv) => (
-                    <CVCard key={cv.id} cv={cv} lang={lang} formatDate={formatDate} />
-                  ))}
-                </div>
-              )}
-            </section>
-
             {/* Usage */}
-            <section>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">{t(lang, "dashboardUsageTitle")}</h2>
-              <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-3">
-                <UsageTile
-                  label={t(lang, "dashboardDownloadsUsed", { used: String(downloadCount), limit: String(FREE_LIMIT) })}
-                  used={downloadCount}
-                  limit={FREE_LIMIT}
-                />
-                <UsageTile
-                  label={t(lang, "dashboardEditsUsed", { used: "0", limit: String(FREE_LIMIT) })}
-                  used={0}
-                  limit={FREE_LIMIT}
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-xs font-medium text-gray-500">{t(lang, "dashboardUsageTitle")}</span>
+                <span className="text-xs text-gray-400">{downloadCount}/{FREE_LIMIT} {t(lang, "dashboardDownload").toLowerCase()}s</span>
+              </div>
+              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${usagePct >= 100 ? "bg-destructive" : "bg-primary"}`}
+                  style={{ width: `${usagePct}%` }}
                 />
               </div>
-            </section>
+              {usagePct >= 100 && (
+                <p className="text-xs text-destructive mt-1">Free limit reached</p>
+              )}
+            </div>
 
-            {/* Profile */}
-            <section>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">{t(lang, "dashboardProfileTitle")}</h2>
-              <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
-                <ProfileRow label={t(lang, "dashboardProfileName")} value={profile?.full_name ?? "—"} />
-                <ProfileRow label={t(lang, "dashboardProfileEmail")} value={user?.email ?? "—"} />
-                <ProfileRow label={t(lang, "dashboardProfileUILang")} value={profile?.preferred_ui_language ?? "en"} />
-                <ProfileRow label={t(lang, "dashboardProfileCVLang")} value={profile?.default_cv_language ?? "—"} />
-              </div>
-            </section>
+            {/* CV language */}
+            {profile?.default_cv_language && (
+              <p className="text-xs text-gray-400">
+                {t(lang, "dashboardProfileCVLang")}:{" "}
+                <span className="font-medium text-gray-600">{profile.default_cv_language}</span>
+              </p>
+            )}
+          </div>
 
-            {/* Feedback */}
-            <FeedbackSection lang={lang} userId={user?.id ?? null} userEmail={user?.email} />
-          </>
-        )}
-      </main>
-    </div>
-  );
-}
+          {/* Change password */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <ChangePasswordForm lang={lang} />
+          </div>
 
-function CVCard({
-  cv,
-  lang,
-  formatDate,
-}: {
-  cv: CVDocument;
-  lang: string;
-  formatDate: (iso: string) => string;
-}) {
-  return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <p className="font-medium text-gray-900 truncate">{cv.title || "CV"}</p>
-          <p className="text-sm text-gray-500 mt-0.5">{t(lang, "dashboardCVCreated", { date: formatDate(cv.created_at) })}</p>
-          <span className="inline-block mt-2 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
-            {t(lang, "dashboardStatusDraft")}
-          </span>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <a
-            href={`/result?cv=${cv.id}`}
-            className="text-sm text-primary hover:underline"
+          {/* Share CVLingo / personal referral */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <ReferralSection lang={lang} referralLink={referralLink} />
+          </div>
+        </aside>
+
+        {/* ── MAIN CONTENT ── */}
+        <main className="space-y-5">
+          {/* Build new CV CTA */}
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/build" })}
+            className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm shadow-sm"
           >
-            {t(lang, "dashboardView")}
-          </a>
-          <a
-            href={`/result?cv=${cv.id}&download=1`}
-            className="text-sm text-primary hover:underline"
-          >
-            {t(lang, "dashboardDownload")}
-          </a>
-          <span
-            className="text-sm text-gray-400 cursor-not-allowed"
-            title={t(lang, "dashboardEditSoon")}
-          >
-            {t(lang, "dashboardEdit")}
-          </span>
-        </div>
+            <FileDown className="h-4 w-4" />
+            {t(lang, "dashboardNewCV")}
+          </button>
+
+          {/* Loading / error / content */}
+          {dataLoading ? (
+            <div className="bg-white rounded-xl border border-gray-200 p-10 text-center">
+              <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            </div>
+          ) : error ? (
+            <div className="bg-white rounded-xl border border-red-100 p-6 text-center space-y-2">
+              <p className="text-red-600 text-sm font-medium">{t(lang, "dashboardError")}</p>
+              {errorDetail && (
+                <p className="text-xs text-red-400 font-mono break-all">{errorDetail}</p>
+              )}
+              <button
+                type="button"
+                onClick={() => void loadData()}
+                className="text-sm text-primary hover:underline font-medium"
+              >
+                Retry
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* My CVs */}
+              <section>
+                <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                  {t(lang, "dashboardMyCVs")}
+                </h2>
+                {cvs.length === 0 ? (
+                  <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+                    <p className="text-gray-500 text-sm mb-3">{t(lang, "dashboardNoCVsMsg")}</p>
+                    <button
+                      type="button"
+                      onClick={() => navigate({ to: "/build" })}
+                      className="text-sm text-primary hover:underline font-medium"
+                    >
+                      {t(lang, "dashboardBuildFirst")}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {cvs.map((cv) => (
+                      <CVCard
+                        key={cv.id}
+                        cv={cv}
+                        lang={lang}
+                        formatDate={formatDate}
+                        referralLink={referralLink}
+                      />
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              {/* Feedback */}
+              <FeedbackSection
+                lang={lang}
+                userId={user?.id ?? null}
+                userEmail={user?.email}
+              />
+            </>
+          )}
+        </main>
       </div>
     </div>
   );
 }
 
+// ── CV Card ────────────────────────────────────────────────────────────────
+// Download navigates to result page (PDF rendering requires HTML content not
+// stored in DB). WhatsApp/Email share the CVLingo site with the user's
+// personal referral link — same pattern as result.tsx "Share CVLingo".
+function CVCard({
+  cv,
+  lang,
+  formatDate,
+  referralLink,
+}: {
+  cv: CVDocument;
+  lang: string;
+  formatDate: (iso: string) => string;
+  referralLink: string;
+}) {
+  const urls = makeCVLingoShareUrls(referralLink);
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="min-w-0">
+          <p className="font-medium text-gray-900 text-sm truncate">{cv.title || "CV"}</p>
+          <p className="text-xs text-gray-400 mt-0.5">
+            {t(lang, "dashboardCVCreated", { date: formatDate(cv.created_at) })}
+          </p>
+        </div>
+        <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded shrink-0">
+          {t(lang, "dashboardStatusDraft")}
+        </span>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Download/View — navigates to result page where PDF button lives */}
+        <a
+          href={`/result?cv=${cv.id}`}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
+          <FileDown className="h-3 w-3" />
+          {t(lang, "dashboardDownload")}
+        </a>
+
+        {/* WhatsApp share — reuses makeCVLingoShareUrls helper */}
+        <a
+          href={urls.whatsapp}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+        >
+          <MessageCircle className="h-3 w-3" />
+          {t(lang, "shareWhatsApp")}
+        </a>
+
+        {/* Email share — reuses makeCVLingoShareUrls helper */}
+        <a
+          href={urls.email}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+        >
+          <Mail className="h-3 w-3" />
+          {t(lang, "shareEmail")}
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// ── Change Password ────────────────────────────────────────────────────────
+function ChangePasswordForm({ lang }: { lang: string }) {
+  const [open, setOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (newPassword.length < 8) {
+      setError(t(lang, "dashboardPasswordTooShort"));
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError(t(lang, "dashboardPasswordMismatch"));
+      return;
+    }
+    setSaving(true);
+    const { error: updateErr } = await supabase.auth.updateUser({ password: newPassword });
+    setSaving(false);
+    if (updateErr) {
+      console.error("change password error:", updateErr);
+      setError(t(lang, "dashboardPasswordError"));
+      return;
+    }
+    setSaved(true);
+    setNewPassword("");
+    setConfirmPassword("");
+    setTimeout(() => { setSaved(false); setOpen(false); }, 2500);
+  }
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => { setOpen((o) => !o); setError(null); }}
+        className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 w-full transition-colors"
+      >
+        <Lock className="h-4 w-4 text-gray-400" />
+        {t(lang, "dashboardChangePassword")}
+      </button>
+
+      {open && (
+        <form onSubmit={handleSubmit} className="mt-3 space-y-2">
+          <input
+            type="password"
+            placeholder={t(lang, "dashboardNewPassword")}
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            autoComplete="new-password"
+          />
+          <input
+            type="password"
+            placeholder={t(lang, "dashboardConfirmPassword")}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            autoComplete="new-password"
+          />
+          {error && <p className="text-xs text-red-600">{error}</p>}
+          {saved && (
+            <p className="text-xs text-emerald-600 flex items-center gap-1">
+              <Check className="h-3 w-3" />
+              {t(lang, "dashboardPasswordSaved")}
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={saving}
+            className="w-full rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors"
+          >
+            {saving ? "Saving…" : t(lang, "dashboardPasswordSave")}
+          </button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+// ── Referral / Share CVLingo ───────────────────────────────────────────────
+function ReferralSection({ lang, referralLink }: { lang: string; referralLink: string }) {
+  const [copied, setCopied] = useState(false);
+  const urls = makeCVLingoShareUrls(referralLink);
+
+  function handleCopy() {
+    navigator.clipboard.writeText(referralLink)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(() => {});
+  }
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <p className="text-sm font-medium text-gray-700">{t(lang, "dashboardReferralTitle")}</p>
+        <p className="text-xs text-gray-400 mt-0.5">{t(lang, "dashboardReferralDesc")}</p>
+      </div>
+
+      {/* Link + copy button */}
+      <div className="flex items-center gap-2">
+        <input
+          readOnly
+          value={referralLink}
+          onFocus={(e) => e.target.select()}
+          className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs text-gray-500 select-all"
+        />
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="flex items-center gap-1 shrink-0 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+        >
+          {copied
+            ? <Check className="h-3 w-3 text-emerald-600" />
+            : <Copy className="h-3 w-3" />}
+          {copied ? t(lang, "dashboardReferralCopied") : t(lang, "dashboardReferralCopy")}
+        </button>
+      </div>
+
+      {/* Share buttons — same pattern as result.tsx "Share CVLingo" section */}
+      <div className="flex flex-wrap gap-2">
+        <a
+          href={urls.whatsapp}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+        >
+          <MessageCircle className="h-3 w-3" />
+          {t(lang, "shareOnWhatsApp")}
+        </a>
+        <a
+          href={urls.email}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+        >
+          <Mail className="h-3 w-3" />
+          Email
+        </a>
+        <a
+          href={urls.facebook}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+        >
+          <Share2 className="h-3 w-3" />
+          {t(lang, "shareOnFacebook")}
+        </a>
+        <a
+          href={urls.twitter}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+        >
+          <Twitter className="h-3 w-3" />
+          {t(lang, "shareOnX")}
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// ── Usage tile (kept for potential reuse) ──────────────────────────────────
 function UsageTile({ label, used, limit }: { label: string; used: number; limit: number }) {
   const pct = Math.min(100, Math.round((used / limit) * 100));
   return (
@@ -274,15 +566,7 @@ function UsageTile({ label, used, limit }: { label: string; used: number; limit:
   );
 }
 
-function ProfileRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="px-4 py-3 flex gap-4">
-      <span className="text-sm text-gray-500 w-36 shrink-0">{label}</span>
-      <span className="text-sm text-gray-900">{value}</span>
-    </div>
-  );
-}
-
+// ── Feedback ───────────────────────────────────────────────────────────────
 function FeedbackSection({
   lang,
   userId,
@@ -325,18 +609,18 @@ function FeedbackSection({
 
   if (submitted) {
     return (
-      <section>
-        <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
-          <p className="text-gray-900 font-medium">{t(lang, "feedbackThanks")}</p>
-        </div>
-      </section>
+      <div className="bg-white rounded-xl border border-gray-200 p-6 text-center">
+        <p className="text-gray-900 font-medium text-sm">{t(lang, "feedbackThanks")}</p>
+      </div>
     );
   }
 
   return (
     <section>
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">{t(lang, "feedbackTitle")}</h2>
-      <div className="bg-white rounded-lg border border-gray-200 p-5 space-y-4">
+      <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+        {t(lang, "feedbackTitle")}
+      </h2>
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <p className="text-sm text-gray-700 mb-2">{t(lang, "feedbackRatingLabel")}</p>
@@ -357,7 +641,9 @@ function FeedbackSection({
             </div>
           </div>
           <div>
-            <label className="text-sm text-gray-700 block mb-1">{t(lang, "feedbackCommentLabel")}</label>
+            <label className="text-sm text-gray-700 block mb-1">
+              {t(lang, "feedbackCommentLabel")}
+            </label>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
@@ -365,11 +651,11 @@ function FeedbackSection({
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
             />
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-xs text-red-600">{error}</p>}
           <button
             type="submit"
             disabled={submitting}
-            className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+            className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors"
           >
             {submitting ? "Submitting…" : t(lang, "feedbackSubmit")}
           </button>
@@ -378,6 +664,9 @@ function FeedbackSection({
     </section>
   );
 }
+
+// Suppress "unused" warning — kept as a named export for potential reuse
+export { UsageTile };
 
 export const Route = createFileRoute("/dashboard")({
   codeSplitGroupings: [],
