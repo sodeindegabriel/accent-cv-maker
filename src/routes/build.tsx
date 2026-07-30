@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { generateCV } from "@/utils/generateCV";
+import { generateCV, type GeneratedCV } from "@/utils/generateCV";
 import { GeneratingOverlay } from "@/components/GeneratingOverlay";
-import { Clock } from "lucide-react";
+import { Clock, Lock } from "lucide-react";
 import { t, type TKey } from "@/lib/buildTranslations";
 import { addCandidate } from "@/lib/candidatePool";
 import { notifyCandidate } from "@/lib/notifyCandidate";
@@ -206,6 +206,13 @@ function BuildPage() {
     return initialData;
   });
   const [forceEnglish, setForceEnglish] = useState(false);
+  const [editingCvId, setEditingCvId] = useState<string | null>(() => {
+    try {
+      const id = sessionStorage.getItem("cvlingo:editingCvId");
+      if (id) { sessionStorage.removeItem("cvlingo:editingCvId"); return id; }
+    } catch { /* ignore */ }
+    return null;
+  });
   const [preselectModalLang, setPreselectModalLang] = useState<typeof languages[number] | null>(null);
   const [loginMode, setLoginMode] = useState(() => {
     try {
@@ -350,7 +357,7 @@ function BuildPage() {
       {step === 4 && <Step4Experience {...stepProps} onBack={back} onNext={next} />}
       {step === 5 && <Step5Education {...stepProps} onBack={back} onNext={next} />}
       {step === 6 && <Step6Skills {...stepProps} onBack={back} onNext={next} />}
-      {step === 7 && <Step7Review {...stepProps} onBack={back} onEdit={setStep} />}
+      {step === 7 && <Step7Review {...stepProps} onBack={back} onEdit={setStep} editingCvId={editingCvId} />}
       {preselectModalLang && (
         <LanguageChoiceModal
           lang={preselectModalLang}
@@ -1392,7 +1399,7 @@ function Step6Skills({ data, update, displayLang, originalLang, onToggleLang, on
   );
 }
 
-function Step7Review({ data, update, displayLang, originalLang, onToggleLang, onBack, onEdit }: {
+function Step7Review({ data, update, displayLang, originalLang, onToggleLang, onBack, onEdit, editingCvId }: {
   data: CVData;
   update: <K extends keyof CVData>(key: K, value: CVData[K]) => void;
   displayLang: string;
@@ -1400,6 +1407,7 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
   onToggleLang: () => void;
   onBack: () => void;
   onEdit: (step: number) => void;
+  editingCvId: string | null;
 }) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -1414,8 +1422,8 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
     setError(null);
     setCvLimitReached(false);
     try {
-      // Pre-check CV limit before generating (saves API cost if already at limit)
-      if (user) {
+      // Pre-check CV limit only when creating a new CV (not editing)
+      if (user && !editingCvId) {
         const { count, error: limitErr } = await supabase
           .from("cv_documents")
           .select("id", { count: "exact", head: true })
@@ -1427,26 +1435,45 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
         }
       }
 
-      const result = await generateCV(data);
+      const result: GeneratedCV = await generateCV(data);
       sessionStorage.setItem("cvlingo:result", JSON.stringify(result));
       sessionStorage.setItem("cvlingo:input", JSON.stringify(data));
       localStorage.removeItem("cvlingo_form_data");
 
-      // Record the CV document for logged-in users
       if (user) {
         const title = data.jobTypes.length > 0
           ? `${data.personalDetails.name} — ${data.jobTypes[0]}`
           : data.personalDetails.name || "My CV";
-        const { data: cvData, error: cvErr } = await supabase
-          .from("cv_documents")
-          .insert({ user_id: user.id, title, status: "draft" })
-          .select("id")
-          .single();
-        if (cvErr) {
-          console.error("cv_documents insert error:", cvErr);
-        } else if (cvData?.id) {
-          try { sessionStorage.setItem("cvlingo:cvDocumentId", cvData.id); } catch { /* ignore */ }
+
+        if (editingCvId) {
+          // Edit mode: UPDATE the existing cv_documents row and log the edit event
+          const { error: updateErr } = await supabase
+            .from("cv_documents")
+            .update({ title, status: "draft", form_data: data, cv_content: result })
+            .eq("id", editingCvId)
+            .eq("user_id", user.id);
+          if (updateErr) console.error("cv_documents update error:", updateErr);
+
+          const { error: editEvtErr } = await supabase
+            .from("edit_events")
+            .insert({ user_id: user.id, cv_document_id: editingCvId });
+          if (editEvtErr) console.error("edit_events insert error:", editEvtErr);
+
+          try { sessionStorage.setItem("cvlingo:cvDocumentId", editingCvId); } catch { /* ignore */ }
+        } else {
+          // New CV: INSERT with form_data + cv_content stored for future edit/download
+          const { data: cvData, error: cvErr } = await supabase
+            .from("cv_documents")
+            .insert({ user_id: user.id, title, status: "draft", form_data: data, cv_content: result })
+            .select("id")
+            .single();
+          if (cvErr) {
+            console.error("cv_documents insert error:", cvErr);
+          } else if (cvData?.id) {
+            try { sessionStorage.setItem("cvlingo:cvDocumentId", cvData.id); } catch { /* ignore */ }
+          }
         }
+
         // Persist chosen language to profile so admin analytics reflect real usage
         console.log("[handleGenerate] saving language to profile — languageCode:", data.languageCode, "user:", user.id);
         if (data.languageCode) {
@@ -1484,7 +1511,7 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
         addCandidate(entry);
         void notifyCandidate(entry);
       }
-      navigate({ to: "/result" });
+      navigate({ to: "/result", search: { cv: undefined } });
     } catch (e) {
       console.error(e);
       setError(e instanceof Error ? e.message : t(displayLang, "somethingWrong"));
@@ -1620,6 +1647,20 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
 
 
         </div>
+        {editingCvId && (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm sm:p-5">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <h2 className="font-semibold text-amber-900">Personal Statement</h2>
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-200 px-2 py-0.5 text-xs font-semibold text-amber-900">
+                <Lock className="h-3 w-3" />
+                Premium
+              </span>
+            </div>
+            <p className="text-sm text-amber-800">
+              Directly editing your personal statement text is a Premium feature. Saving will regenerate it from your updated details.
+            </p>
+          </div>
+        )}
         {cvLimitReached && (
           <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-5">
             <p className="font-semibold text-amber-900">You've used all 2 free CVs</p>

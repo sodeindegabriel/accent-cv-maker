@@ -4,10 +4,12 @@ import {
   Check,
   Copy,
   FileDown,
+  Globe,
   Lock,
   LogOut,
   Mail,
   MessageCircle,
+  Pencil,
   Share2,
   Twitter,
 } from "lucide-react";
@@ -15,6 +17,14 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import { t } from "@/lib/buildTranslations";
 import { notifyFeedback } from "@/lib/notifyFeedback";
+
+// Native names for the lang toggle — mirrors the languages array in build.tsx
+const NATIVE_LANG_NAME: Record<string, string> = {
+  pl: "Polski", ro: "Română", pa: "ਪੰਜਾਬੀ", ur: "اردو", pt: "Português",
+  es: "Español", ar: "عربي", bn: "বাংলা", gu: "ગુજરાતી", fr: "Français",
+  tr: "Türkçe", hi: "हिन्दी", so: "Soomaali", zh: "普通话", fa: "فارسی",
+  uk: "Українська", ku: "Kurdî", ta: "தமிழ்", am: "አማርኛ", ti: "ትግርኛ",
+};
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface Profile {
@@ -59,8 +69,40 @@ function DashboardPage() {
   const [dataLoading, setDataLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
+  const [forceEnglish, setForceEnglish] = useState(() => {
+    try { return localStorage.getItem("cvlingo:dashLang") === "en"; } catch { return false; }
+  });
 
-  const lang = profile?.preferred_ui_language || "en";
+  const storedLang = profile?.preferred_ui_language || "en";
+  const lang = forceEnglish ? "en" : storedLang;
+  const showLangToggle = storedLang !== "en";
+  const toggleLangLabel = forceEnglish
+    ? (NATIVE_LANG_NAME[storedLang] ?? storedLang.toUpperCase())
+    : "English";
+
+  function toggleLang() {
+    const next = !forceEnglish;
+    setForceEnglish(next);
+    try { localStorage.setItem("cvlingo:dashLang", next ? "en" : ""); } catch { /* ignore */ }
+  }
+
+  async function handleEdit(cvId: string) {
+    const { data, error: fetchErr } = await supabase
+      .from("cv_documents")
+      .select("form_data")
+      .eq("id", cvId)
+      .maybeSingle();
+    if (fetchErr || !data?.form_data) {
+      console.error("handleEdit: could not fetch form_data", fetchErr);
+      return;
+    }
+    try {
+      sessionStorage.setItem("cvlingo:input", JSON.stringify(data.form_data));
+      sessionStorage.setItem("cvlingo:editingCvId", cvId);
+      sessionStorage.setItem("cvlingo:editStep", "2");
+    } catch { /* ignore */ }
+    navigate({ to: "/build" });
+  }
 
   useEffect(() => {
     if (authLoading) return;
@@ -176,14 +218,27 @@ function DashboardPage() {
         <p className="hidden sm:block text-sm text-gray-500">
           {t(lang, "dashboardWelcome", { name: firstName })}
         </p>
-        <button
-          type="button"
-          onClick={() => void signOut()}
-          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
-        >
-          <LogOut className="h-4 w-4" />
-          <span className="hidden sm:inline">{t(lang, "dashboardLogout")}</span>
-        </button>
+        <div className="flex items-center gap-3">
+          {showLangToggle && (
+            <button
+              type="button"
+              onClick={toggleLang}
+              className="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors"
+              title={forceEnglish ? "Switch back to your language" : "View in English"}
+            >
+              <Globe className="h-3.5 w-3.5" />
+              {toggleLangLabel}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="hidden sm:inline">{t(lang, "dashboardLogout")}</span>
+          </button>
+        </div>
       </header>
 
       {/* ── Two-column layout ── */}
@@ -300,6 +355,7 @@ function DashboardPage() {
                         lang={lang}
                         formatDate={formatDate}
                         referralLink={referralLink}
+                        onEdit={handleEdit}
                       />
                     ))}
                   </div>
@@ -329,13 +385,22 @@ function CVCard({
   lang,
   formatDate,
   referralLink,
+  onEdit,
 }: {
   cv: CVDocument;
   lang: string;
   formatDate: (iso: string) => string;
   referralLink: string;
+  onEdit: (cvId: string) => Promise<void>;
 }) {
   const urls = makeCVLingoShareUrls(referralLink);
+  const [editing, setEditing] = useState(false);
+
+  async function handleEditClick() {
+    setEditing(true);
+    await onEdit(cv.id);
+    setEditing(false);
+  }
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4">
@@ -352,7 +417,7 @@ function CVCard({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        {/* Download/View — navigates to result page where PDF button lives */}
+        {/* Download — navigates to result page, which loads cv_content from DB */}
         <a
           href={`/result?cv=${cv.id}`}
           className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
@@ -361,7 +426,18 @@ function CVCard({
           {t(lang, "dashboardDownload")}
         </a>
 
-        {/* WhatsApp share — reuses makeCVLingoShareUrls helper */}
+        {/* Edit — fetches form_data from DB, pre-fills build flow */}
+        <button
+          type="button"
+          onClick={handleEditClick}
+          disabled={editing}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
+        >
+          <Pencil className="h-3 w-3" />
+          {editing ? "…" : t(lang, "dashboardEdit")}
+        </button>
+
+        {/* WhatsApp share */}
         <a
           href={urls.whatsapp}
           target="_blank"
@@ -372,7 +448,7 @@ function CVCard({
           {t(lang, "shareWhatsApp")}
         </a>
 
-        {/* Email share — reuses makeCVLingoShareUrls helper */}
+        {/* Email share */}
         <a
           href={urls.email}
           className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"

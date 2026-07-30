@@ -17,7 +17,8 @@ import { supabase } from "@/lib/supabaseClient";
 
 function ResultPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { cv: cvParam } = Route.useSearch();
   const [result, setResult] = useState<GeneratedCV | null>(null);
   const [name, setName] = useState<string>("");
   const [langCode, setLangCode] = useState<string>("en");
@@ -40,10 +41,12 @@ function ResultPage() {
     return false;
   });
 
+  // Load from sessionStorage (normal flow after build)
   useEffect(() => {
     const raw = sessionStorage.getItem("cvlingo:result");
     if (!raw) {
-      navigate({ to: "/build" });
+      // No sessionStorage — if there's a cv param we'll load from DB below; otherwise bounce to build
+      if (!cvParam) navigate({ to: "/build" });
       return;
     }
     try {
@@ -67,7 +70,33 @@ function ResultPage() {
     } catch {
       /* ignore */
     }
-  }, [navigate]);
+  }, [navigate, cvParam]);
+
+  // Load from DB when navigating directly from dashboard (/result?cv=<id>)
+  useEffect(() => {
+    if (!cvParam || result || authLoading) return;
+    if (!user) { navigate({ to: "/build" }); return; }
+    void (async () => {
+      const { data, error } = await supabase
+        .from("cv_documents")
+        .select("cv_content, form_data")
+        .eq("id", cvParam)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (error || !data?.cv_content) {
+        console.error("cv_documents fetch error:", error);
+        navigate({ to: "/build" });
+        return;
+      }
+      setResult(data.cv_content as GeneratedCV);
+      const form = data.form_data as { personalDetails?: { name?: string }; languageCode?: string } | null;
+      if (form) {
+        setName(form.personalDetails?.name ?? "");
+        setLangCode(form.languageCode ?? "en");
+      }
+      setCvDocumentId(cvParam);
+    })();
+  }, [cvParam, result, authLoading, user, navigate]);
 
   useEffect(() => {
     if (!user) return;
@@ -788,6 +817,9 @@ function CandidatePoolCard({ lang = "en" }: { lang?: string }) {
 
 
 export const Route = createFileRoute("/result")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    cv: typeof search.cv === "string" ? search.cv : undefined,
+  }),
   component: ResultPage,
   head: () => ({
     meta: [
