@@ -4,8 +4,6 @@ import { generateCV, type GeneratedCV } from "@/utils/generateCV";
 import { GeneratingOverlay } from "@/components/GeneratingOverlay";
 import { Clock, Lock } from "lucide-react";
 import { t, type TKey } from "@/lib/buildTranslations";
-import { addCandidate, insertCandidateToSupabase } from "@/lib/candidatePool";
-import { notifyCandidate } from "@/lib/notifyCandidate";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/context/AuthContext";
 
@@ -398,6 +396,7 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
   onSwitchToLogin?: () => void;
 }) {
   const { sendOtp, verifyOtp, signIn, signUp } = useAuth();
+  const navigate = useNavigate();
 
   const [screen, setScreen] = useState<AuthScreen>("capture");
   const [firstName, setFirstName] = useState("");
@@ -442,6 +441,10 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
     const { data: { user: authedUser } } = await supabase.auth.getUser();
     if (authedUser) await maybeAttributeReferral(authedUser.id);
     setSubmitting(false);
+    // Returning user (account older than 30s) → dashboard, unless a redirect dest is already set
+    const hasRedirectDest = !!((() => { try { return sessionStorage.getItem("cvlingo:redirectAfterAuth"); } catch { return null; } })());
+    const isNewAccount = authedUser ? (Date.now() - new Date(authedUser.created_at).getTime()) < 30_000 : true;
+    if (!isNewAccount && !hasRedirectDest) { navigate({ to: "/dashboard" }); return; }
     onSuccess();
   }
 
@@ -462,7 +465,13 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
     setSubmitting(true);
     // Try sign-in first; if user not found, sign up
     const { error: signInErr } = await signIn(email.trim(), password);
-    if (!signInErr) { onSuccess(); return; }
+    if (!signInErr) {
+      // Password sign-in always means a returning user
+      const hasRedirectDest = !!((() => { try { return sessionStorage.getItem("cvlingo:redirectAfterAuth"); } catch { return null; } })());
+      if (!hasRedirectDest) { navigate({ to: "/dashboard" }); return; }
+      onSuccess();
+      return;
+    }
     if (signInErr.toLowerCase().includes("invalid") || signInErr.toLowerCase().includes("credentials") || signInErr.toLowerCase().includes("wrong")) {
       setSubmitting(false);
       setError(friendlyAuthError(signInErr, lang));
@@ -993,10 +1002,19 @@ function isValidEmail(email: string): boolean {
 }
 
 function Step3PersonalDetails({ data, update, displayLang, originalLang, onToggleLang, onBack, onNext }: StepProps) {
+  const { user } = useAuth();
   const personal = data.personalDetails;
   const setPersonal = (key: keyof PersonalDetails, value: string) => {
     update("personalDetails", { ...personal, [key]: value });
   };
+
+  // Pre-fill email from auth if the field is currently empty
+  useEffect(() => {
+    if (!personal.email && user?.email) {
+      update("personalDetails", { ...personal, email: user.email });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.email]);
   const isOther = personal.rightToWork.startsWith("Other:") || personal.rightToWork === "Other / not sure";
   const otherDetail = personal.rightToWork.startsWith("Other:") ? personal.rightToWork.slice(6).trim() : "";
   const phoneValid = isValidUKPhone(personal.phone);
@@ -1417,7 +1435,7 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
   const [cvLimitReached, setCvLimitReached] = useState(false);
 
   const handleGenerate = async () => {
-    if (!consent || data.candidatePoolConsent === null) return;
+    if (!consent) return;
     setGenerating(true);
     setError(null);
     setCvLimitReached(false);
@@ -1491,39 +1509,7 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
         }
       }
 
-      if (data.candidatePoolConsent === true) {
-        const referralSource = (() => {
-          try {
-            return localStorage.getItem("cvlingo_referral") || null;
-          } catch { return null; }
-        })();
-        const cvDocId = (() => {
-          try { return sessionStorage.getItem("cvlingo:cvDocumentId") || null; } catch { return null; }
-        })();
-        const entry = {
-          email: data.personalDetails.email,
-          name: data.personalDetails.name,
-          phone: data.personalDetails.phone || null,
-          jobTypes: data.jobTypes,
-          language: data.language,
-          rightToWork: data.personalDetails.rightToWork,
-          city: data.personalDetails.city,
-          postcode: data.personalDetails.postcode || null,
-          skills: data.skills,
-          availability: data.availability,
-          referralSource,
-          timestamp: new Date().toISOString(),
-        };
-        addCandidate(entry);
-        void notifyCandidate(entry);
-        void insertCandidateToSupabase({
-          ...entry,
-          userId: user?.id ?? null,
-          cvDocumentId: cvDocId,
-          cvEnglish: result ? { html: result.english } : null,
-          cvNative: result ? { html: result.native } : null,
-        });
-      }
+      // Candidate pool opt-in is handled on the result page (CandidatePoolCard)
       navigate({ to: "/result", search: { cv: undefined } });
     } catch (e) {
       console.error(e);
@@ -1692,34 +1678,6 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
             </button>
           </div>
         )}
-        <div className="mt-6 rounded-xl border border-border bg-card p-5">
-          <h3 className="font-semibold text-foreground">{t(displayLang, "poolHeading")}</h3>
-          <p className="mt-1 text-sm text-muted-foreground">{t(displayLang, "poolSubtext")}</p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={() => update("candidatePoolConsent", true)}
-              className={`inline-flex items-center rounded-xl border px-4 py-2.5 text-sm font-semibold transition ${
-                data.candidatePoolConsent === true
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-background text-foreground hover:bg-muted"
-              }`}
-            >
-              {t(displayLang, "poolYes")}
-            </button>
-            <button
-              type="button"
-              onClick={() => update("candidatePoolConsent", false)}
-              className={`inline-flex items-center rounded-xl border px-4 py-2.5 text-sm font-semibold transition ${
-                data.candidatePoolConsent === false
-                  ? "border-muted-foreground bg-muted text-foreground"
-                  : "border-border bg-background text-foreground hover:bg-muted"
-              }`}
-            >
-              {t(displayLang, "poolNo")}
-            </button>
-          </div>
-        </div>
         <div className="mt-4 rounded-xl border border-border bg-card p-4">
           <label className="flex items-start gap-3 text-sm text-foreground">
             <input
@@ -1748,7 +1706,7 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
           <button
             type="button"
             onClick={handleGenerate}
-            disabled={generating || !consent || data.candidatePoolConsent === null}
+            disabled={generating || !consent}
             className="inline-flex min-h-[48px] items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {generating ? t(displayLang, "generating") : t(displayLang, "generateCv")}

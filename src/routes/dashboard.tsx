@@ -300,7 +300,18 @@ function DashboardPage() {
 
           {/* Share CVLingo / personal referral */}
           <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <ReferralSection lang={lang} referralLink={referralLink} />
+            <ReferralSection lang={lang} referralLink={referralLink} referralCode={referralCode} />
+          </div>
+
+          {/* Contact support */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <a
+              href="mailto:hello@cvlingo.com?subject=CVLingo%20Support%20Request"
+              className="flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-colors"
+            >
+              <Mail className="h-4 w-4 shrink-0" />
+              Need help? Contact us
+            </a>
           </div>
         </aside>
 
@@ -635,9 +646,19 @@ function ChangePasswordForm({ lang }: { lang: string }) {
 }
 
 // ── Referral / Share CVLingo ───────────────────────────────────────────────
-function ReferralSection({ lang, referralLink }: { lang: string; referralLink: string }) {
+function ReferralSection({ lang, referralLink, referralCode }: { lang: string; referralLink: string; referralCode: string }) {
   const [copied, setCopied] = useState(false);
+  const [referralCount, setReferralCount] = useState<number | null>(null);
   const urls = makeCVLingoShareUrls(referralLink);
+
+  useEffect(() => {
+    if (!referralCode) return;
+    supabase
+      .from("partner_referrals")
+      .select("id", { count: "exact", head: true })
+      .eq("referral_code", referralCode)
+      .then(({ count }) => setReferralCount(count ?? 0));
+  }, [referralCode]);
 
   function handleCopy() {
     navigator.clipboard.writeText(referralLink)
@@ -653,6 +674,13 @@ function ReferralSection({ lang, referralLink }: { lang: string; referralLink: s
       <div>
         <p className="text-sm font-medium text-gray-700">{t(lang, "dashboardReferralTitle")}</p>
         <p className="text-xs text-gray-400 mt-0.5">{t(lang, "dashboardReferralDesc")}</p>
+        {referralCount !== null && (
+          <p className="text-xs text-primary mt-1 font-medium">
+            {referralCount === 0
+              ? "No one has joined using your link yet."
+              : `${referralCount} ${referralCount === 1 ? "person has" : "people have"} joined using your link.`}
+          </p>
+        )}
       </div>
 
       {/* Link + copy button */}

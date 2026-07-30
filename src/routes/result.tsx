@@ -28,14 +28,10 @@ function ResultPage() {
   const [downloadCount, setDownloadCount] = useState<number | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showDownloadToast, setShowDownloadToast] = useState(false);
+  // Hide the opt-in card once the user has answered it (yes or no) for this session
   const [poolConsentGiven] = useState<boolean>(() => {
     try {
-      const raw = sessionStorage.getItem("cvlingo:input");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        // Hide card when user made an explicit choice (true OR false) in Step 7
-        return parsed?.candidatePoolConsent != null;
-      }
+      return sessionStorage.getItem("cvlingo:poolAnswered") === "1";
     } catch { /* ignore */ }
     return false;
   });
@@ -677,8 +673,13 @@ function CandidatePoolCard({ lang = "en" }: { lang?: string }) {
     );
   }
 
+  const markAnswered = () => {
+    try { sessionStorage.setItem("cvlingo:poolAnswered", "1"); } catch { /* ignore */ }
+  };
+
   const doSubmit = async () => {
     setJoining(true);
+    markAnswered();
     try {
       const inputRaw = sessionStorage.getItem("cvlingo:input");
       const resultRaw = sessionStorage.getItem("cvlingo:result");
@@ -736,7 +737,7 @@ function CandidatePoolCard({ lang = "en" }: { lang?: string }) {
             </button>
             <button
               type="button"
-              onClick={() => setDismissed(true)}
+              onClick={() => { markAnswered(); setDismissed(true); }}
               className="inline-flex items-center rounded-xl border border-border bg-background px-5 py-3 font-semibold text-foreground transition hover:bg-muted"
             >
               {t(lang, "poolNo")}
