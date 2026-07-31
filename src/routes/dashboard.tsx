@@ -438,7 +438,7 @@ function CVCard({
         {/* Download — navigates to result page, which loads cv_content from DB */}
         <a
           href={`/result?cv=${cv.id}`}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
         >
           <FileDown className="h-3 w-3" />
           {t(lang, "dashboardDownload")}
@@ -449,7 +449,7 @@ function CVCard({
           type="button"
           onClick={handleEditClick}
           disabled={editing}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
         >
           <Pencil className="h-3 w-3" />
           {editing ? "…" : t(lang, "dashboardEdit")}
@@ -460,7 +460,7 @@ function CVCard({
           href={urls.whatsapp}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
         >
           <MessageCircle className="h-3 w-3" />
           {t(lang, "shareWhatsApp")}
@@ -469,7 +469,7 @@ function CVCard({
         {/* Email share */}
         <a
           href={urls.email}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
         >
           <Mail className="h-3 w-3" />
           {t(lang, "shareEmail")}
@@ -828,7 +828,7 @@ function FeedbackSection({
                   onClick={() => setRating(star)}
                   onMouseEnter={() => setHover(star)}
                   onMouseLeave={() => setHover(0)}
-                  className="text-2xl leading-none transition-colors"
+                  className="text-2xl leading-none p-2.5 -ml-2.5 transition-colors"
                   aria-label={`${star} star`}
                 >
                   {star <= (hover || rating) ? "★" : "☆"}
@@ -857,7 +857,7 @@ function FeedbackSection({
                     key={val}
                     type="button"
                     onClick={() => setJobOutcome((prev) => (prev === val ? null : val))}
-                    className={`rounded-lg border px-4 py-1.5 text-sm font-medium transition-colors ${
+                    className={`rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
                       jobOutcome === val
                         ? "border-primary bg-primary/10 text-primary"
                         : "border-gray-200 bg-white text-gray-600 hover:border-primary/40 hover:bg-gray-50"
