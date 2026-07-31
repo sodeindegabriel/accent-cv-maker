@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
+import { sanitizeCvHtml } from "@/lib/sanitize";
 
 type Candidate = {
   id: string;
@@ -184,9 +185,11 @@ function CandidatesPage() {
               className="p-5"
               // eslint-disable-next-line react/no-danger
               dangerouslySetInnerHTML={{
-                __html: cvModal.tab === "english"
-                  ? (cvModal.candidate.cv_english?.html ?? "")
-                  : (cvModal.candidate.cv_native?.html ?? ""),
+                __html: sanitizeCvHtml(
+                  cvModal.tab === "english"
+                    ? (cvModal.candidate.cv_english?.html ?? "")
+                    : (cvModal.candidate.cv_native?.html ?? "")
+                ),
               }}
             />
           </div>

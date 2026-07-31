@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { jsPDF } from "jspdf";
+import { sanitizeCvHtml } from "@/lib/sanitize";
 import { Download, Mail, MessageCircle, Share2, Twitter } from "lucide-react";
 import { t } from "@/lib/buildTranslations";
 import type { GeneratedCV } from "@/utils/generateCV";
@@ -551,21 +552,7 @@ function ResultPage() {
   );
 }
 
-// Strip code fences and any stray markdown/script tags. Allow our CV HTML through.
-function sanitizeCvHtml(input: string): string {
-  if (!input) return "";
-  let s = input.replace(/\r\n/g, "\n").trim();
-  // Strip code fences if model wrapped output
-  s = s.replace(/^```(?:html|HTML)?\s*\n?/, "").replace(/\n?```\s*$/, "");
-  // Remove dangerous tags
-  s = s.replace(/<script[\s\S]*?<\/script>/gi, "");
-  s = s.replace(/<style[\s\S]*?<\/style>/gi, "");
-  s = s.replace(/\son\w+\s*=\s*"[^"]*"/gi, "");
-  s = s.replace(/\son\w+\s*=\s*'[^']*'/gi, "");
-  // Strip stray markdown bold/heading markers in case the model slipped
-  s = s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-  return s.trim();
-}
+// sanitizeCvHtml is imported from @/lib/sanitize (DOMPurify-backed).
 
 function htmlToPlainText(html: string): string {
   if (typeof document === "undefined") {
