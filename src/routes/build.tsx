@@ -534,7 +534,8 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
               <p className="mb-1 text-sm font-medium text-foreground">
                 {t(lang, "authOtpSent")}
               </p>
-              <p className="mb-5 truncate text-sm font-semibold text-primary">{email}</p>
+              <p className="truncate text-sm font-semibold text-primary">{email}</p>
+              <p className="mb-5 mt-1 text-xs text-muted-foreground">{t(lang, "authCheckSpam")}</p>
 
               <label className="mb-1 block text-sm font-medium text-foreground" htmlFor="otp-input">
                 {t(lang, "authEnterCode")}

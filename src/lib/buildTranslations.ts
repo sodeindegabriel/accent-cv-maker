@@ -56,7 +56,7 @@ export type TKey =
   | "authFirstName" | "authFirstNamePlaceholder" | "authEmailAddress"
   | "authNoPassword" | "authContinueOtp" | "authUsePassword" | "authSignIn"
   | "authTermsPrefix" | "authTerms" | "authTermsAnd" | "authPrivacy"
-  | "authOtpSent" | "authEnterCode" | "authConfirm" | "authVerifying"
+  | "authOtpSent" | "authCheckSpam" | "authEnterCode" | "authConfirm" | "authVerifying"
   | "authResendIn" | "authResend" | "authChangeEmail"
   | "authPassword" | "authPasswordPlaceholder" | "authShowPassword" | "authHidePassword"
   | "authForgotPassword"
@@ -238,6 +238,7 @@ const en: Record<TKey, string> = {
   authTermsAnd: "and",
   authPrivacy: "Privacy Policy",
   authOtpSent: "We sent a 6-digit code to",
+  authCheckSpam: "Can't find it? Check your spam or junk folder too.",
   authEnterCode: "Enter code",
   authConfirm: "Confirm code",
   authVerifying: "Verifying…",
