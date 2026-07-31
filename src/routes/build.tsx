@@ -442,10 +442,15 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
     const { data: { user: authedUser } } = await supabase.auth.getUser();
     if (authedUser) await maybeAttributeReferral(authedUser.id);
     setSubmitting(false);
-    // Returning user (account older than 30s) → dashboard, unless a redirect dest is already set
     const hasRedirectDest = !!((() => { try { return sessionStorage.getItem("cvlingo:redirectAfterAuth"); } catch { return null; } })());
-    const isNewAccount = authedUser ? (Date.now() - new Date(authedUser.created_at).getTime()) < 30_000 : true;
-    if (!isNewAccount && !hasRedirectDest) { navigate({ to: "/dashboard" }); return; }
+    // Use cv_documents count to distinguish new vs returning: the created_at timestamp
+    // approach breaks for OTP because the account is created when the code is sent,
+    // not when it is verified, so by verification time the account is already "old".
+    const { count: cvCount } = authedUser
+      ? await supabase.from("cv_documents").select("id", { count: "exact", head: true }).eq("user_id", authedUser.id)
+      : { count: 0 };
+    const isReturning = (cvCount ?? 0) > 0;
+    if (isReturning && !hasRedirectDest) { navigate({ to: "/dashboard" }); return; }
     onSuccess();
   }
 
@@ -464,27 +469,39 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
     if (!isValidEmail(email)) { setError(t(lang, "authValidEmail")); return; }
     if (password.length < 6) { setError(t(lang, "authValidPassword")); return; }
     setSubmitting(true);
-    // Try sign-in first; if user not found, sign up
-    const { error: signInErr } = await signIn(email.trim(), password);
-    if (!signInErr) {
-      // Password sign-in always means a returning user
-      const hasRedirectDest = !!((() => { try { return sessionStorage.getItem("cvlingo:redirectAfterAuth"); } catch { return null; } })());
-      if (!hasRedirectDest) { navigate({ to: "/dashboard" }); return; }
-      onSuccess();
-      return;
-    }
-    if (signInErr.toLowerCase().includes("invalid") || signInErr.toLowerCase().includes("credentials") || signInErr.toLowerCase().includes("wrong")) {
+    const hasRedirectDest = !!((() => { try { return sessionStorage.getItem("cvlingo:redirectAfterAuth"); } catch { return null; } })());
+    if (loginMode) {
+      // Explicit login intent — try sign-in directly
+      const { error: signInErr } = await signIn(email.trim(), password);
+      if (!signInErr) {
+        if (!hasRedirectDest) { navigate({ to: "/dashboard" }); return; }
+        onSuccess();
+        return;
+      }
       setSubmitting(false);
       setError(friendlyAuthError(signInErr, lang));
       return;
     }
-    // Likely a new user — try sign up
+    // Signup intent — try signUp first; fall back to signIn if already registered
     const { error: signUpErr } = await signUp(email.trim(), password, firstName.trim());
-    if (signUpErr) { setSubmitting(false); setError(friendlyAuthError(signUpErr, lang)); return; }
-    const { data: { user: newUser } } = await supabase.auth.getUser();
-    if (newUser) await maybeAttributeReferral(newUser.id);
+    if (!signUpErr) {
+      const { data: { user: newUser } } = await supabase.auth.getUser();
+      if (newUser) await maybeAttributeReferral(newUser.id);
+      setSubmitting(false);
+      onSuccess();
+      return;
+    }
+    // "already registered" means an existing account — fall back to sign-in
+    const alreadyExists = signUpErr.toLowerCase().includes("already") || signUpErr.toLowerCase().includes("registered") || signUpErr.toLowerCase().includes("exists");
+    if (!alreadyExists) { setSubmitting(false); setError(friendlyAuthError(signUpErr, lang)); return; }
+    const { error: signInErr } = await signIn(email.trim(), password);
+    if (!signInErr) {
+      if (!hasRedirectDest) { navigate({ to: "/dashboard" }); return; }
+      onSuccess();
+      return;
+    }
     setSubmitting(false);
-    onSuccess();
+    setError(friendlyAuthError(signInErr, lang));
   }
 
   if (authLoading) {
