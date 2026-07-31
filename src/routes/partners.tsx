@@ -65,7 +65,6 @@ async function notifyPartner(entry: PartnerEntry) {
         subject,
         message,
         name: entry.name,
-        email: entry.email,
       },
       { publicKey: PUBLIC_KEY },
     );

@@ -28,7 +28,6 @@ export async function notifyFeedback(
         subject: `New CVLingo Feedback — ${stars}`,
         message,
         name: "CVLingo Feedback",
-        email: userEmail || "no-reply@cvlingo.com",
       },
       { publicKey: PUBLIC_KEY },
     );

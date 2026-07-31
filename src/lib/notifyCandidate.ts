@@ -35,7 +35,6 @@ export async function notifyCandidate(entry: CandidatePoolEntry): Promise<void> 
         subject: adminSubject,
         message: adminMessage,
         name: entry.name,
-        email: entry.email,
         job_types: entry.jobTypes.join(", "),
         language: entry.language,
         right_to_work: entry.rightToWork,
@@ -79,7 +78,6 @@ export async function notifyCandidate(entry: CandidatePoolEntry): Promise<void> 
         subject: "Your CV is in our candidate pool — CVLingo",
         message: autoReplyMessage,
         name: entry.name,
-        email: entry.email,
       },
       { publicKey: PUBLIC_KEY },
     );
