@@ -31,6 +31,7 @@ interface FeedbackRow {
   user_id: string | null;
   rating: number | null;
   comment: string | null;
+  job_outcome: string | null;
   created_at: string;
 }
 interface ReferralRow {
@@ -127,7 +128,7 @@ function AdminIndexPage() {
             supabase.from("profiles").select("id, created_at, preferred_ui_language, role").order("created_at"),
             supabase.from("cv_documents").select("id, title, created_at").order("created_at"),
             supabase.from("downloads").select("language"),
-            supabase.from("feedback").select("id, user_id, rating, comment, created_at").order("created_at", { ascending: false }),
+            supabase.from("feedback").select("id, user_id, rating, comment, job_outcome, created_at").order("created_at", { ascending: false }),
             supabase.from("partner_referrals").select("id, referral_code, created_at").order("created_at"),
             supabase.from("candidates").select("id", { count: "exact", head: true }).eq("is_active", true),
           ]);
@@ -351,6 +352,7 @@ function AdminIndexPage() {
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Date</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Rating</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">Comment</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-600">Got job?</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-600">User</th>
                   </tr>
                 </thead>
@@ -364,6 +366,9 @@ function AdminIndexPage() {
                           {f.rating ? "★".repeat(f.rating) + "☆".repeat(5 - f.rating) : "—"}
                         </td>
                         <td className="px-4 py-3 text-gray-700 max-w-xs">{f.comment || <span className="text-gray-400">—</span>}</td>
+                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
+                          {f.job_outcome === "yes" ? "✅ Yes" : f.job_outcome === "no" ? "❌ No" : f.job_outcome === "not_yet" ? "⏳ Not yet" : <span className="text-gray-400">—</span>}
+                        </td>
                         <td className="px-4 py-3 text-gray-500 text-xs">
                           {profile?.preferred_ui_language ?? (f.user_id ? f.user_id.slice(0, 8) + "…" : "anon")}
                         </td>

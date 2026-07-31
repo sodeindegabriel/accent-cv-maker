@@ -33,9 +33,10 @@ async function maybeAttributeReferral(userId: string): Promise<void> {
     .insert({ user_id: userId, partner_name: code, referral_code: code });
   if (error) {
     console.error("partner_referrals insert error:", error);
-  } else {
-    try { sessionStorage.removeItem("cvlingo:referralCode"); } catch { /* ignore */ }
   }
+  // Always clear after the insert attempt — success or failure — so the code
+  // cannot re-fire for a different user signing up later in the same session.
+  try { sessionStorage.removeItem("cvlingo:referralCode"); } catch { /* ignore */ }
 }
 
 type Experience = {
@@ -342,10 +343,10 @@ function BuildPage() {
             <img src="/cvlingo-logo.svg" alt="CVLingo" className="h-8 w-8 rounded-full" />
           </Link>
           <Link
-            to="/"
+            to={user ? "/dashboard" : "/"}
             className="text-sm font-medium text-muted-foreground transition hover:text-foreground"
           >
-            ← Back to home
+            {user ? t(data.languageCode || "en", "resultBackToDashboard") : "← Back to home"}
           </Link>
         </div>
       </header>

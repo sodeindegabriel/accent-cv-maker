@@ -45,6 +45,7 @@ export type TKey =
   | "resultBackToDashboard"
   | "feedbackTitle" | "feedbackRatingLabel" | "feedbackCommentLabel"
   | "feedbackSubmit" | "feedbackThanks" | "feedbackAtLeastOne"
+  | "feedbackJobOutcome" | "feedbackJobOutcomeYes" | "feedbackJobOutcomeNo" | "feedbackJobOutcomeNotYet"
   | "cvReady" | "editAnswers"
   | "editLanguage" | "editJobType" | "editPersonalDetails" | "editExperience" | "editEducation" | "editSkills"
   | "shareMessage"
@@ -200,6 +201,10 @@ const en: Record<TKey, string> = {
   feedbackSubmit: "Submit feedback",
   feedbackThanks: "Thanks for your feedback! 🎉",
   feedbackAtLeastOne: "Please add a rating or a comment",
+  feedbackJobOutcome: "Did you get a job using this CV?",
+  feedbackJobOutcomeYes: "Yes",
+  feedbackJobOutcomeNo: "No",
+  feedbackJobOutcomeNotYet: "Not yet",
   cvReady: "Your CV is ready",
   editAnswers: "Edit answers",
   editLanguage: "Language",

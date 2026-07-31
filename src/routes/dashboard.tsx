@@ -772,6 +772,7 @@ function FeedbackSection({
 }) {
   const [rating, setRating] = useState<number>(0);
   const [comment, setComment] = useState("");
+  const [jobOutcome, setJobOutcome] = useState<string | null>(null);
   const [hover, setHover] = useState<number>(0);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -789,6 +790,7 @@ function FeedbackSection({
       user_id: userId,
       rating: rating || null,
       comment: comment.trim() || null,
+      job_outcome: jobOutcome,
     });
     if (dbErr) {
       console.error("feedback insert error:", dbErr);
@@ -844,6 +846,28 @@ function FeedbackSection({
               rows={3}
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
             />
+          </div>
+          <div>
+            <p className="text-sm text-gray-700 mb-2">{t(lang, "feedbackJobOutcome")}</p>
+            <div className="flex gap-2 flex-wrap">
+              {(["yes", "no", "not_yet"] as const).map((val) => {
+                const labelKey = val === "yes" ? "feedbackJobOutcomeYes" : val === "no" ? "feedbackJobOutcomeNo" : "feedbackJobOutcomeNotYet";
+                return (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setJobOutcome((prev) => (prev === val ? null : val))}
+                    className={`rounded-lg border px-4 py-1.5 text-sm font-medium transition-colors ${
+                      jobOutcome === val
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-gray-200 bg-white text-gray-600 hover:border-primary/40 hover:bg-gray-50"
+                    }`}
+                  >
+                    {t(lang, labelKey)}
+                  </button>
+                );
+              })}
+            </div>
           </div>
           {error && <p className="text-xs text-red-600">{error}</p>}
           <button
