@@ -1067,7 +1067,6 @@ function Step3PersonalDetails({ data, update, displayLang, originalLang, onToggl
         <div>
           <label className="mb-2 block text-sm font-medium text-foreground">{t(displayLang, "phoneNumber")}</label>
           <div className={`flex items-center rounded-xl border bg-background focus-within:ring-2 focus-within:ring-primary/30 ${personal.phone && !phoneValid ? "border-destructive" : "border-border focus-within:border-primary"}`}>
-            <FlagIcon countryCode="gb" size="1.125rem" className="pl-4 pr-2 select-none" />
             <input
               type="tel"
               value={personal.phone}
