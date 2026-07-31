@@ -1009,11 +1009,14 @@ function Step2JobType({ data, update, displayLang, originalLang, onToggleLang, o
   );
 }
 
+// TEMP/DECISION NEEDED: relaxed from UK-only to international format for
+// weekend friends & family testing (July 2026). Revisit before full public
+// launch — decide whether to keep international support permanently
+// (many users may have overseas numbers) or revert to UK-only.
 function isValidUKPhone(phone: string): boolean {
-  const cleaned = phone.replace(/[\s-]/g, "");
-  if (/^07\d{9}$/.test(cleaned)) return true;
-  if (/^\+44\d{10}$/.test(cleaned)) return true;
-  return false;
+  const cleaned = phone.replace(/[\s()\-+]/g, "");
+  if (!/^\d+$/.test(cleaned)) return false; // must be digits only after stripping valid chars
+  return cleaned.length >= 7 && cleaned.length <= 15; // E.164 max is 15 digits
 }
 
 function isValidEmail(email: string): boolean {
