@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { generateCV, type GeneratedCV } from "@/utils/generateCV";
 import { GeneratingOverlay } from "@/components/GeneratingOverlay";
+import { FlagIcon, langToCountry } from "@/components/FlagIcon";
 import { Clock, Lock } from "lucide-react";
 import { t, type TKey } from "@/lib/buildTranslations";
 import { supabase } from "@/lib/supabaseClient";
@@ -858,7 +859,7 @@ function Step1Language({ data, update, onNext }: Step1Props) {
                   selected ? "border-primary bg-primary/10 ring-2 ring-primary/30" : "border-border bg-background hover:bg-muted"
                 }`}
               >
-                <span className="block text-2xl" aria-hidden="true">{language.flag}</span>
+                <FlagIcon countryCode={langToCountry(language.code)} size="1.5rem" className="block" />
                 <span className="mt-2 block font-medium text-foreground">{language.name}</span>
                 <span className="block text-sm text-muted-foreground">{language.native}</span>
               </button>
@@ -1045,7 +1046,7 @@ function Step3PersonalDetails({ data, update, displayLang, originalLang, onToggl
         <div>
           <label className="mb-2 block text-sm font-medium text-foreground">{t(displayLang, "phoneNumber")}</label>
           <div className={`flex items-center rounded-xl border bg-background focus-within:ring-2 focus-within:ring-primary/30 ${personal.phone && !phoneValid ? "border-destructive" : "border-border focus-within:border-primary"}`}>
-            <span className="pl-4 pr-2 text-lg select-none" aria-hidden="true">🇬🇧</span>
+            <FlagIcon countryCode="gb" size="1.125rem" className="pl-4 pr-2 select-none" />
             <input
               type="tel"
               value={personal.phone}
@@ -1894,7 +1895,7 @@ function LanguageReviewSection({ currentName, displayLang, onSelect }: { current
                   selected ? "border-primary bg-primary/10" : "border-border bg-background hover:bg-muted"
                 }`}
               >
-                <span className="text-xl" aria-hidden="true">{lang.flag}</span>
+                <FlagIcon countryCode={langToCountry(lang.code)} size="1.25rem" />
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-medium text-foreground">{lang.name}</span>
                   <span className="block truncate text-xs text-muted-foreground">{lang.native}</span>

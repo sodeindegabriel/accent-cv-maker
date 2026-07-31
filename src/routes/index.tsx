@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate, useLocation } from "@tanstack/react
 import { useEffect, useRef, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { FlagIcon, langToCountry } from "@/components/FlagIcon";
 import { Reveal } from "@/components/Reveal";
 import { CountUp } from "@/components/CountUp";
 import { Globe, MessageCircle, FileDown, Check, ArrowRight, Clock, Lock, Play, X } from "lucide-react";
@@ -469,7 +470,7 @@ function Index() {
                       title={`Start in ${f.name}`}
                       className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-xl shadow-sm transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
-                      <span aria-hidden="true">{f.flag}</span>
+                      <FlagIcon countryCode={langToCountry(f.code)} size="1.25rem" />
                     </button>
                   ))}
                 </div>
@@ -780,7 +781,7 @@ function Index() {
                     aria-label={`Start in ${l.en}`}
                     className="flex w-full items-center gap-4 rounded-xl border border-border bg-card p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
-                    <span className="text-3xl" aria-hidden="true">{l.flag}</span>
+                    <FlagIcon countryCode={langToCountry(l.code)} size="1.875rem" />
                     <div className="min-w-0">
                       <p className="text-xs text-muted-foreground">{l.en}</p>
                       <p className="truncate font-semibold text-foreground">{l.native}</p>
