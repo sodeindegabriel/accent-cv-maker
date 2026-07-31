@@ -174,17 +174,6 @@ export const generateCVServer = createServerFn({ method: "POST" })
       messages: [{ role: "user", content: prompt }],
     };
 
-    console.log("[generateCVServer] Anthropic request:", {
-      url: "https://api.anthropic.com/v1/messages",
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": `${apiKey.slice(0, 8)}...${apiKey.slice(-4)} (len=${apiKey.length})`,
-        "anthropic-version": "2023-06-01",
-      },
-      body: requestBody,
-    });
-
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -196,12 +185,6 @@ export const generateCVServer = createServerFn({ method: "POST" })
     });
 
     const responseText = await response.text();
-    console.log("[generateCVServer] Anthropic response:", {
-      status: response.status,
-      statusText: response.statusText,
-      headers: Object.fromEntries(response.headers.entries()),
-      body: responseText,
-    });
 
     if (!response.ok) {
       throw new Error(`Anthropic API error ${response.status}: ${responseText || response.statusText}`);
