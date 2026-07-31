@@ -245,10 +245,6 @@ function ResultPage() {
         });
         y += 4;
       });
-      newPageIfNeeded(10);
-      pdf.setDrawColor(220, 220, 220); pdf.line(ML, y, W - MR, y); y += 5;
-      pdf.setFont("helvetica", "normal"); pdf.setFontSize(8); pdf.setTextColor(180, 180, 180);
-      pdf.text("Created with CVLingo · cvlingo.com", W / 2, y, { align: "center" });
       pdf.save(filename);
 
       // Track download for authenticated users
@@ -424,9 +420,6 @@ function ResultPage() {
           >
             <div id="cv-print" onContextMenu={(e) => e.preventDefault()}>
               <div dangerouslySetInnerHTML={{ __html: activeHtml }} />
-              <div className="cv-watermark">
-                Created with <a href="https://cvlingo.com" target="_blank" rel="noreferrer">CVLingo · cvlingo.com</a>
-              </div>
             </div>
           </article>
 
