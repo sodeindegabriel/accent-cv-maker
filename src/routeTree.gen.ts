@@ -22,7 +22,9 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as RefCodeRouteImport } from './routes/ref.$code'
+import { Route as PartnerDashboardRouteImport } from './routes/partner.dashboard'
 import { Route as AdminPartnersRouteImport } from './routes/admin.partners'
+import { Route as AdminJobRequestsRouteImport } from './routes/admin.job-requests'
 import { Route as AdminCandidatesRouteImport } from './routes/admin.candidates'
 
 const TermsRoute = TermsRouteImport.update({
@@ -90,9 +92,19 @@ const RefCodeRoute = RefCodeRouteImport.update({
   path: '/ref/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PartnerDashboardRoute = PartnerDashboardRouteImport.update({
+  id: '/partner/dashboard',
+  path: '/partner/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminPartnersRoute = AdminPartnersRouteImport.update({
   id: '/partners',
   path: '/partners',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminJobRequestsRoute = AdminJobRequestsRouteImport.update({
+  id: '/job-requests',
+  path: '/job-requests',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminCandidatesRoute = AdminCandidatesRouteImport.update({
@@ -114,7 +126,9 @@ export interface FileRoutesByFullPath {
   '/result': typeof ResultRoute
   '/terms': typeof TermsRoute
   '/admin/candidates': typeof AdminCandidatesRoute
+  '/admin/job-requests': typeof AdminJobRequestsRoute
   '/admin/partners': typeof AdminPartnersRoute
+  '/partner/dashboard': typeof PartnerDashboardRoute
   '/ref/$code': typeof RefCodeRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -130,7 +144,9 @@ export interface FileRoutesByTo {
   '/result': typeof ResultRoute
   '/terms': typeof TermsRoute
   '/admin/candidates': typeof AdminCandidatesRoute
+  '/admin/job-requests': typeof AdminJobRequestsRoute
   '/admin/partners': typeof AdminPartnersRoute
+  '/partner/dashboard': typeof PartnerDashboardRoute
   '/ref/$code': typeof RefCodeRoute
   '/admin': typeof AdminIndexRoute
 }
@@ -148,7 +164,9 @@ export interface FileRoutesById {
   '/result': typeof ResultRoute
   '/terms': typeof TermsRoute
   '/admin/candidates': typeof AdminCandidatesRoute
+  '/admin/job-requests': typeof AdminJobRequestsRoute
   '/admin/partners': typeof AdminPartnersRoute
+  '/partner/dashboard': typeof PartnerDashboardRoute
   '/ref/$code': typeof RefCodeRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -167,7 +185,9 @@ export interface FileRouteTypes {
     | '/result'
     | '/terms'
     | '/admin/candidates'
+    | '/admin/job-requests'
     | '/admin/partners'
+    | '/partner/dashboard'
     | '/ref/$code'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
@@ -183,7 +203,9 @@ export interface FileRouteTypes {
     | '/result'
     | '/terms'
     | '/admin/candidates'
+    | '/admin/job-requests'
     | '/admin/partners'
+    | '/partner/dashboard'
     | '/ref/$code'
     | '/admin'
   id:
@@ -200,7 +222,9 @@ export interface FileRouteTypes {
     | '/result'
     | '/terms'
     | '/admin/candidates'
+    | '/admin/job-requests'
     | '/admin/partners'
+    | '/partner/dashboard'
     | '/ref/$code'
     | '/admin/'
   fileRoutesById: FileRoutesById
@@ -217,6 +241,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   ResultRoute: typeof ResultRoute
   TermsRoute: typeof TermsRoute
+  PartnerDashboardRoute: typeof PartnerDashboardRoute
   RefCodeRoute: typeof RefCodeRoute
 }
 
@@ -313,11 +338,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RefCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/partner/dashboard': {
+      id: '/partner/dashboard'
+      path: '/partner/dashboard'
+      fullPath: '/partner/dashboard'
+      preLoaderRoute: typeof PartnerDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/partners': {
       id: '/admin/partners'
       path: '/partners'
       fullPath: '/admin/partners'
       preLoaderRoute: typeof AdminPartnersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/job-requests': {
+      id: '/admin/job-requests'
+      path: '/job-requests'
+      fullPath: '/admin/job-requests'
+      preLoaderRoute: typeof AdminJobRequestsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/candidates': {
@@ -332,12 +371,14 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminCandidatesRoute: typeof AdminCandidatesRoute
+  AdminJobRequestsRoute: typeof AdminJobRequestsRoute
   AdminPartnersRoute: typeof AdminPartnersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminCandidatesRoute: AdminCandidatesRoute,
+  AdminJobRequestsRoute: AdminJobRequestsRoute,
   AdminPartnersRoute: AdminPartnersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
@@ -356,6 +397,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   ResultRoute: ResultRoute,
   TermsRoute: TermsRoute,
+  PartnerDashboardRoute: PartnerDashboardRoute,
   RefCodeRoute: RefCodeRoute,
 }
 export const routeTree = rootRouteImport

@@ -455,6 +455,11 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
     if (err) { setSubmitting(false); setError(friendlyAuthError(err, lang)); return; }
     const { data: { user: authedUser } } = await supabase.auth.getUser();
     if (authedUser) await maybeAttributeReferral(authedUser.id);
+    // Check for partner account — handles both first-login claim and returning partners.
+    // claim_partner_account() sets user_id + role='partner' on first login, then returns
+    // the referral_code for any subsequent login too.
+    const { data: partnerCode } = await supabase.rpc("claim_partner_account");
+    if (partnerCode) { navigate({ to: "/partner/dashboard" }); return; }
     setSubmitting(false);
     const hasRedirectDest = !!((() => { try { return sessionStorage.getItem("cvlingo:redirectAfterAuth"); } catch { return null; } })());
     // Use cv_documents count to distinguish new vs returning: the created_at timestamp
@@ -488,6 +493,8 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
       // Explicit login intent — try sign-in directly
       const { error: signInErr } = await signIn(email.trim(), password);
       if (!signInErr) {
+        const { data: partnerCode } = await supabase.rpc("claim_partner_account");
+        if (partnerCode && !hasRedirectDest) { navigate({ to: "/partner/dashboard" }); return; }
         if (!hasRedirectDest) { navigate({ to: "/dashboard" }); return; }
         onSuccess();
         return;
@@ -510,6 +517,8 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
     if (!alreadyExists) { setSubmitting(false); setError(friendlyAuthError(signUpErr, lang)); return; }
     const { error: signInErr } = await signIn(email.trim(), password);
     if (!signInErr) {
+      const { data: partnerCode } = await supabase.rpc("claim_partner_account");
+      if (partnerCode && !hasRedirectDest) { navigate({ to: "/partner/dashboard" }); return; }
       if (!hasRedirectDest) { navigate({ to: "/dashboard" }); return; }
       onSuccess();
       return;
