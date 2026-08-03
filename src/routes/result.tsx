@@ -382,7 +382,10 @@ function ResultPage() {
         <div className="mx-auto max-w-3xl">
           {user && (
             <div className="no-print mb-4">
-              <a href="/dashboard" className="text-sm text-primary hover:underline font-medium">
+              <a
+                href="/dashboard"
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+              >
                 {t(uiLang, "resultBackToDashboard")}
               </a>
             </div>
@@ -426,7 +429,13 @@ function ResultPage() {
 
           {!poolConsentGiven && <CandidatePoolCard lang={uiLang} />}
 
-          <div className="no-print mt-6 flex flex-wrap gap-3">
+          {user && (
+            <p className="no-print mt-6 text-sm text-muted-foreground">
+              {t(uiLang, "resultCvSaved")}
+            </p>
+          )}
+
+          <div className="no-print mt-3 flex flex-wrap gap-3">
             <button
               type="button"
               disabled={downloading || (user !== null && downloadCount === null)}

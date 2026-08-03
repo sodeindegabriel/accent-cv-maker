@@ -1227,7 +1227,10 @@ function Step4Experience({ data, update, displayLang, originalLang, onToggleLang
                   <TextField label={t(displayLang, "company")} value={experience.place} onChange={(value) => updateExperience(index, "place", value)} placeholder={t(displayLang, "placePlaceholder")} />
                   <CountrySelect label={t(displayLang, "country")} value={experience.country} onChange={(value) => updateExperience(index, "country", value)} placeholder={t(displayLang, "selectCountry")} />
                   <TextField label={t(displayLang, "dates")} value={experience.duration} onChange={(value) => updateExperience(index, "duration", value)} placeholder="2022–2024" />
-                  <TextField label={t(displayLang, "whatYouDid")} value={experience.description} onChange={(value) => updateExperience(index, "description", value)} placeholder={t(displayLang, "descriptionPlaceholder")} />
+                  <div>
+                    <TextField label={t(displayLang, "whatYouDid")} value={experience.description} onChange={(value) => updateExperience(index, "description", value)} placeholder={t(displayLang, "descriptionPlaceholder")} />
+                    <p className="mt-1 text-xs text-muted-foreground">{t(displayLang, "experienceHint")}</p>
+                  </div>
                 </div>
               </div>
             ))}

@@ -235,11 +235,6 @@ const steps = [
   },
 ];
 
-interface ActivityEntry {
-  first_name: string;
-  created_at: string;
-}
-
 function StatsSection() {
   const [cvCount, setCvCount] = useState<number | null>(null);
 
@@ -276,64 +271,6 @@ function StatsSection() {
         </div>
       </div>
     </section>
-  );
-}
-
-function SocialProofToast() {
-  const [entries, setEntries] = useState<ActivityEntry[]>([]);
-  const [current, setCurrent] = useState<ActivityEntry | null>(null);
-  const [visible, setVisible] = useState(false);
-  const indexRef = useRef(0);
-
-  useEffect(() => {
-    void (async () => {
-      try {
-        const { data } = await supabase.rpc("get_recent_cv_activity", { limit_count: 8 });
-        if (data && (data as ActivityEntry[]).length > 0) {
-          setEntries(data as ActivityEntry[]);
-        }
-      } catch { /* ignore */ }
-    })();
-  }, []);
-
-  useEffect(() => {
-    if (entries.length === 0) return;
-    let showTimer: ReturnType<typeof setTimeout>;
-    let hideTimer: ReturnType<typeof setTimeout>;
-
-    const showNext = () => {
-      setCurrent(entries[indexRef.current % entries.length]);
-      setVisible(true);
-      hideTimer = setTimeout(() => {
-        setVisible(false);
-        indexRef.current += 1;
-        showTimer = setTimeout(showNext, 1500);
-      }, 5000);
-    };
-
-    showTimer = setTimeout(showNext, 3000);
-    return () => { clearTimeout(showTimer); clearTimeout(hideTimer); };
-  }, [entries]);
-
-  if (!current) return null;
-
-  return (
-    <div
-      className={`fixed bottom-6 left-4 z-40 hidden md:block transition-all duration-500 ${
-        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
-      }`}
-    >
-      <div className="flex items-center gap-2.5 rounded-xl border border-border bg-white px-3.5 py-2.5 shadow-lg">
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10">
-          <FileDown className="h-3.5 w-3.5 text-primary" />
-        </div>
-        <div className="min-w-0 max-w-[180px]">
-          <p className="truncate text-xs font-semibold text-foreground">
-            {current.first_name} just built a CV
-          </p>
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -902,7 +839,6 @@ function Index() {
           </div>
         </section>
       </main>
-      <SocialProofToast />
       {/* Sticky mobile CTA — appears after hero scrolls out of view */}
       <div
         className={`fixed bottom-0 left-0 right-0 z-50 block px-4 pb-4 sm:hidden transition-all duration-300 ${

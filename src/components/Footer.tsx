@@ -65,7 +65,7 @@ export function Footer() {
               rel="noreferrer"
               className="text-accent transition-colors hover:text-accent/80"
             >
-              Built by Jebaco Global
+              Built by Jebaco
             </a>
           </div>
           <a href="mailto:hello@cvlingo.com" className="transition-colors hover:text-accent">
