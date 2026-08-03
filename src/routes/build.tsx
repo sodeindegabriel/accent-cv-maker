@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { generateCV, type GeneratedCV } from "@/utils/generateCV";
 import { GeneratingOverlay } from "@/components/GeneratingOverlay";
 import { FlagIcon, langToCountry } from "@/components/FlagIcon";
-import { Clock, Lock } from "lucide-react";
+import { Clock, Lock, Search, Check, X } from "lucide-react";
 import { t, type TKey } from "@/lib/buildTranslations";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/context/AuthContext";
@@ -122,18 +122,31 @@ const languages = [
 ];
 
 const jobs: { id: string; tKey: TKey; emoji: string }[] = [
-  { id: "hospitality", tKey: "job_hospitality", emoji: "🍽️" },
-  { id: "construction", tKey: "job_construction", emoji: "🏗️" },
-  { id: "care", tKey: "job_care", emoji: "🤝" },
-  { id: "delivery", tKey: "job_delivery", emoji: "🚗" },
-  { id: "cleaning", tKey: "job_cleaning", emoji: "🧹" },
-  { id: "retail", tKey: "job_retail", emoji: "🛍️" },
-  { id: "warehouse", tKey: "job_warehouse", emoji: "📦" },
-  { id: "office", tKey: "job_office", emoji: "💼" },
-  { id: "beauty", tKey: "job_beauty", emoji: "💇" },
-  { id: "security", tKey: "job_security", emoji: "🔒" },
-  { id: "agriculture", tKey: "job_agriculture", emoji: "🌱" },
-  { id: "other", tKey: "job_other", emoji: "✨" },
+  { id: "hospitality",    tKey: "job_hospitality",    emoji: "🍽️" },
+  { id: "retail",         tKey: "job_retail",         emoji: "🛍️" },
+  { id: "cleaning",       tKey: "job_cleaning",       emoji: "🧹" },
+  { id: "care",           tKey: "job_care",           emoji: "🤝" },
+  { id: "healthcare",     tKey: "job_healthcare",     emoji: "🏥" },
+  { id: "childcare",      tKey: "job_childcare",      emoji: "👶" },
+  { id: "construction",   tKey: "job_construction",   emoji: "🏗️" },
+  { id: "warehouse",      tKey: "job_warehouse",      emoji: "📦" },
+  { id: "delivery",       tKey: "job_delivery",       emoji: "🚗" },
+  { id: "driving",        tKey: "job_driving",        emoji: "🚚" },
+  { id: "food",           tKey: "job_food",           emoji: "🏭" },
+  { id: "manufacturing",  tKey: "job_manufacturing",  emoji: "⚙️" },
+  { id: "catering",       tKey: "job_catering",       emoji: "🎪" },
+  { id: "office",         tKey: "job_office",         emoji: "💼" },
+  { id: "receptionist",   tKey: "job_receptionist",   emoji: "🖥️" },
+  { id: "it",             tKey: "job_it",             emoji: "💻" },
+  { id: "education",      tKey: "job_education",      emoji: "📚" },
+  { id: "translation",    tKey: "job_translation",    emoji: "🌐" },
+  { id: "security",       tKey: "job_security",       emoji: "🔒" },
+  { id: "beauty",         tKey: "job_beauty",         emoji: "💇" },
+  { id: "painting",       tKey: "job_painting",       emoji: "🖌️" },
+  { id: "maintenance",    tKey: "job_maintenance",    emoji: "🔧" },
+  { id: "gardening",      tKey: "job_gardening",      emoji: "🌿" },
+  { id: "agriculture",    tKey: "job_agriculture",    emoji: "🌱" },
+  { id: "other",          tKey: "job_other",          emoji: "✨" },
 ];
 
 
@@ -959,12 +972,24 @@ function LanguageChoiceModal({
 }
 
 function Step2JobType({ data, update, displayLang, originalLang, onToggleLang, onBack, onNext }: StepProps) {
+  const [query, setQuery] = useState("");
+
   const toggle = (id: string) => {
     const selected = new Set(data.jobTypes);
     if (selected.has(id)) selected.delete(id);
     else selected.add(id);
     update("jobTypes", Array.from(selected));
   };
+
+  const searchableJobs = jobs.filter((j) => j.id !== "other");
+  const otherJob = jobs.find((j) => j.id === "other")!;
+
+  const filtered =
+    query.trim() === ""
+      ? searchableJobs
+      : searchableJobs.filter((j) =>
+          t(displayLang, j.tKey).toLowerCase().includes(query.toLowerCase().trim())
+        );
 
   return (
     <StepShell
@@ -978,24 +1003,96 @@ function Step2JobType({ data, update, displayLang, originalLang, onToggleLang, o
       onNext={onNext}
       nextDisabled={data.jobTypes.length === 0}
     >
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {jobs.map((job) => {
-          const selected = data.jobTypes.includes(job.id);
-          return (
-            <button
-              key={job.id}
-              type="button"
-              onClick={() => toggle(job.id)}
-              className={`flex items-center gap-3 rounded-xl border p-4 text-left transition ${
-                selected ? "border-primary bg-primary/10 ring-2 ring-primary/30" : "border-border bg-background hover:bg-muted"
-              }`}
-            >
-              <span className="text-2xl" aria-hidden="true">{job.emoji}</span>
-              <span className="font-medium text-foreground">{t(displayLang, job.tKey)}</span>
-            </button>
-          );
-        })}
+      {/* Search input */}
+      <div className="relative mb-3">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t(displayLang, "step2SearchPlaceholder")}
+          className="w-full rounded-xl border border-border bg-background py-3 pl-9 pr-9 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+          autoComplete="off"
+        />
+        {query && (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            aria-label="Clear search"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
+
+      {/* Selected chips */}
+      {data.jobTypes.filter((id) => id !== "other").length > 0 && (
+        <div className="mb-3 flex flex-wrap gap-1.5">
+          {data.jobTypes
+            .filter((id) => id !== "other")
+            .map((id) => {
+              const job = jobs.find((j) => j.id === id);
+              return job ? (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => toggle(id)}
+                  className="inline-flex items-center gap-1 rounded-full border border-primary bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary"
+                >
+                  {job.emoji} {t(displayLang, job.tKey)}
+                  <X className="h-3 w-3" />
+                </button>
+              ) : null;
+            })}
+        </div>
+      )}
+
+      {/* Scrollable filtered list */}
+      <div className="max-h-64 overflow-y-auto rounded-xl border border-border">
+        {filtered.length === 0 ? (
+          <p className="px-4 py-6 text-center text-sm text-muted-foreground">
+            {t(displayLang, "step2NoResults")}
+          </p>
+        ) : (
+          <div className="divide-y divide-border">
+            {filtered.map((job) => {
+              const selected = data.jobTypes.includes(job.id);
+              return (
+                <button
+                  key={job.id}
+                  type="button"
+                  onClick={() => toggle(job.id)}
+                  className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition ${
+                    selected
+                      ? "bg-primary/10 text-primary"
+                      : "bg-background text-foreground hover:bg-muted"
+                  }`}
+                >
+                  <span className="text-xl" aria-hidden="true">{job.emoji}</span>
+                  <span className="flex-1 font-medium">{t(displayLang, job.tKey)}</span>
+                  {selected && <Check className="h-4 w-4 shrink-0 text-primary" />}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* "Something else" always pinned below the list */}
+      <button
+        type="button"
+        onClick={() => toggle("other")}
+        className={`mt-3 flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-sm transition ${
+          data.jobTypes.includes("other")
+            ? "border-primary bg-primary/10 text-primary"
+            : "border-border bg-background text-foreground hover:bg-muted"
+        }`}
+      >
+        <span className="text-xl" aria-hidden="true">{otherJob.emoji}</span>
+        <span className="flex-1 font-medium">{t(displayLang, "job_other")}</span>
+        {data.jobTypes.includes("other") && <Check className="h-4 w-4 shrink-0 text-primary" />}
+      </button>
 
       {data.jobTypes.includes("other") && (
         <TextField

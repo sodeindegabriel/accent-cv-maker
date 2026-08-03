@@ -8,6 +8,11 @@ export type TKey =
   | "job_hospitality" | "job_construction" | "job_care" | "job_delivery"
   | "job_cleaning" | "job_retail" | "job_warehouse" | "job_office"
   | "job_beauty" | "job_security" | "job_agriculture" | "job_other"
+  | "job_it" | "job_childcare" | "job_food" | "job_driving"
+  | "job_manufacturing" | "job_healthcare" | "job_education" | "job_catering"
+  | "job_receptionist" | "job_painting" | "job_maintenance" | "job_gardening"
+  | "job_translation"
+  | "step2SearchPlaceholder" | "step2NoResults"
   | "otherWorkType" | "otherWorkPlaceholder"
   | "fullName" | "phoneNumber" | "email" | "cityUk" | "postcodeOptional"
   | "postcodePlaceholder" | "rightToWork"
@@ -104,7 +109,22 @@ const en: Record<TKey, string> = {
   job_beauty: "Beauty & salon",
   job_security: "Security",
   job_agriculture: "Agriculture & farming",
+  job_it: "IT & computers",
+  job_childcare: "Childcare & nursery",
+  job_food: "Food production & packing",
+  job_driving: "Driving (HGV / taxi / private hire)",
+  job_manufacturing: "Factory & manufacturing",
+  job_healthcare: "Healthcare support (HCA / care assistant)",
+  job_education: "Education support (teaching assistant)",
+  job_catering: "Catering & events",
+  job_receptionist: "Reception & front desk",
+  job_painting: "Painting & decorating",
+  job_maintenance: "Maintenance & repairs",
+  job_gardening: "Gardening & grounds",
+  job_translation: "Translation & interpreting",
   job_other: "Something else",
+  step2SearchPlaceholder: "Search job types…",
+  step2NoResults: "No matches — try different words or choose 'Something else' below.",
   otherWorkType: "Other work type",
   otherWorkPlaceholder: "Tell us what kind of work",
   fullName: "Full name", phoneNumber: "Phone number", email: "Email",
