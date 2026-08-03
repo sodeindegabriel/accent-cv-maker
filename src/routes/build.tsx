@@ -1107,10 +1107,10 @@ function Step2JobType({ data, update, displayLang, originalLang, onToggleLang, o
   );
 }
 
-// TEMP/DECISION NEEDED: relaxed from UK-only to international format for
-// weekend friends & family testing (July 2026). Revisit before full public
-// launch — decide whether to keep international support permanently
-// (many users may have overseas numbers) or revert to UK-only.
+// International phone format supported by design — CVLingo users may be
+// job-seeking in the UK while still using an overseas number. Validates
+// general international standards (digits after stripping spaces/+/-/
+// parentheses, length 7-15 per E.164) rather than UK-specific format.
 function isValidUKPhone(phone: string): boolean {
   const cleaned = phone.replace(/[\s()\-+]/g, "");
   if (!/^\d+$/.test(cleaned)) return false; // must be digits only after stripping valid chars
