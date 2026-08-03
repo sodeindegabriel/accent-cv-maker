@@ -1631,6 +1631,20 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
         }
       }
 
+      // Fire-and-forget: capture custom "other" job title for admin review.
+      // Never blocks navigation or throws to the user.
+      if (data.jobTypes.includes("other") && data.otherJobType?.trim()) {
+        const rawTitle = data.otherJobType.trim();
+        const normalizedTitle = rawTitle.toLowerCase();
+        void Promise.resolve(
+          supabase.rpc("upsert_job_title_request", { p_title: rawTitle, p_normalized: normalizedTitle })
+        )
+          .then(({ error }) => {
+            if (error) console.error("[job_title_requests] upsert error:", error);
+          })
+          .catch((e: unknown) => console.error("[job_title_requests] upsert exception:", e));
+      }
+
       // Candidate pool opt-in is handled on the result page (CandidatePoolCard)
       navigate({ to: "/result", search: { cv: undefined } });
     } catch (e) {

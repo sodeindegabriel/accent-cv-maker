@@ -94,12 +94,15 @@ function MetricCard({ label, value, href }: { label: string; value: string | num
 }
 
 // ── Main component ─────────────────────────────────────────────────────────
+interface PendingJobRequest { title: string; request_count: number; }
+
 function AdminIndexPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [data, setData] = useState<AdminData | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [pendingJobRequests, setPendingJobRequests] = useState<{ count: number; top: PendingJobRequest | null }>({ count: 0, top: null });
 
   useEffect(() => {
     if (authLoading) return;
@@ -118,6 +121,20 @@ function AdminIndexPage() {
         }
       });
   }, [authLoading, user, navigate]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    supabase
+      .from("job_title_requests")
+      .select("title, request_count")
+      .eq("status", "pending")
+      .order("request_count", { ascending: false })
+      .then(({ data: rows }) => {
+        if (!rows || rows.length === 0) return;
+        const typed = rows as PendingJobRequest[];
+        setPendingJobRequests({ count: typed.length, top: typed[0] });
+      });
+  }, [isAdmin]);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -213,11 +230,30 @@ function AdminIndexPage() {
         <div className="flex items-center gap-4">
           <a href="/admin/candidates" className="text-sm text-primary hover:underline">Candidates ↗</a>
           <a href="/admin/partners" className="text-sm text-primary hover:underline">Partners ↗</a>
+          <a href="/admin/job-requests" className="text-sm text-primary hover:underline">Job Requests ↗</a>
           <a href="/dashboard" className="text-sm text-gray-500 hover:underline">← Dashboard</a>
         </div>
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-10">
+
+        {/* 0. Pending job-title requests nudge — only shown when there are pending items */}
+        {pendingJobRequests.count > 0 && (
+          <a href="/admin/job-requests" className="block group">
+            <div className="rounded-xl border border-amber-300 bg-amber-50 px-5 py-4 flex items-center justify-between gap-4 hover:bg-amber-100 transition-colors">
+              <div>
+                <p className="font-semibold text-amber-900 text-sm">
+                  {pendingJobRequests.count} pending job title {pendingJobRequests.count === 1 ? "request" : "requests"}
+                  {pendingJobRequests.top && (
+                    <> — most requested: "{pendingJobRequests.top.title}" ({pendingJobRequests.top.request_count}×)</>
+                  )}
+                </p>
+                <p className="text-xs text-amber-700 mt-0.5">Click to review, approve &amp; generate translations →</p>
+              </div>
+              <span className="shrink-0 text-amber-600 group-hover:translate-x-0.5 transition-transform text-lg">→</span>
+            </div>
+          </a>
+        )}
 
         {/* 1. Top-line metrics */}
         <section>
