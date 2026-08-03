@@ -1,15 +1,22 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import emailjs from "@emailjs/browser";
 import { QRCodeCanvas } from "qrcode.react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 
+const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID as string | undefined;
+const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID as string | undefined;
+const PUBLIC_KEY  = import.meta.env.VITE_EMAILJS_PUBLIC_KEY  as string | undefined;
+
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface PartnerDashboardData {
+  partner_id: string;
   partner_name: string;
   referral_code: string;
+  member_role: "owner" | "editor";
   total_cvs: number;
   month_cvs: number;
   total_candidates: number;
@@ -21,6 +28,31 @@ interface PartnerDashboardData {
     opted_in_at: string;
     job_types: string[];
   }>;
+}
+
+// ── Email helper ───────────────────────────────────────────────────────────────
+async function sendTeamInviteEmail(partnerName: string, inviteeEmail: string) {
+  if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
+    console.warn("[team invite] EmailJS env vars missing — skipping email");
+    return;
+  }
+  const subject = `You've been invited to view ${partnerName}'s CVLingo dashboard`;
+  const message = [
+    `Hi,`,
+    "",
+    `You've been added as a team member on ${partnerName}'s CVLingo partner dashboard.`,
+    "",
+    "To access the dashboard:",
+    "Go to cvlingo.com, click Log in, and enter this email address to receive a one-time login code. You can set a password later from your dashboard if you'd prefer not to use a code each time.",
+    "",
+    "The CVLingo team",
+  ].join("\n");
+  await emailjs.send(
+    SERVICE_ID,
+    TEMPLATE_ID,
+    { to_email: inviteeEmail, subject, message, name: partnerName },
+    { publicKey: PUBLIC_KEY },
+  );
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -59,13 +91,7 @@ function StatCard({ label, value }: { label: string; value: number | string }) {
 }
 
 // ── Breakdown bar ──────────────────────────────────────────────────────────────
-function BreakdownBar({
-  label,
-  items,
-}: {
-  label: string;
-  items: Record<string, number>;
-}) {
+function BreakdownBar({ label, items }: { label: string; items: Record<string, number> }) {
   const entries = Object.entries(items).sort((a, b) => b[1] - a[1]).slice(0, 8);
   if (entries.length === 0) return null;
   const max = entries[0][1];
@@ -90,7 +116,7 @@ function BreakdownBar({
   );
 }
 
-// ── QR download button ─────────────────────────────────────────────────────────
+// ── QR download ────────────────────────────────────────────────────────────────
 function QRDownloadButton({ url, partnerName }: { url: string; partnerName: string }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -115,6 +141,79 @@ function QRDownloadButton({ url, partnerName }: { url: string; partnerName: stri
       >
         Download QR PNG
       </button>
+    </div>
+  );
+}
+
+// ── Owner-only: invite team member ─────────────────────────────────────────────
+function InviteTeamMember({ partnerId, partnerName }: { partnerId: string; partnerName: string }) {
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviting, setInviting] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [inviteSuccess, setInviteSuccess] = useState(false);
+
+  async function handleInvite(e: React.FormEvent) {
+    e.preventDefault();
+    const email = inviteEmail.trim().toLowerCase();
+    if (!email) return;
+    setInviteError(null);
+    setInviteSuccess(false);
+    setInviting(true);
+    try {
+      const { error } = await supabase.rpc("invite_partner_member", {
+        p_partner_id: partnerId,
+        p_email: email,
+      });
+      if (error) {
+        setInviteError(
+          error.message.includes("already a member")
+            ? "That email is already a team member."
+            : error.message.includes("Only owners")
+            ? "Only owners can invite team members."
+            : error.message,
+        );
+        return;
+      }
+      // Send invite email — fire-and-forget
+      void sendTeamInviteEmail(partnerName, email).catch((err: unknown) =>
+        console.error("[team invite] email send failed", err),
+      );
+      setInviteEmail("");
+      setInviteSuccess(true);
+      setTimeout(() => setInviteSuccess(false), 5000);
+    } finally {
+      setInviting(false);
+    }
+  }
+
+  return (
+    <div className="rounded-2xl border border-border bg-card px-6 py-6">
+      <h2 className="mb-1 font-semibold text-foreground">Invite a team member</h2>
+      <p className="mb-4 text-xs text-muted-foreground">
+        Editors can view this dashboard. Only owners can invite others.
+      </p>
+      <form onSubmit={(e) => void handleInvite(e)} className="flex flex-wrap gap-3">
+        <input
+          type="email"
+          placeholder="colleague@example.org"
+          value={inviteEmail}
+          onChange={(e) => setInviteEmail(e.target.value)}
+          className="flex-1 min-w-0 rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary"
+        />
+        <button
+          type="submit"
+          disabled={inviting || !inviteEmail.trim()}
+          className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-opacity whitespace-nowrap"
+        >
+          {inviting ? "Sending…" : "Send invite"}
+        </button>
+      </form>
+      {inviteError && <p className="mt-2 text-sm text-destructive">{inviteError}</p>}
+      {inviteSuccess && (
+        <p className="mt-2 text-sm text-emerald-600 font-medium">
+          Invite sent — they'll receive login instructions by email.
+        </p>
+      )}
     </div>
   );
 }
@@ -157,7 +256,7 @@ function PartnerDashboardPage() {
     );
   }
 
-  const referralUrl = `https://cvlingo.com/build?ref=${data!.referral_code}`;
+  const referralUrl = `https://www.cvlingo.com/?ref=${data!.referral_code}`;
 
   function copyLink() {
     void navigator.clipboard.writeText(referralUrl).then(() => {
@@ -176,6 +275,7 @@ function PartnerDashboardPage() {
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-accent">Partner Dashboard</p>
             <h1 className="mt-1 font-serif text-3xl text-foreground md:text-4xl">{data!.partner_name}</h1>
+            <p className="mt-1 text-xs text-muted-foreground capitalize">{data!.member_role}</p>
           </div>
           <button
             type="button"
@@ -230,7 +330,7 @@ function PartnerDashboardPage() {
 
         {/* Candidates table */}
         {data!.recent_candidates.length > 0 && (
-          <div className="rounded-2xl border border-border bg-card">
+          <div className="mb-8 rounded-2xl border border-border bg-card">
             <div className="border-b border-border px-6 py-4">
               <h2 className="font-semibold text-foreground">Candidates from your link</h2>
               <p className="mt-0.5 text-xs text-muted-foreground">
@@ -263,12 +363,17 @@ function PartnerDashboardPage() {
         )}
 
         {data!.recent_candidates.length === 0 && data!.total_cvs === 0 && (
-          <div className="rounded-2xl border border-border bg-card px-6 py-10 text-center">
+          <div className="mb-8 rounded-2xl border border-border bg-card px-6 py-10 text-center">
             <p className="font-medium text-foreground">No activity yet</p>
             <p className="mt-1 text-sm text-muted-foreground">
               Share your referral link to start tracking CVs and candidates.
             </p>
           </div>
+        )}
+
+        {/* Owner-only: invite team member */}
+        {data!.member_role === "owner" && (
+          <InviteTeamMember partnerId={data!.partner_id} partnerName={data!.partner_name} />
         )}
       </main>
 
