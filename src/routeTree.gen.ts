@@ -23,9 +23,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as RefCodeRouteImport } from './routes/ref.$code'
 import { Route as PartnerDashboardRouteImport } from './routes/partner.dashboard'
+import { Route as AdminTeamRouteImport } from './routes/admin.team'
 import { Route as AdminPartnersRouteImport } from './routes/admin.partners'
 import { Route as AdminJobRequestsRouteImport } from './routes/admin.job-requests'
 import { Route as AdminCandidatesRouteImport } from './routes/admin.candidates'
+import { Route as AdminBillingRouteImport } from './routes/admin.billing'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -97,6 +99,11 @@ const PartnerDashboardRoute = PartnerDashboardRouteImport.update({
   path: '/partner/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminTeamRoute = AdminTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPartnersRoute = AdminPartnersRouteImport.update({
   id: '/partners',
   path: '/partners',
@@ -112,6 +119,11 @@ const AdminCandidatesRoute = AdminCandidatesRouteImport.update({
   path: '/candidates',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminBillingRoute = AdminBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -125,9 +137,11 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/result': typeof ResultRoute
   '/terms': typeof TermsRoute
+  '/admin/billing': typeof AdminBillingRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/job-requests': typeof AdminJobRequestsRoute
   '/admin/partners': typeof AdminPartnersRoute
+  '/admin/team': typeof AdminTeamRoute
   '/partner/dashboard': typeof PartnerDashboardRoute
   '/ref/$code': typeof RefCodeRoute
   '/admin/': typeof AdminIndexRoute
@@ -143,9 +157,11 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/result': typeof ResultRoute
   '/terms': typeof TermsRoute
+  '/admin/billing': typeof AdminBillingRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/job-requests': typeof AdminJobRequestsRoute
   '/admin/partners': typeof AdminPartnersRoute
+  '/admin/team': typeof AdminTeamRoute
   '/partner/dashboard': typeof PartnerDashboardRoute
   '/ref/$code': typeof RefCodeRoute
   '/admin': typeof AdminIndexRoute
@@ -163,9 +179,11 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/result': typeof ResultRoute
   '/terms': typeof TermsRoute
+  '/admin/billing': typeof AdminBillingRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/job-requests': typeof AdminJobRequestsRoute
   '/admin/partners': typeof AdminPartnersRoute
+  '/admin/team': typeof AdminTeamRoute
   '/partner/dashboard': typeof PartnerDashboardRoute
   '/ref/$code': typeof RefCodeRoute
   '/admin/': typeof AdminIndexRoute
@@ -184,9 +202,11 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/result'
     | '/terms'
+    | '/admin/billing'
     | '/admin/candidates'
     | '/admin/job-requests'
     | '/admin/partners'
+    | '/admin/team'
     | '/partner/dashboard'
     | '/ref/$code'
     | '/admin/'
@@ -202,9 +222,11 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/result'
     | '/terms'
+    | '/admin/billing'
     | '/admin/candidates'
     | '/admin/job-requests'
     | '/admin/partners'
+    | '/admin/team'
     | '/partner/dashboard'
     | '/ref/$code'
     | '/admin'
@@ -221,9 +243,11 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/result'
     | '/terms'
+    | '/admin/billing'
     | '/admin/candidates'
     | '/admin/job-requests'
     | '/admin/partners'
+    | '/admin/team'
     | '/partner/dashboard'
     | '/ref/$code'
     | '/admin/'
@@ -345,6 +369,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PartnerDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/team': {
+      id: '/admin/team'
+      path: '/team'
+      fullPath: '/admin/team'
+      preLoaderRoute: typeof AdminTeamRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/partners': {
       id: '/admin/partners'
       path: '/partners'
@@ -366,20 +397,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCandidatesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/billing': {
+      id: '/admin/billing'
+      path: '/billing'
+      fullPath: '/admin/billing'
+      preLoaderRoute: typeof AdminBillingRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminBillingRoute: typeof AdminBillingRoute
   AdminCandidatesRoute: typeof AdminCandidatesRoute
   AdminJobRequestsRoute: typeof AdminJobRequestsRoute
   AdminPartnersRoute: typeof AdminPartnersRoute
+  AdminTeamRoute: typeof AdminTeamRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminBillingRoute: AdminBillingRoute,
   AdminCandidatesRoute: AdminCandidatesRoute,
   AdminJobRequestsRoute: AdminJobRequestsRoute,
   AdminPartnersRoute: AdminPartnersRoute,
+  AdminTeamRoute: AdminTeamRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 

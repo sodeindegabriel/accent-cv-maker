@@ -113,7 +113,7 @@ function AdminIndexPage() {
       .eq("id", user.id)
       .maybeSingle()
       .then(({ data: p }) => {
-        if (p?.role === "admin") {
+        if (p?.role === "admin" || p?.role === "super_admin") {
           setIsAdmin(true);
         } else {
           setIsAdmin(false);

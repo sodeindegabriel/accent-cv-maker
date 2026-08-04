@@ -61,7 +61,7 @@ function AdminCandidatesPage() {
     if (authLoading) return;
     if (!user) { navigate({ to: "/build" }); return; }
     supabase.from("profiles").select("role").eq("id", user.id).maybeSingle().then(({ data }) => {
-      if (data?.role !== "admin") { setIsAdmin(false); return; }
+      if (data?.role !== "admin" && data?.role !== "super_admin") { setIsAdmin(false); return; }
       setIsAdmin(true);
       supabase
         .from("candidates")
