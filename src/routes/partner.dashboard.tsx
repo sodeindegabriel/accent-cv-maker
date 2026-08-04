@@ -17,6 +17,7 @@ interface PartnerDashboardData {
   partner_name: string;
   referral_code: string;
   member_role: "owner" | "editor";
+  member_count: number;
   total_cvs: number;
   month_cvs: number;
   total_candidates: number;
@@ -146,7 +147,17 @@ function QRDownloadButton({ url, partnerName }: { url: string; partnerName: stri
 }
 
 // ── Owner-only: invite team member ─────────────────────────────────────────────
-function InviteTeamMember({ partnerId, partnerName }: { partnerId: string; partnerName: string }) {
+const MEMBER_CAP = 2;
+
+function InviteTeamMember({
+  partnerId,
+  partnerName,
+  memberCount,
+}: {
+  partnerId: string;
+  partnerName: string;
+  memberCount: number;
+}) {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviting, setInviting] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
@@ -192,6 +203,11 @@ function InviteTeamMember({ partnerId, partnerName }: { partnerId: string; partn
       <p className="mb-4 text-xs text-muted-foreground">
         Editors can view this dashboard. Only owners can invite others.
       </p>
+      {memberCount >= MEMBER_CAP ? (
+        <p className="rounded-xl border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+          You've reached the team member limit ({MEMBER_CAP}) for now. Revoke an existing member to invite someone new.
+        </p>
+      ) : (
       <form onSubmit={(e) => void handleInvite(e)} className="flex flex-wrap gap-3">
         <input
           type="email"
@@ -208,6 +224,7 @@ function InviteTeamMember({ partnerId, partnerName }: { partnerId: string; partn
           {inviting ? "Sending…" : "Send invite"}
         </button>
       </form>
+      )}
       {inviteError && <p className="mt-2 text-sm text-destructive">{inviteError}</p>}
       {inviteSuccess && (
         <p className="mt-2 text-sm text-emerald-600 font-medium">
@@ -373,7 +390,11 @@ function PartnerDashboardPage() {
 
         {/* Owner-only: invite team member */}
         {data!.member_role === "owner" && (
-          <InviteTeamMember partnerId={data!.partner_id} partnerName={data!.partner_name} />
+          <InviteTeamMember
+            partnerId={data!.partner_id}
+            partnerName={data!.partner_name}
+            memberCount={data!.member_count}
+          />
         )}
       </main>
 

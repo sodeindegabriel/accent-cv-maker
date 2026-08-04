@@ -73,12 +73,17 @@ export function Navbar() {
 
         <div className="hidden md:flex items-center gap-3">
           {user ? (
-            <Link
-              to="/dashboard"
-              className="inline-flex items-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md"
-            >
-              My Dashboard
-            </Link>
+            <div className="flex flex-col items-end gap-0.5">
+              <Link
+                to="/dashboard"
+                className="inline-flex items-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md"
+              >
+                My Dashboard
+              </Link>
+              <span className="max-w-[200px] truncate text-xs text-muted-foreground" title={user.email ?? ""}>
+                {user.email}
+              </span>
+            </div>
           ) : (
             <>
               <button
@@ -150,13 +155,18 @@ export function Navbar() {
             )
           )}
           {user ? (
-            <Link
-              to="/dashboard"
-              onClick={() => setOpen(false)}
-              className="mt-2 inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground"
-            >
-              My Dashboard
-            </Link>
+            <>
+              <Link
+                to="/dashboard"
+                onClick={() => setOpen(false)}
+                className="mt-2 inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground"
+              >
+                My Dashboard
+              </Link>
+              <span className="truncate px-3 text-xs text-muted-foreground" title={user.email ?? ""}>
+                {user.email}
+              </span>
+            </>
           ) : (
             <>
               <button

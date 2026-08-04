@@ -331,13 +331,13 @@ function AdminPartnersPage() {
                         type="button"
                         disabled={!!toggling[p.id]}
                         onClick={() => void handleToggleActive(p)}
-                        className={`rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors disabled:opacity-50 ${
+                        className={`rounded-lg border px-3 py-1 text-xs font-medium transition-colors disabled:opacity-50 whitespace-nowrap ${
                           p.is_active
-                            ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                            : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                            ? "border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
+                            : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                         }`}
                       >
-                        {toggling[p.id] ? "…" : p.is_active ? "Active" : "Inactive"}
+                        {toggling[p.id] ? "…" : p.is_active ? "Revoke access" : "Reactivate"}
                       </button>
                     </td>
                     <td className="px-4 py-3">
