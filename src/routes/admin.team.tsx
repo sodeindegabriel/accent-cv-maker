@@ -71,6 +71,17 @@ function AdminTeamPage() {
   const [demoting, setDemoting]     = useState<Record<string, boolean>>({});
   const [cancelling, setCancelling] = useState<Record<string, boolean>>({});
 
+  // Direct role setter
+  type FoundUser = { id: string; current_role: string };
+  const [setRoleEmail, setSetRoleEmail]     = useState("");
+  const [lookingUp, setLookingUp]           = useState(false);
+  // undefined = not yet searched, null = not found, object = found
+  const [foundUser, setFoundUser]           = useState<FoundUser | null | undefined>(undefined);
+  const [newRole, setNewRole]               = useState<"user" | "admin" | "super_admin">("admin");
+  const [settingRole, setSettingRole]       = useState(false);
+  const [setRoleError, setSetRoleError]     = useState<string | null>(null);
+  const [setRoleSuccess, setSetRoleSuccess] = useState(false);
+
   // ── Auth guard ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (authLoading) return;
@@ -146,6 +157,42 @@ function AdminTeamPage() {
     const { error } = await supabase.rpc("demote_admin", { p_target_id: admin.id });
     setDemoting((d) => { const n = { ...d }; delete n[admin.id]; return n; });
     if (error) { alert(error.message); return; }
+    void loadData();
+  }
+
+  async function handleLookup(e: React.FormEvent) {
+    e.preventDefault();
+    setLookingUp(true);
+    setFoundUser(undefined);
+    setSetRoleError(null);
+    setSetRoleSuccess(false);
+    const email = setRoleEmail.trim().toLowerCase();
+    const { data, error } = await supabase.rpc("find_user_by_email", { p_email: email });
+    setLookingUp(false);
+    if (error) { setSetRoleError(error.message); return; }
+    const rows = (data ?? []) as FoundUser[];
+    if (rows.length === 0) {
+      setFoundUser(null);
+    } else {
+      setFoundUser(rows[0]);
+      setNewRole(rows[0].current_role as "user" | "admin" | "super_admin");
+    }
+  }
+
+  async function handleSetRole() {
+    if (!foundUser) return;
+    setSettingRole(true);
+    setSetRoleError(null);
+    const { error } = await supabase.rpc("set_user_role", {
+      p_target_email: setRoleEmail.trim().toLowerCase(),
+      p_new_role: newRole,
+    });
+    setSettingRole(false);
+    if (error) { setSetRoleError(error.message); return; }
+    setSetRoleSuccess(true);
+    setFoundUser(undefined);
+    setSetRoleEmail("");
+    setTimeout(() => setSetRoleSuccess(false), 4000);
     void loadData();
   }
 
@@ -323,6 +370,89 @@ function AdminTeamPage() {
                 {inviting ? "Sending…" : "Send invite"}
               </button>
             </form>
+          </div>
+        )}
+
+        {/* Set role directly — super_admin only */}
+        {isSuperAdmin && (
+          <div className="rounded-2xl border border-gray-200 bg-white p-6">
+            <h2 className="mb-1 text-base font-semibold text-gray-900">Set role directly</h2>
+            <p className="mb-4 text-xs text-gray-500">
+              For accounts that already exist. Look up an email, then assign any role immediately —
+              no invite or OTP flow needed.
+            </p>
+
+            <form onSubmit={(e) => void handleLookup(e)} className="flex gap-2">
+              <input
+                type="email"
+                required
+                className={`${inputCls} flex-1`}
+                placeholder="user@example.com"
+                value={setRoleEmail}
+                onChange={(e) => {
+                  setSetRoleEmail(e.target.value);
+                  setFoundUser(undefined);
+                  setSetRoleError(null);
+                }}
+              />
+              <button
+                type="submit"
+                disabled={lookingUp}
+                className="shrink-0 rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-foreground hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              >
+                {lookingUp ? "Looking up…" : "Look up"}
+              </button>
+            </form>
+
+            {/* Not found */}
+            {foundUser === null && (
+              <p className="mt-3 text-sm text-amber-700 rounded-lg bg-amber-50 border border-amber-200 px-4 py-2.5">
+                No account found for this email yet — ask them to sign up first, then you can set
+                their role here.
+              </p>
+            )}
+
+            {/* Found — show current role + picker */}
+            {foundUser !== null && foundUser !== undefined && (
+              <div className="mt-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 space-y-3">
+                <p className="text-sm text-gray-700">
+                  Current role:{" "}
+                  <span className="font-semibold">
+                    {foundUser.current_role === "super_admin"
+                      ? "Super Admin"
+                      : foundUser.current_role === "admin"
+                      ? "Admin"
+                      : "User"}
+                  </span>
+                </p>
+                <div className="flex items-center gap-3">
+                  <select
+                    className="rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                    value={newRole}
+                    onChange={(e) => setNewRole(e.target.value as "user" | "admin" | "super_admin")}
+                  >
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                    <option value="super_admin">Super Admin</option>
+                  </select>
+                  <button
+                    type="button"
+                    disabled={settingRole || newRole === foundUser.current_role}
+                    onClick={() => void handleSetRole()}
+                    className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-opacity"
+                  >
+                    {settingRole ? "Applying…" : "Apply"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {setRoleError && (
+              <p className="mt-2 text-sm text-red-600">{setRoleError}</p>
+            )}
+            {setRoleSuccess && (
+              <p className="mt-2 text-sm text-emerald-600">Role updated successfully.</p>
+            )}
           </div>
         )}
       </main>
