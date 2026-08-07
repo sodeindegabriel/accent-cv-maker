@@ -51,7 +51,7 @@ function AdminLayout() {
     setLoginError(null);
     const { error } = await supabase.auth.signInWithOtp({
       email: loginEmail.trim().toLowerCase(),
-      options: { shouldCreateUser: false },
+      options: { shouldCreateUser: true },
     });
     setSending(false);
     if (error) { setLoginError(error.message); return; }
