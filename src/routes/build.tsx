@@ -470,6 +470,11 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
       : { count: 0 };
     const isReturning = (cvCount ?? 0) > 0;
     console.log("[build] post-OTP routing", { cvCount, isReturning, hasRedirectDest, userId: authedUser?.id });
+    if (!isReturning) {
+      // New user — discard any stale redirect set by an unrelated earlier session
+      // (e.g. visiting /dashboard while logged out, then abandoning that flow).
+      try { sessionStorage.removeItem("cvlingo:redirectAfterAuth"); } catch { /* ignore */ }
+    }
     if (isReturning && !hasRedirectDest) { navigate({ to: "/dashboard" }); return; }
     onSuccess();
   }

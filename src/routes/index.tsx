@@ -311,6 +311,7 @@ function Index() {
   const pickLanguage = (code: string) => {
     try {
       sessionStorage.setItem("cvlingo:preselectLanguage", code);
+      sessionStorage.removeItem("cvlingo:redirectAfterAuth");
     } catch {
       /* ignore */
     }
@@ -852,6 +853,7 @@ function Index() {
                 sessionStorage.removeItem("cvlingo:preselectLanguage");
                 sessionStorage.removeItem("selectedLanguage");
                 sessionStorage.removeItem("preselectLanguage");
+                sessionStorage.removeItem("cvlingo:redirectAfterAuth");
               } catch { /* ignore */ }
               navigate({ to: "/build" });
             }}
