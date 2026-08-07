@@ -69,7 +69,7 @@ function AdminLayout() {
     });
     if (error) { setVerifying(false); setLoginError(error.message); return; }
     // Claim a pending admin invite if one exists (no-op for existing admins)
-    await supabase.rpc("claim_admin_account").catch(() => {});
+    await supabase.rpc("claim_admin_account");
     setVerifying(false);
     // AuthContext fires onAuthStateChange → useEffect above updates userRole
   }

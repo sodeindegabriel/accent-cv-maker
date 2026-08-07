@@ -469,6 +469,7 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
       ? await supabase.from("cv_documents").select("id", { count: "exact", head: true }).eq("user_id", authedUser.id)
       : { count: 0 };
     const isReturning = (cvCount ?? 0) > 0;
+    console.log("[build] post-OTP routing", { cvCount, isReturning, hasRedirectDest, userId: authedUser?.id });
     if (isReturning && !hasRedirectDest) { navigate({ to: "/dashboard" }); return; }
     onSuccess();
   }
