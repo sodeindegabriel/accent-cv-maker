@@ -460,8 +460,8 @@ function ResultPage() {
 
             {/* Upgrade modal */}
             {showUpgradeModal && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-xl text-center">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowUpgradeModal(false)}>
+                <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-xl text-center" onClick={e => e.stopPropagation()}>
                   <p className="text-lg font-semibold text-foreground">You've used all 2 free downloads</p>
                   <p className="mt-2 text-sm text-muted-foreground">Upgrade to download unlimited CVs and access more features.</p>
                   <button disabled className="mt-5 w-full rounded-xl bg-primary/60 px-5 py-3 text-sm font-semibold text-primary-foreground cursor-not-allowed">
@@ -470,6 +470,9 @@ function ResultPage() {
                   <button type="button" onClick={() => setShowUpgradeModal(false)} className="mt-3 text-sm text-muted-foreground hover:text-foreground">
                     Close
                   </button>
+                  <div className="mt-2">
+                    <a href="/dashboard" className="text-sm text-primary hover:underline">Back to Dashboard</a>
+                  </div>
                 </div>
               </div>
             )}

@@ -398,6 +398,14 @@ function PartnerDashboardPage() {
         )}
       </main>
 
+      <div className="text-center py-4">
+        <a
+          href="mailto:hello@cvlingo.com?subject=CVLingo%20Support%20Request"
+          className="text-sm text-gray-500 hover:text-primary transition-colors"
+        >
+          Need help? Contact us
+        </a>
+      </div>
       <Footer />
     </div>
   );

@@ -273,7 +273,7 @@ function DashboardPage() {
                 />
               </div>
               {usagePct >= 100 && (
-                <p className="text-xs text-destructive mt-1">Free limit reached</p>
+                <p className="text-xs text-destructive mt-1">{t(lang, "dashboardFreeLimitReached")}</p>
               )}
             </div>
 
@@ -310,7 +310,7 @@ function DashboardPage() {
               className="flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-colors"
             >
               <Mail className="h-4 w-4 shrink-0" />
-              Need help? Contact us
+              {t(lang, "dashboardNeedHelp")}
             </a>
           </div>
         </aside>
@@ -526,7 +526,7 @@ function CandidatePoolStatus({ lang, userId }: { lang: string; userId: string })
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Talent Pool</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">{t(lang, "poolDashboardHeading")}</p>
       {inPool ? (
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5">
@@ -677,7 +677,7 @@ function ReferralSection({ lang, referralLink, referralCode }: { lang: string; r
         {referralCount !== null && (
           <p className="text-xs text-primary mt-1 font-medium">
             {referralCount === 0
-              ? "No one has joined using your link yet."
+              ? t(lang, "dashboardReferralNone")
               : `${referralCount} ${referralCount === 1 ? "person has" : "people have"} joined using your link.`}
           </p>
         )}
@@ -719,7 +719,7 @@ function ReferralSection({ lang, referralLink, referralCode }: { lang: string; r
           className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
         >
           <Mail className="h-3 w-3" />
-          Email
+          {t(lang, "shareEmail")}
         </a>
         <a
           href={urls.facebook}
