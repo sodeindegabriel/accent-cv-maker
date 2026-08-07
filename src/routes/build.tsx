@@ -1644,6 +1644,24 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
         } else {
           console.warn("[handleGenerate] languageCode is empty — skipping profile update");
         }
+
+        // Backfill full_name if it was never captured (e.g. user signed in via "Log in"
+        // path which skips the first-name field). Only writes if profile is currently empty.
+        const nameToSave = data.personalDetails.name?.trim();
+        if (nameToSave) {
+          const { data: profileRow } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", user.id)
+            .single();
+          if (!profileRow?.full_name?.trim()) {
+            const { error: nameErr } = await supabase
+              .from("profiles")
+              .update({ full_name: nameToSave })
+              .eq("id", user.id);
+            if (nameErr) console.error("[handleGenerate] profiles name backfill error:", nameErr);
+          }
+        }
       }
 
       // Fire-and-forget: capture custom "other" job title for admin review.
