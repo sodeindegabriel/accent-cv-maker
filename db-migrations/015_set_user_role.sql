@@ -5,7 +5,7 @@
 -- Returns 0 rows if no account exists, 1 row if found.
 -- Super admin only.
 CREATE OR REPLACE FUNCTION find_user_by_email(p_email text)
-RETURNS TABLE (id uuid, current_role text)
+RETURNS TABLE (id uuid, existing_role text)
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public

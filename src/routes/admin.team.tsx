@@ -72,7 +72,7 @@ function AdminTeamPage() {
   const [cancelling, setCancelling] = useState<Record<string, boolean>>({});
 
   // Direct role setter
-  type FoundUser = { id: string; current_role: string };
+  type FoundUser = { id: string; existing_role: string };
   const [setRoleEmail, setSetRoleEmail]     = useState("");
   const [lookingUp, setLookingUp]           = useState(false);
   // undefined = not yet searched, null = not found, object = found
@@ -175,7 +175,7 @@ function AdminTeamPage() {
       setFoundUser(null);
     } else {
       setFoundUser(rows[0]);
-      setNewRole(rows[0].current_role as "user" | "admin" | "super_admin");
+      setNewRole(rows[0].existing_role as "user" | "admin" | "super_admin");
     }
   }
 
@@ -418,9 +418,9 @@ function AdminTeamPage() {
                 <p className="text-sm text-gray-700">
                   Current role:{" "}
                   <span className="font-semibold">
-                    {foundUser.current_role === "super_admin"
+                    {foundUser.existing_role === "super_admin"
                       ? "Super Admin"
-                      : foundUser.current_role === "admin"
+                      : foundUser.existing_role === "admin"
                       ? "Admin"
                       : "User"}
                   </span>
@@ -437,7 +437,7 @@ function AdminTeamPage() {
                   </select>
                   <button
                     type="button"
-                    disabled={settingRole || newRole === foundUser.current_role}
+                    disabled={settingRole || newRole === foundUser.existing_role}
                     onClick={() => void handleSetRole()}
                     className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-opacity"
                   >
