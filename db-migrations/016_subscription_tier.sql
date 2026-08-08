@@ -5,3 +5,8 @@ ALTER TABLE profiles
 
 -- Backfill existing rows (already covered by DEFAULT, but explicit for clarity)
 UPDATE profiles SET subscription_tier = 'free' WHERE subscription_tier IS NULL;
+
+-- Grant premium to test account
+UPDATE profiles
+   SET subscription_tier = 'premium'
+ WHERE id = (SELECT id FROM auth.users WHERE email = 'hello@cvlingo.com');
