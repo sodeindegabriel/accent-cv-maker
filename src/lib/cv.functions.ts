@@ -18,6 +18,7 @@ export type CVData = {
   education?: { qualification: string; institution: string; country: string; year: string }[];
   skills: string[];
   availability: string[];
+  personalStatementOverride?: string;
 };
 
 
@@ -100,6 +101,7 @@ QUALITY STANDARDS:
 - Section headings are plain text inside h2 tags — no asterisks, no colons, no markdown
 - Contact details: full name as h1, then one clean line below with location · phone · email
 - Never output asterisks, hashtags, or any markdown syntax under any circumstances
+- If a "Personal Statement (use this verbatim)" is provided in the user information, copy it exactly as written into the personal statement section — do NOT rewrite, summarise, or alter it in any way.
 - If generating in ${language}, write all CV content in that language. For the English version, write everything in professional British English.
 - The user may have written their answers in their native language. Some place names, company names, or details may be in the user's language — for example "Londres" means London, "Varsovie" means Warsaw. Intelligently translate and interpret all user inputs into the correct English equivalents when generating the English CV. Never leave foreign language place names or terms untranslated in the English CV version.
 
@@ -131,6 +133,7 @@ ${hasEducation
 
 Skills: ${skills.join(", ")}
 Availability: ${availability.join(", ")}
+${cvData.personalStatementOverride?.trim() ? `\nPersonal Statement (use this verbatim — do not rewrite it): ${cvData.personalStatementOverride.trim()}` : ""}
 
 
 

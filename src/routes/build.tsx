@@ -78,6 +78,7 @@ type CVData = {
   skills: string[];
   availability: string[];
   candidatePoolConsent: boolean | null;
+  personalStatementOverride?: string;
 };
 
 const initialData: CVData = {
@@ -1570,6 +1571,19 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
   const [error, setError] = useState<string | null>(null);
   const [consent, setConsent] = useState(false);
   const [cvLimitReached, setCvLimitReached] = useState(false);
+  const [subscriptionTier, setSubscriptionTier] = useState<string>("free");
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("subscription_tier")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.subscription_tier) setSubscriptionTier(data.subscription_tier);
+      });
+  }, [user]);
 
   const handleGenerate = async () => {
     if (!consent) return;
@@ -1601,18 +1615,14 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
           : data.personalDetails.name || "My CV";
 
         if (editingCvId) {
-          // Edit mode: UPDATE the existing cv_documents row and log the edit event
-          const { error: updateErr } = await supabase
-            .from("cv_documents")
-            .update({ title, status: "draft", form_data: data, cv_content: result })
-            .eq("id", editingCvId)
-            .eq("user_id", user.id);
-          if (updateErr) console.error("cv_documents update error:", updateErr);
-
-          const { error: editEvtErr } = await supabase
-            .from("edit_events")
-            .insert({ user_id: user.id, cv_document_id: editingCvId });
-          if (editEvtErr) console.error("edit_events insert error:", editEvtErr);
+          // Edit mode: server-side RPC enforces subscription_tier for personalStatementOverride
+          const { error: updateErr } = await supabase.rpc("save_cv_edit", {
+            p_cv_id: editingCvId,
+            p_title: title,
+            p_form_data: data,
+            p_cv_content: result,
+          });
+          if (updateErr) console.error("save_cv_edit error:", updateErr);
 
           try { sessionStorage.setItem("cvlingo:cvDocumentId", editingCvId); } catch { /* ignore */ }
         } else {
@@ -1815,7 +1825,26 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
 
 
         </div>
-        {editingCvId && (
+        {editingCvId && subscriptionTier === "premium" ? (
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <h2 className="font-semibold text-foreground">Personal Statement</h2>
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                Premium
+              </span>
+            </div>
+            <p className="mb-3 text-sm text-muted-foreground">
+              Write your own personal statement and it will be used verbatim. Leave blank to regenerate from your details.
+            </p>
+            <textarea
+              rows={6}
+              value={data.personalStatementOverride ?? ""}
+              onChange={(e) => update("personalStatementOverride", e.target.value)}
+              placeholder="Enter your personal statement here..."
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+        ) : editingCvId ? (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm sm:p-5">
             <div className="mb-2 flex items-center justify-between gap-3">
               <h2 className="font-semibold text-amber-900">Personal Statement</h2>
@@ -1828,7 +1857,7 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
               Directly editing your personal statement text is a Premium feature. Saving will regenerate it from your updated details.
             </p>
           </div>
-        )}
+        ) : null}
         {cvLimitReached && (
           <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-5">
             <p className="font-semibold text-amber-900">You've used all 2 free CVs</p>
