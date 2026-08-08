@@ -69,9 +69,7 @@ function DashboardPage() {
   const [dataLoading, setDataLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
-  const [forceEnglish, setForceEnglish] = useState(() => {
-    try { return localStorage.getItem("cvlingo:dashLang") === "en"; } catch { return false; }
-  });
+  const [forceEnglish, setForceEnglish] = useState(false);
 
   const storedLang = profile?.preferred_ui_language || "en";
   const lang = forceEnglish ? "en" : storedLang;
@@ -81,9 +79,7 @@ function DashboardPage() {
     : "English";
 
   function toggleLang() {
-    const next = !forceEnglish;
-    setForceEnglish(next);
-    try { localStorage.setItem("cvlingo:dashLang", next ? "en" : ""); } catch { /* ignore */ }
+    setForceEnglish((prev) => !prev);
   }
 
   async function handleEdit(cvId: string) {

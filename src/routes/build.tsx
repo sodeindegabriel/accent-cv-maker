@@ -414,7 +414,7 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
   const navigate = useNavigate();
 
   const [screen, setScreen] = useState<AuthScreen>("capture");
-  const [firstName, setFirstName] = useState("");
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
@@ -435,10 +435,10 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
   async function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!loginMode && !firstName.trim()) { setError(t(lang, "authValidFirstName")); return; }
+    if (!loginMode && !fullName.trim()) { setError(t(lang, "authValidFirstName")); return; }
     if (!isValidEmail(email)) { setError(t(lang, "authValidEmail")); return; }
     setSubmitting(true);
-    const { error: err } = await sendOtp(email.trim(), firstName.trim());
+    const { error: err } = await sendOtp(email.trim(), fullName.trim());
     setSubmitting(false);
     if (err) { setError(friendlyAuthError(err, lang)); return; }
     setScreen("otp");
@@ -482,7 +482,7 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
   async function handleResendOtp() {
     if (resendCooldown > 0) return;
     setError(null);
-    const { error: err } = await sendOtp(email.trim(), firstName.trim());
+    const { error: err } = await sendOtp(email.trim(), fullName.trim());
     if (err) { setError(friendlyAuthError(err, lang)); return; }
     setResendCooldown(30);
   }
@@ -490,7 +490,7 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
   async function handlePassword(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!loginMode && !firstName.trim()) { setError(t(lang, "authValidFirstName")); return; }
+    if (!loginMode && !fullName.trim()) { setError(t(lang, "authValidFirstName")); return; }
     if (!isValidEmail(email)) { setError(t(lang, "authValidEmail")); return; }
     if (password.length < 6) { setError(t(lang, "authValidPassword")); return; }
     setSubmitting(true);
@@ -510,7 +510,7 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
       return;
     }
     // Signup intent — try signUp first; fall back to signIn if already registered
-    const { error: signUpErr } = await signUp(email.trim(), password, firstName.trim());
+    const { error: signUpErr } = await signUp(email.trim(), password, fullName.trim());
     if (!signUpErr) {
       const { data: { user: newUser } } = await supabase.auth.getUser();
       if (newUser) await maybeAttributeReferral(newUser.id);
@@ -616,15 +616,15 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
             <form onSubmit={screen === "password" ? handlePassword : handleSendOtp} noValidate>
               {!loginMode && (
                 <div className="mb-4">
-                  <label className="mb-1 block text-sm font-medium text-foreground" htmlFor="auth-firstname">
+                  <label className="mb-1 block text-sm font-medium text-foreground" htmlFor="auth-fullname">
                     {t(lang, "authFirstName")}
                   </label>
                   <input
-                    id="auth-firstname"
+                    id="auth-fullname"
                     type="text"
-                    autoComplete="given-name"
-                    value={firstName}
-                    onChange={(e) => { setFirstName(e.target.value); setError(null); }}
+                    autoComplete="name"
+                    value={fullName}
+                    onChange={(e) => { setFullName(e.target.value); setError(null); }}
                     placeholder={t(lang, "authFirstNamePlaceholder")}
                     className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                     autoFocus
@@ -1597,7 +1597,7 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
 
       if (user) {
         const title = data.jobTypes.length > 0
-          ? `${data.personalDetails.name} — ${data.jobTypes[0]}`
+          ? `${data.personalDetails.name} — ${data.jobTypes.join(", ")}`
           : data.personalDetails.name || "My CV";
 
         if (editingCvId) {

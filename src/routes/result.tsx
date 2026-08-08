@@ -106,7 +106,7 @@ function ResultPage() {
   // Auto-dismiss download toast after 5s
   useEffect(() => {
     if (!showDownloadToast) return;
-    const timer = setTimeout(() => setShowDownloadToast(false), 5000);
+    const timer = setTimeout(() => setShowDownloadToast(false), 10000);
     return () => clearTimeout(timer);
   }, [showDownloadToast]);
 
@@ -454,7 +454,7 @@ function ResultPage() {
             {/* Download limit toast */}
             {showDownloadToast && (
               <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm font-medium text-amber-900 shadow-lg">
-                1 free download left — upgrade for unlimited
+                {t(uiLang, "resultDownloadLimitToast")}
               </div>
             )}
 
