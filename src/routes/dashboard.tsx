@@ -17,6 +17,7 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import { t } from "@/lib/buildTranslations";
 import { notifyFeedback } from "@/lib/notifyFeedback";
+import { ObfuscatedEmail } from "@/components/ObfuscatedEmail";
 
 // Native names for the lang toggle — mirrors the languages array in build.tsx
 const NATIVE_LANG_NAME: Record<string, string> = {
@@ -301,13 +302,13 @@ function DashboardPage() {
 
           {/* Contact support */}
           <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <a
-              href="mailto:hello@cvlingo.com?subject=CVLingo%20Support%20Request"
+            <ObfuscatedEmail
+              subject="CVLingo Support Request"
               className="flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-colors"
             >
               <Mail className="h-4 w-4 shrink-0" />
               {t(lang, "dashboardNeedHelp")}
-            </a>
+            </ObfuscatedEmail>
           </div>
         </aside>
 

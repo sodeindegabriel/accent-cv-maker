@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { ObfuscatedEmail } from "@/components/ObfuscatedEmail";
 
 const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID as string | undefined;
 const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID as string | undefined;
@@ -399,12 +400,12 @@ function PartnerDashboardPage() {
       </main>
 
       <div className="text-center py-4">
-        <a
-          href="mailto:hello@cvlingo.com?subject=CVLingo%20Support%20Request"
+        <ObfuscatedEmail
+          subject="CVLingo Support Request"
           className="text-sm text-gray-500 hover:text-primary transition-colors"
         >
           Need help? Contact us
-        </a>
+        </ObfuscatedEmail>
       </div>
       <Footer />
     </div>

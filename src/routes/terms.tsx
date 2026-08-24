@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { ObfuscatedEmail } from "@/components/ObfuscatedEmail";
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -122,7 +123,7 @@ function TermsPage() {
             <Section title="13. Contact">
               <p>For any queries about these terms:</p>
               <div className="mt-2 space-y-1">
-                <p><span className="font-medium">Email:</span>{" "}<a href="mailto:hello@cvlingo.com" className="text-primary hover:underline">hello@cvlingo.com</a></p>
+                <p><span className="font-medium">Email:</span>{" "}<ObfuscatedEmail className="text-primary hover:underline" /></p>
                 <p><span className="font-medium">Website:</span> cvlingo.com</p>
               </div>
             </Section>

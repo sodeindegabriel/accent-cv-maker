@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { ObfuscatedEmail } from "@/components/ObfuscatedEmail";
 import type { ReactNode } from "react";
 
 function FooterAnchor({ hash, children }: { hash: string; children: ReactNode }) {
@@ -70,9 +71,7 @@ export function Footer() {
               </a>
             </>
           </div>
-          <a href="mailto:hello@cvlingo.com" className="transition-colors hover:text-accent">
-            hello@cvlingo.com
-          </a>
+          <ObfuscatedEmail className="transition-colors hover:text-accent" />
         </div>
       </div>
     </footer>
