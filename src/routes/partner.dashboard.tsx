@@ -767,7 +767,7 @@ function PartnerDashboardPage() {
             <img
               src={data!.partner_logo_url}
               alt={data!.partner_name}
-              className="h-12 w-auto max-w-[120px] object-contain"
+              className="max-h-[56px] max-w-[180px] w-auto h-auto object-contain"
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
             />
           )}
