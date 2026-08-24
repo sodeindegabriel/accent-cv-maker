@@ -59,14 +59,16 @@ export function Footer() {
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-5 py-6 text-xs text-white/50 md:flex-row md:items-center md:justify-between">
           <div>
             <span>© 2026 CVLingo. Built for UK immigrants. </span>
-            <a
-              href="https://jebacoglobal.com"
-              target="_blank"
-              rel="noreferrer"
-              className="text-accent transition-colors hover:text-accent/80"
-            >
-              Built by Jebaco
-            </a>
+            <>A product of{" "}
+              <a
+                href="https://jebacoglobal.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-accent transition-colors hover:text-accent/80"
+              >
+                Jebaco
+              </a>
+            </>
           </div>
           <a href="mailto:hello@cvlingo.com" className="transition-colors hover:text-accent">
             hello@cvlingo.com

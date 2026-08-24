@@ -65,8 +65,8 @@ const benefits = [
   },
   {
     icon: "🆓",
-    title: "Free Early Access",
-    body: "Join now while we build out the full employer platform, completely free.",
+    title: "No Cost to Join",
+    body: "Reserve your spot on our early access waitlist at no cost. We'll be in touch as the employer platform develops.",
   },
   {
     icon: "🤝",
