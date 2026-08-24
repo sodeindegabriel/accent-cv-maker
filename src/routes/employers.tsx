@@ -27,6 +27,36 @@ function saveEmployer(entry: EmployerEntry) {
   }
 }
 
+async function sendEmployerAutoReply(entry: EmployerEntry) {
+  if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) return;
+  const message = `Hi ${entry.contactName},
+
+Thank you for your interest in CVLingo and for joining our employer waitlist.
+
+We're building out our employer platform now, giving you access to a ready, motivated talent pool across 21 languages. We'll be in touch as soon as early access opens.
+
+In the meantime, feel free to explore CVLingo at cvlingo.com.
+
+Warm regards,
+The CVLingo Team
+hello@cvlingo.com`;
+  try {
+    await emailjs.send(
+      SERVICE_ID,
+      TEMPLATE_ID,
+      {
+        to_email: entry.email,
+        subject: "Thanks for joining the CVLingo Employer Waitlist",
+        message,
+        name: entry.contactName,
+      },
+      { publicKey: PUBLIC_KEY },
+    );
+  } catch (err) {
+    console.error("[sendEmployerAutoReply] EmailJS send failed", err);
+  }
+}
+
 async function notifyEmployer(entry: EmployerEntry) {
   if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
     console.warn("[notifyEmployer] EmailJS env vars missing — skipping email send");
@@ -114,6 +144,7 @@ function EmployersPage() {
     setSubmitting(true);
     saveEmployer(entry);
     await notifyEmployer(entry);
+    sendEmployerAutoReply(entry).catch(() => {/* already logged inside */});
     setSubmittedEmail(entry.email);
     setSubmitting(false);
     setSubmitted(true);
