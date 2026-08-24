@@ -5,6 +5,10 @@ import emailjs from "@emailjs/browser";
 const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID as string | undefined;
 const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID as string | undefined;
 const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY as string | undefined;
+// AUTOREPLY_TEMPLATE_ID must have "To Email" set to {{to_email}} in the EmailJS dashboard.
+// TEMPLATE_ID is the generic admin-notification template — its "To Email" is hardcoded to
+// hello@cvlingo.com, so it must NOT be used when the recipient is a third party.
+const AUTOREPLY_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_AUTOREPLY_TEMPLATE_ID as string | undefined;
 
 type EmployerEntry = {
   companyName: string;
@@ -28,27 +32,18 @@ function saveEmployer(entry: EmployerEntry) {
 }
 
 async function sendEmployerAutoReply(entry: EmployerEntry) {
-  if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) return;
-  const message = `Hi ${entry.contactName},
-
-Thank you for your interest in CVLingo and for joining our employer waitlist.
-
-We're building out our employer platform now, giving you access to a ready, motivated talent pool across 21 languages. We'll be in touch as soon as early access opens.
-
-In the meantime, feel free to explore CVLingo at cvlingo.com.
-
-Warm regards,
-The CVLingo Team
-hello@cvlingo.com`;
+  if (!SERVICE_ID || !AUTOREPLY_TEMPLATE_ID || !PUBLIC_KEY) {
+    console.warn("[sendEmployerAutoReply] AUTOREPLY_TEMPLATE_ID not set — skipping auto-reply");
+    return;
+  }
   try {
     await emailjs.send(
       SERVICE_ID,
-      TEMPLATE_ID,
+      AUTOREPLY_TEMPLATE_ID,
       {
         to_email: entry.email,
-        subject: "Thanks for joining the CVLingo Employer Waitlist",
-        message,
-        name: entry.contactName,
+        to_name: entry.contactName,
+        org_name: entry.companyName,
       },
       { publicKey: PUBLIC_KEY },
     );

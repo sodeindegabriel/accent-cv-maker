@@ -22,6 +22,10 @@ interface Partner {
 }
 
 // ── Email helper ───────────────────────────────────────────────────────────────
+// IMPORTANT: TEMPLATE_ID (the generic admin-notification template) has its EmailJS
+// "To Email" field hardcoded to hello@cvlingo.com. To deliver to an external
+// recipient via the to_email param, the EmailJS template's "To Email" field MUST
+// be set to {{to_email}} in the EmailJS dashboard. Verify this if invites stop arriving.
 async function sendPartnerInviteEmail(partner: {
   name: string;
   email: string;
@@ -50,12 +54,17 @@ async function sendPartnerInviteEmail(partner: {
     "",
     "The CVLingo team",
   ].join("\n");
-  await emailjs.send(
-    SERVICE_ID,
-    TEMPLATE_ID,
-    { to_email: partner.email, subject, message, name: partner.name },
-    { publicKey: PUBLIC_KEY },
-  );
+  try {
+    await emailjs.send(
+      SERVICE_ID,
+      TEMPLATE_ID,
+      { to_email: partner.email, subject, message, name: partner.name },
+      { publicKey: PUBLIC_KEY },
+    );
+  } catch (err) {
+    console.error("[partner invite] EmailJS send failed", err);
+    throw err;
+  }
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
