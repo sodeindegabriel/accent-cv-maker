@@ -18,6 +18,7 @@ const PUBLIC_KEY  = import.meta.env.VITE_EMAILJS_PUBLIC_KEY  as string | undefin
 interface PartnerDashboardData {
   partner_id: string;
   partner_name: string;
+  partner_logo_url?: string | null;
   referral_code: string;
   member_role: "owner" | "editor";
   member_count: number;
@@ -737,10 +738,20 @@ function PartnerDashboardPage() {
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-10">
         {/* Header */}
         <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-accent">Partner Dashboard</p>
-            <h1 className="mt-1 font-serif text-3xl text-foreground md:text-4xl">{data!.partner_name}</h1>
-            <p className="mt-1 text-xs text-muted-foreground capitalize">{data!.member_role}</p>
+          <div className="flex items-center gap-4">
+            {data!.partner_logo_url && (
+              <img
+                src={data!.partner_logo_url}
+                alt={data!.partner_name}
+                className="h-12 w-auto max-w-[120px] object-contain"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
+            )}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-accent">Partner Dashboard</p>
+              <h1 className="mt-1 font-serif text-3xl text-foreground md:text-4xl">{data!.partner_name}</h1>
+              <p className="mt-1 text-xs text-muted-foreground capitalize">{data!.member_role}</p>
+            </div>
           </div>
           <button
             type="button"

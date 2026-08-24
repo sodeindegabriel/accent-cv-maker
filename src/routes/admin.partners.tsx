@@ -15,6 +15,7 @@ interface Partner {
   name: string;
   email: string;
   referral_code: string;
+  logo_url: string | null;
   is_active: boolean;
   created_at: string;
   referral_count?: number;
@@ -78,6 +79,7 @@ function AdminPartnersPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [referralCode, setReferralCode] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
   const [createError, setCreateError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
@@ -85,6 +87,10 @@ function AdminPartnersPage() {
   const [toggling, setToggling] = useState<Record<string, boolean>>({});
   const [resending, setResending] = useState<Record<string, boolean>>({});
   const [resendResult, setResendResult] = useState<Record<string, "ok" | "err">>({});
+
+  // Per-row logo editing
+  const [editingLogo, setEditingLogo] = useState<Record<string, string>>({});
+  const [savingLogo, setSavingLogo] = useState<Record<string, boolean>>({});
 
   // ── Auth guard ───────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -147,9 +153,10 @@ function AdminPartnersPage() {
     const trimmedName  = name.trim();
     const trimmedEmail = email.trim().toLowerCase();
     setCreating(true);
-    const { error } = await supabase
-      .from("partners")
-      .insert({ name: trimmedName, email: trimmedEmail, referral_code: code });
+    const insertPayload: Record<string, unknown> = { name: trimmedName, email: trimmedEmail, referral_code: code };
+    const trimmedLogo = logoUrl.trim();
+    if (trimmedLogo) insertPayload.logo_url = trimmedLogo;
+    const { error } = await supabase.from("partners").insert(insertPayload);
     if (error) {
       setCreating(false);
       setCreateError(
@@ -166,6 +173,7 @@ function AdminPartnersPage() {
     setName("");
     setEmail("");
     setReferralCode("");
+    setLogoUrl("");
     setCreating(false);
     void loadPartners();
   }
@@ -195,6 +203,16 @@ function AdminPartnersPage() {
       prev.map((r) => (r.id === p.id ? { ...r, is_active: !p.is_active } : r)),
     );
     setToggling((t) => { const n = { ...t }; delete n[p.id]; return n; });
+  }
+
+  // ── Save logo URL ─────────────────────────────────────────────────────────────
+  async function handleSaveLogo(p: Partner) {
+    const url = (editingLogo[p.id] ?? p.logo_url ?? "").trim() || null;
+    setSavingLogo((s) => ({ ...s, [p.id]: true }));
+    await supabase.from("partners").update({ logo_url: url }).eq("id", p.id);
+    setPartners((prev) => prev.map((r) => (r.id === p.id ? { ...r, logo_url: url } : r)));
+    setEditingLogo((s) => { const n = { ...s }; delete n[p.id]; return n; });
+    setSavingLogo((s) => { const n = { ...s }; delete n[p.id]; return n; });
   }
 
   // ── Loading / auth states ────────────────────────────────────────────────────
@@ -259,6 +277,17 @@ function AdminPartnersPage() {
                 </p>
               </div>
             </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-600">Logo URL <span className="font-normal text-gray-400">(optional)</span></label>
+              <input
+                className={inputCls}
+                type="url"
+                placeholder="https://example.org/logo.png"
+                value={logoUrl}
+                onChange={(e) => setLogoUrl(e.target.value)}
+              />
+              <p className="mt-0.5 text-xs text-gray-400">Direct image URL — shown on the partner's dashboard.</p>
+            </div>
             {createError && <p className="text-sm text-red-600">{createError}</p>}
             <button
               type="submit"
@@ -289,6 +318,7 @@ function AdminPartnersPage() {
                   <th className="px-4 py-3">Organisation</th>
                   <th className="px-4 py-3">Email</th>
                   <th className="px-4 py-3">Referral code</th>
+                  <th className="px-4 py-3">Logo URL</th>
                   <th className="px-4 py-3">Referred</th>
                   <th className="px-4 py-3">Claimed</th>
                   <th className="px-4 py-3">Created</th>
@@ -308,6 +338,30 @@ function AdminPartnersPage() {
                       <code className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-700">
                         {p.referral_code}
                       </code>
+                    </td>
+                    <td className="px-4 py-3 min-w-[220px]">
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="url"
+                          className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-700 outline-none focus:border-primary"
+                          placeholder="https://…/logo.png"
+                          value={editingLogo[p.id] ?? p.logo_url ?? ""}
+                          onChange={(e) => setEditingLogo((s) => ({ ...s, [p.id]: e.target.value }))}
+                        />
+                        {(editingLogo[p.id] !== undefined) && (
+                          <button
+                            type="button"
+                            disabled={!!savingLogo[p.id]}
+                            onClick={() => void handleSaveLogo(p)}
+                            className="shrink-0 rounded-lg bg-primary px-2 py-1 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-opacity"
+                          >
+                            {savingLogo[p.id] ? "…" : "Save"}
+                          </button>
+                        )}
+                        {p.logo_url && editingLogo[p.id] === undefined && (
+                          <img src={p.logo_url} alt="" className="h-6 w-auto rounded object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-center font-semibold text-gray-900">
                       {p.referral_count ?? 0}
