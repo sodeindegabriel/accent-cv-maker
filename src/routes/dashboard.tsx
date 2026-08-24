@@ -33,6 +33,7 @@ interface Profile {
   preferred_ui_language: string | null;
   default_cv_language: string | null;
   referral_code: string | null;
+  role: string | null;
 }
 
 interface CVDocument {
@@ -118,7 +119,7 @@ function DashboardPage() {
       const [profileRes, cvsRes, downloadsRes] = await Promise.all([
         supabase
           .from("profiles")
-          .select("full_name, preferred_ui_language, default_cv_language, referral_code")
+          .select("full_name, preferred_ui_language, default_cv_language, referral_code, role")
           .eq("id", user.id)
           .maybeSingle(),
         supabase
@@ -136,6 +137,11 @@ function DashboardPage() {
         console.error("Dashboard: profiles query error:", profileRes.error);
         setErrorDetail(`profiles: ${profileRes.error.code} — ${profileRes.error.message}`);
         throw profileRes.error;
+      }
+      // Partners must never see the candidate dashboard — redirect them immediately.
+      if (profileRes.data?.role === "partner") {
+        navigate({ to: "/partner/dashboard" });
+        return;
       }
       if (cvsRes.error) {
         console.error("Dashboard: cv_documents query error:", cvsRes.error);
@@ -160,6 +166,7 @@ function DashboardPage() {
           preferred_ui_language: null,
           default_cv_language: null,
           referral_code: generatedCode,
+          role: null,
         };
       } else if (!resolvedProfile.referral_code) {
         const { error: rcErr } = await supabase

@@ -5,8 +5,6 @@ import { jsPDF } from "jspdf";
 import { QRCodeCanvas } from "qrcode.react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
 import { ObfuscatedEmail } from "@/components/ObfuscatedEmail";
 import { sanitizeCvHtml } from "@/lib/sanitize";
 
@@ -407,6 +405,34 @@ function downloadImpactReport(data: PartnerDashboardData) {
   pdf.save(`${safePartner} - CVLingo Impact Report - ${currentMonthLabel()}.pdf`);
 }
 
+// ── Partner nav ────────────────────────────────────────────────────────────────
+function PartnerNav({ orgName, onSignOut }: { orgName: string; onSignOut: () => void }) {
+  return (
+    <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
+      <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
+        <div className="flex items-center gap-3">
+          <a href="/" aria-label="CVLingo home">
+            <img src="/cvlingo-logo.svg" alt="CVLingo" className="h-8 w-8 rounded-full" />
+          </a>
+          {orgName && (
+            <>
+              <span className="text-border select-none">|</span>
+              <span className="text-sm font-medium text-foreground">{orgName}</span>
+            </>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={onSignOut}
+          className="rounded-xl border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted transition-colors"
+        >
+          Sign out
+        </button>
+      </div>
+    </header>
+  );
+}
+
 // ── Stat card ──────────────────────────────────────────────────────────────────
 function StatCard({ label, value }: { label: string; value: number | string }) {
   return (
@@ -713,11 +739,10 @@ function PartnerDashboardPage() {
   if (loadError) {
     return (
       <div className="flex min-h-screen flex-col">
-        <Navbar />
+        <PartnerNav orgName="" onSignOut={() => void signOut()} />
         <main className="flex flex-1 items-center justify-center px-5">
           <p className="text-sm text-destructive">Failed to load dashboard: {loadError}</p>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -733,33 +758,24 @@ function PartnerDashboardPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <Navbar />
+      <PartnerNav orgName={data!.partner_name} onSignOut={() => void signOut()} />
 
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-10">
         {/* Header */}
-        <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
-          <div className="flex items-center gap-4">
-            {data!.partner_logo_url && (
-              <img
-                src={data!.partner_logo_url}
-                alt={data!.partner_name}
-                className="h-12 w-auto max-w-[120px] object-contain"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-              />
-            )}
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-accent">Partner Dashboard</p>
-              <h1 className="mt-1 font-serif text-3xl text-foreground md:text-4xl">{data!.partner_name}</h1>
-              <p className="mt-1 text-xs text-muted-foreground capitalize">{data!.member_role}</p>
-            </div>
+        <div className="mb-8 flex flex-wrap items-center gap-4">
+          {data!.partner_logo_url && (
+            <img
+              src={data!.partner_logo_url}
+              alt={data!.partner_name}
+              className="h-12 w-auto max-w-[120px] object-contain"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+          )}
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-accent">Partner Dashboard</p>
+            <h1 className="mt-1 font-serif text-3xl text-foreground md:text-4xl">{data!.partner_name}</h1>
+            <p className="mt-1 text-xs text-muted-foreground capitalize">{data!.member_role}</p>
           </div>
-          <button
-            type="button"
-            onClick={() => void signOut()}
-            className="rounded-xl border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted transition-colors"
-          >
-            Sign out
-          </button>
         </div>
 
         {/* Referral link + QR */}
@@ -838,15 +854,14 @@ function PartnerDashboardPage() {
         )}
       </main>
 
-      <div className="text-center py-4">
+      <footer className="border-t border-border py-5 text-center">
         <ObfuscatedEmail
-          subject="CVLingo Support Request"
-          className="text-sm text-gray-500 hover:text-primary transition-colors"
+          subject="CVLingo Partner Support"
+          className="text-sm text-muted-foreground hover:text-primary transition-colors"
         >
           Need help? Contact us
         </ObfuscatedEmail>
-      </div>
-      <Footer />
+      </footer>
     </div>
   );
 }
