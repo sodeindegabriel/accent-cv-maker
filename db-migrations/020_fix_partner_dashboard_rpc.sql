@@ -1,0 +1,115 @@
+-- Migration 020: Fix get_partner_dashboard_data() positional SELECT INTO bug
+--
+-- Migration 019 added logo_url to partners. The existing function used
+-- "SELECT p.*, pm.role INTO ..." which assigns columns positionally. With the
+-- new column, partners now has 8 columns, so the 8th positional target
+-- (v_member_role) received logo_url instead of pm.role, and pm.role was
+-- silently dropped. The returned JSON had member_role = logo URL string.
+--
+-- Fix: replace p.* with an explicit column list that excludes logo_url.
+-- logo_url is still fetched separately via subselect in the RETURN block.
+
+CREATE OR REPLACE FUNCTION get_partner_dashboard_data()
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_partner           partners%ROWTYPE;
+  v_member_role       text;
+  v_member_count      int;
+  v_total_cvs         int;
+  v_month_cvs         int;
+  v_active_this_month int;
+  v_candidates        int;
+  v_lang_breakdown    jsonb;
+  v_job_breakdown     jsonb;
+  v_recent_candidates jsonb;
+BEGIN
+  -- Explicit column list avoids positional shift when new columns are added
+  -- to the partners table (p.* caused the bug after logo_url was added).
+  SELECT p.id, p.user_id, p.name, p.email, p.referral_code, p.is_active, p.created_at, pm.role
+  INTO v_partner.id, v_partner.user_id, v_partner.name, v_partner.email,
+       v_partner.referral_code, v_partner.is_active, v_partner.created_at, v_member_role
+  FROM partner_members pm
+  JOIN partners p ON p.id = pm.partner_id
+  WHERE pm.user_id = auth.uid() AND p.is_active = true
+  LIMIT 1;
+
+  IF v_partner.id IS NULL THEN RETURN NULL; END IF;
+
+  SELECT COUNT(*)::int INTO v_member_count
+  FROM partner_members WHERE partner_id = v_partner.id;
+
+  SELECT COUNT(*)::int INTO v_total_cvs
+  FROM cv_documents cd
+  JOIN partner_referrals pr ON pr.user_id = cd.user_id
+  WHERE pr.referral_code = v_partner.referral_code;
+
+  SELECT COUNT(*)::int INTO v_month_cvs
+  FROM cv_documents cd
+  JOIN partner_referrals pr ON pr.user_id = cd.user_id
+  WHERE pr.referral_code = v_partner.referral_code
+    AND cd.created_at >= date_trunc('month', now());
+
+  SELECT COUNT(DISTINCT c.user_id)::int INTO v_active_this_month
+  FROM candidates c
+  JOIN cv_documents cd ON cd.user_id = c.user_id
+  WHERE c.referral_source = v_partner.referral_code
+    AND c.is_active = true
+    AND cd.created_at >= date_trunc('month', now());
+
+  SELECT COUNT(*)::int INTO v_candidates
+  FROM candidates
+  WHERE referral_source = v_partner.referral_code AND is_active = true;
+
+  SELECT jsonb_object_agg(lang, cnt) INTO v_lang_breakdown
+  FROM (
+    SELECT language AS lang, COUNT(*)::int AS cnt
+    FROM candidates
+    WHERE referral_source = v_partner.referral_code AND is_active = true
+    GROUP BY language ORDER BY cnt DESC LIMIT 10
+  ) sub;
+
+  SELECT jsonb_object_agg(jt, cnt) INTO v_job_breakdown
+  FROM (
+    SELECT jt, COUNT(*)::int AS cnt
+    FROM candidates, unnest(job_types) AS jt
+    WHERE referral_source = v_partner.referral_code AND is_active = true
+    GROUP BY jt ORDER BY cnt DESC LIMIT 10
+  ) sub;
+
+  SELECT jsonb_agg(row_to_json(m)) INTO v_recent_candidates
+  FROM (
+    SELECT
+      split_part(name, ' ', 1)
+        || CASE WHEN position(' ' IN name) > 0
+             THEN ' ' || left(split_part(name, ' ', 2), 1) || '.'
+             ELSE ''
+           END AS display_name,
+      language, opted_in_at, job_types
+    FROM candidates
+    WHERE referral_source = v_partner.referral_code AND is_active = true
+    ORDER BY opted_in_at DESC LIMIT 30
+  ) m;
+
+  RETURN jsonb_build_object(
+    'partner_id',          v_partner.id,
+    'partner_name',        v_partner.name,
+    'partner_logo_url',    (SELECT logo_url FROM partners WHERE id = v_partner.id),
+    'referral_code',       v_partner.referral_code,
+    'member_role',         v_member_role,
+    'member_count',        v_member_count,
+    'total_cvs',           v_total_cvs,
+    'month_cvs',           v_month_cvs,
+    'active_this_month',   v_active_this_month,
+    'total_candidates',    v_candidates,
+    'lang_breakdown',      COALESCE(v_lang_breakdown, '{}'::jsonb),
+    'job_breakdown',       COALESCE(v_job_breakdown,  '{}'::jsonb),
+    'recent_candidates',   COALESCE(v_recent_candidates, '[]'::jsonb)
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION get_partner_dashboard_data() TO authenticated;

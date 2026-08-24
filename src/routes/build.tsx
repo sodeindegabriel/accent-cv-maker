@@ -859,7 +859,13 @@ function StepShell({
 
 function Step1Language({ data, update, onNext }: Step1Props) {
   const [showModal, setShowModal] = useState(false);
+  const [showUploadToast, setShowUploadToast] = useState(false);
   const selectedLang = languages.find((l) => l.code === data.languageCode);
+
+  const handleUploadTeaser = () => {
+    setShowUploadToast(true);
+    setTimeout(() => setShowUploadToast(false), 3000);
+  };
 
   const handleContinue = () => {
     if (!selectedLang) return;
@@ -915,7 +921,30 @@ function Step1Language({ data, update, onNext }: Step1Props) {
           })}
           <ComingSoonCard />
         </div>
+
+        {/* Upload CV teaser */}
+        <div className="mt-5 border-t border-border pt-5">
+          <button
+            type="button"
+            onClick={handleUploadTeaser}
+            className="flex w-full items-center justify-between rounded-xl border border-dashed border-border bg-muted/30 px-4 py-3 text-left transition hover:bg-muted/50"
+          >
+            <span className="text-sm font-medium text-muted-foreground">
+              {t(data.languageCode || "en", "uploadCvTeaser")}
+            </span>
+            <span className="ml-3 shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+              {t(data.languageCode || "en", "uploadCvTeaserBadge")}
+            </span>
+          </button>
+        </div>
       </StepShell>
+
+      {showUploadToast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-xl bg-foreground px-5 py-3 text-sm font-medium text-background shadow-lg">
+          {t(data.languageCode || "en", "uploadCvTeaserToast")}
+        </div>
+      )}
+
       {showModal && selectedLang && (
         <LanguageChoiceModal
           lang={selectedLang}

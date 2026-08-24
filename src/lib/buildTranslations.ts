@@ -85,7 +85,8 @@ export type TKey =
   | "poolDashboardOptOut" | "poolDashboardOptIn"
   | "poolDashboardRemoving" | "poolDashboardJoining"
   | "poolDashboardHeading" | "dashboardReferralNone"
-  | "dashboardFreeLimitReached" | "dashboardNeedHelp";
+  | "dashboardFreeLimitReached" | "dashboardNeedHelp"
+  | "uploadCvTeaser" | "uploadCvTeaserBadge" | "uploadCvTeaserToast";
 
 
 type Dict = Partial<Record<TKey, string>>;
@@ -332,6 +333,9 @@ const en: Record<TKey, string> = {
   dashboardReferralNone: "No one has joined using your link yet.",
   dashboardFreeLimitReached: "Free limit reached",
   dashboardNeedHelp: "Need help? Contact us",
+  uploadCvTeaser: "Upload your CV instead",
+  uploadCvTeaserBadge: "Coming soon",
+  uploadCvTeaserToast: "Upload & rework is coming soon!",
 };
 
 const pl: Dict = {

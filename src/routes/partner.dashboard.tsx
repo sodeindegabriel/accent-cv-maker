@@ -691,6 +691,14 @@ function ClientTable({ clients }: { clients: PartnerClient[] }) {
                     >
                       Edit
                     </button>
+                    <button
+                      type="button"
+                      onClick={showComingSoon}
+                      className="inline-flex items-center gap-1 rounded-lg border border-dashed border-border px-3 py-1 text-xs text-muted-foreground hover:bg-muted transition-colors"
+                    >
+                      Cover Letter
+                      <span className="rounded-full bg-muted px-1.5 py-0 text-[10px] font-medium leading-4">Soon</span>
+                    </button>
                   </div>
                 </td>
               </tr>
