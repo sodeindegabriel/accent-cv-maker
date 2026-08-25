@@ -72,6 +72,7 @@ function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [forceEnglish, setForceEnglish] = useState(false);
+  const [comingSoonMsg, setComingSoonMsg] = useState<string | null>(null);
 
   const storedLang = profile?.preferred_ui_language || "en";
   const lang = forceEnglish ? "en" : storedLang;
@@ -321,15 +322,46 @@ function DashboardPage() {
 
         {/* ── MAIN CONTENT ── */}
         <main className="space-y-5">
-          {/* Build new CV CTA */}
-          <button
-            type="button"
-            onClick={() => navigate({ to: "/build" })}
-            className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm shadow-sm"
-          >
-            <FileDown className="h-4 w-4" />
-            {t(lang, "dashboardNewCV")}
-          </button>
+          {/* Coming-soon toast */}
+          {comingSoonMsg && (
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-xl bg-foreground px-5 py-3 text-sm font-medium text-background shadow-lg">
+              {comingSoonMsg}
+            </div>
+          )}
+
+          {/* Build new CV CTA + coming-soon teasers */}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => navigate({ to: "/build" })}
+              className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm shadow-sm"
+            >
+              <FileDown className="h-4 w-4" />
+              {t(lang, "dashboardNewCV")}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setComingSoonMsg(t(lang, "dashboardUploadCvToast"));
+                setTimeout(() => setComingSoonMsg(null), 3000);
+              }}
+              className="inline-flex items-center gap-2 rounded-xl border border-dashed border-border px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
+            >
+              {t(lang, "dashboardUploadCv")}
+              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium leading-4">{t(lang, "uploadCvTeaserBadge")}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setComingSoonMsg(t(lang, "dashboardCoverLetterToast"));
+                setTimeout(() => setComingSoonMsg(null), 3000);
+              }}
+              className="inline-flex items-center gap-2 rounded-xl border border-dashed border-border px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
+            >
+              {t(lang, "dashboardCoverLetter")}
+              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium leading-4">{t(lang, "uploadCvTeaserBadge")}</span>
+            </button>
+          </div>
 
           {/* Loading / error / content */}
           {dataLoading ? (

@@ -86,7 +86,9 @@ export type TKey =
   | "poolDashboardRemoving" | "poolDashboardJoining"
   | "poolDashboardHeading" | "dashboardReferralNone"
   | "dashboardFreeLimitReached" | "dashboardNeedHelp"
-  | "uploadCvTeaser" | "uploadCvTeaserBadge" | "uploadCvTeaserToast";
+  | "uploadCvTeaser" | "uploadCvTeaserBadge" | "uploadCvTeaserToast"
+  | "dashboardUploadCv" | "dashboardUploadCvToast"
+  | "dashboardCoverLetter" | "dashboardCoverLetterToast";
 
 
 type Dict = Partial<Record<TKey, string>>;
@@ -336,6 +338,10 @@ const en: Record<TKey, string> = {
   uploadCvTeaser: "Upload your CV instead",
   uploadCvTeaserBadge: "Coming soon",
   uploadCvTeaserToast: "Upload & rework is coming soon!",
+  dashboardUploadCv: "Upload your CV",
+  dashboardUploadCvToast: "Upload & rework is coming soon!",
+  dashboardCoverLetter: "Write a Cover Letter",
+  dashboardCoverLetterToast: "Cover letters are coming soon!",
 };
 
 const pl: Dict = {
