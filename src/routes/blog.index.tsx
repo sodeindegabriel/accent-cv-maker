@@ -46,7 +46,7 @@ export const Route = createFileRoute("/blog/")({
         content: "Advice, guides and stories for immigrants building their career in the UK.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://cvlingo.com/blog" },
+      { property: "og:url", content: "https://www.cvlingo.com/blog" },
     ],
   }),
   component: BlogListPage,

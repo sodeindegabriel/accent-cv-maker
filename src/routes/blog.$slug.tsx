@@ -45,9 +45,9 @@ export const Route = createFileRoute("/blog/$slug")({
         ],
       };
     }
-    const url = `https://cvlingo.com/blog/${post.slug}`;
+    const url = `https://www.cvlingo.com/blog/${post.slug}`;
     const description = post.excerpt ?? "Read this article on the CVLingo blog.";
-    const image = post.cover_image_url ?? "https://cvlingo.com/cvlingo-logo.png";
+    const image = post.cover_image_url ?? "https://www.cvlingo.com/cvlingo-logo.png";
     return {
       meta: [
         { title: `${post.title} — CVLingo Blog` },
@@ -81,7 +81,7 @@ export const Route = createFileRoute("/blog/$slug")({
             publisher: {
               "@type": "Organization",
               name: "CVLingo",
-              logo: { "@type": "ImageObject", url: "https://cvlingo.com/cvlingo-logo.svg" },
+              logo: { "@type": "ImageObject", url: "https://www.cvlingo.com/cvlingo-logo.svg" },
             },
           }),
         },
