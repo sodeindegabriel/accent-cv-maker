@@ -35,6 +35,7 @@ export function Navbar() {
     { label: "For Community", to: "/partners" as const },
     { label: "Languages", hash: "languages" },
     { label: "For Employers", to: "/employers" as const },
+    { label: "Blog", to: "/blog" as const },
   ];
 
   return (

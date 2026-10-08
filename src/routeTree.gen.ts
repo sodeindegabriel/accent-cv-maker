@@ -9,75 +9,34 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AboutRouteImport } from './routes/about'
-import { Route as AdminRouteImport } from './routes/admin'
-import { Route as BuildRouteImport } from './routes/build'
-import { Route as CandidatesRouteImport } from './routes/candidates'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as EmployerRouteImport } from './routes/employer'
-import { Route as EmployersRouteImport } from './routes/employers'
-import { Route as PartnersRouteImport } from './routes/partners'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as ResultRouteImport } from './routes/result'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as ResultRouteImport } from './routes/result'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PartnersRouteImport } from './routes/partners'
+import { Route as EmployersRouteImport } from './routes/employers'
+import { Route as EmployerRouteImport } from './routes/employer'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CandidatesRouteImport } from './routes/candidates'
+import { Route as BuildRouteImport } from './routes/build'
+import { Route as BlogRouteImport } from './routes/blog'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
-import { Route as AdminBillingRouteImport } from './routes/admin.billing'
-import { Route as AdminCandidatesRouteImport } from './routes/admin.candidates'
-import { Route as AdminJobRequestsRouteImport } from './routes/admin.job-requests'
-import { Route as AdminPartnersRouteImport } from './routes/admin.partners'
-import { Route as AdminTeamRouteImport } from './routes/admin.team'
-import { Route as PartnerDashboardRouteImport } from './routes/partner.dashboard'
 import { Route as RefCodeRouteImport } from './routes/ref.$code'
+import { Route as PartnerDashboardRouteImport } from './routes/partner.dashboard'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as AdminTeamRouteImport } from './routes/admin.team'
+import { Route as AdminPartnersRouteImport } from './routes/admin.partners'
+import { Route as AdminJobRequestsRouteImport } from './routes/admin.job-requests'
+import { Route as AdminCandidatesRouteImport } from './routes/admin.candidates'
+import { Route as AdminBlogRouteImport } from './routes/admin.blog'
+import { Route as AdminBillingRouteImport } from './routes/admin.billing'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BuildRoute = BuildRouteImport.update({
-  id: '/build',
-  path: '/build',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CandidatesRoute = CandidatesRouteImport.update({
-  id: '/candidates',
-  path: '/candidates',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EmployerRoute = EmployerRouteImport.update({
-  id: '/employer',
-  path: '/employer',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EmployersRoute = EmployersRouteImport.update({
-  id: '/employers',
-  path: '/employers',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PartnersRoute = PartnersRouteImport.update({
-  id: '/partners',
-  path: '/partners',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResultRoute = ResultRouteImport.update({
@@ -85,29 +44,89 @@ const ResultRoute = ResultRouteImport.update({
   path: '/result',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
+} as any)
+const PartnersRoute = PartnersRouteImport.update({
+  id: '/partners',
+  path: '/partners',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmployersRoute = EmployersRouteImport.update({
+  id: '/employers',
+  path: '/employers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmployerRoute = EmployerRouteImport.update({
+  id: '/employer',
+  path: '/employer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CandidatesRoute = CandidatesRouteImport.update({
+  id: '/candidates',
+  path: '/candidates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BuildRoute = BuildRouteImport.update({
+  id: '/build',
+  path: '/build',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogRoute = BlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => BlogRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminBillingRoute = AdminBillingRouteImport.update({
-  id: '/billing',
-  path: '/billing',
-  getParentRoute: () => AdminRoute,
+const RefCodeRoute = RefCodeRouteImport.update({
+  id: '/ref/$code',
+  path: '/ref/$code',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AdminCandidatesRoute = AdminCandidatesRouteImport.update({
-  id: '/candidates',
-  path: '/candidates',
-  getParentRoute: () => AdminRoute,
+const PartnerDashboardRoute = PartnerDashboardRouteImport.update({
+  id: '/partner/dashboard',
+  path: '/partner/dashboard',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AdminJobRequestsRoute = AdminJobRequestsRouteImport.update({
-  id: '/job-requests',
-  path: '/job-requests',
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => BlogRoute,
+} as any)
+const AdminTeamRoute = AdminTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminPartnersRoute = AdminPartnersRouteImport.update({
@@ -115,26 +134,32 @@ const AdminPartnersRoute = AdminPartnersRouteImport.update({
   path: '/partners',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminTeamRoute = AdminTeamRouteImport.update({
-  id: '/team',
-  path: '/team',
+const AdminJobRequestsRoute = AdminJobRequestsRouteImport.update({
+  id: '/job-requests',
+  path: '/job-requests',
   getParentRoute: () => AdminRoute,
 } as any)
-const PartnerDashboardRoute = PartnerDashboardRouteImport.update({
-  id: '/partner/dashboard',
-  path: '/partner/dashboard',
-  getParentRoute: () => rootRouteImport,
+const AdminCandidatesRoute = AdminCandidatesRouteImport.update({
+  id: '/candidates',
+  path: '/candidates',
+  getParentRoute: () => AdminRoute,
 } as any)
-const RefCodeRoute = RefCodeRouteImport.update({
-  id: '/ref/$code',
-  path: '/ref/$code',
-  getParentRoute: () => rootRouteImport,
+const AdminBlogRoute = AdminBlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminBillingRoute = AdminBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => AdminRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
+  '/blog': typeof BlogRouteWithChildren
   '/build': typeof BuildRoute
   '/candidates': typeof CandidatesRoute
   '/dashboard': typeof DashboardRoute
@@ -145,13 +170,16 @@ export interface FileRoutesByFullPath {
   '/result': typeof ResultRoute
   '/terms': typeof TermsRoute
   '/admin/billing': typeof AdminBillingRoute
+  '/admin/blog': typeof AdminBlogRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/job-requests': typeof AdminJobRequestsRoute
   '/admin/partners': typeof AdminPartnersRoute
   '/admin/team': typeof AdminTeamRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/partner/dashboard': typeof PartnerDashboardRoute
   '/ref/$code': typeof RefCodeRoute
   '/admin/': typeof AdminIndexRoute
+  '/blog/': typeof BlogIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -166,19 +194,23 @@ export interface FileRoutesByTo {
   '/result': typeof ResultRoute
   '/terms': typeof TermsRoute
   '/admin/billing': typeof AdminBillingRoute
+  '/admin/blog': typeof AdminBlogRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/job-requests': typeof AdminJobRequestsRoute
   '/admin/partners': typeof AdminPartnersRoute
   '/admin/team': typeof AdminTeamRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/partner/dashboard': typeof PartnerDashboardRoute
   '/ref/$code': typeof RefCodeRoute
   '/admin': typeof AdminIndexRoute
+  '/blog': typeof BlogIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
+  '/blog': typeof BlogRouteWithChildren
   '/build': typeof BuildRoute
   '/candidates': typeof CandidatesRoute
   '/dashboard': typeof DashboardRoute
@@ -189,13 +221,16 @@ export interface FileRoutesById {
   '/result': typeof ResultRoute
   '/terms': typeof TermsRoute
   '/admin/billing': typeof AdminBillingRoute
+  '/admin/blog': typeof AdminBlogRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/job-requests': typeof AdminJobRequestsRoute
   '/admin/partners': typeof AdminPartnersRoute
   '/admin/team': typeof AdminTeamRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/partner/dashboard': typeof PartnerDashboardRoute
   '/ref/$code': typeof RefCodeRoute
   '/admin/': typeof AdminIndexRoute
+  '/blog/': typeof BlogIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -203,6 +238,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/admin'
+    | '/blog'
     | '/build'
     | '/candidates'
     | '/dashboard'
@@ -213,13 +249,16 @@ export interface FileRouteTypes {
     | '/result'
     | '/terms'
     | '/admin/billing'
+    | '/admin/blog'
     | '/admin/candidates'
     | '/admin/job-requests'
     | '/admin/partners'
     | '/admin/team'
+    | '/blog/$slug'
     | '/partner/dashboard'
     | '/ref/$code'
     | '/admin/'
+    | '/blog/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -234,18 +273,22 @@ export interface FileRouteTypes {
     | '/result'
     | '/terms'
     | '/admin/billing'
+    | '/admin/blog'
     | '/admin/candidates'
     | '/admin/job-requests'
     | '/admin/partners'
     | '/admin/team'
+    | '/blog/$slug'
     | '/partner/dashboard'
     | '/ref/$code'
     | '/admin'
+    | '/blog'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/admin'
+    | '/blog'
     | '/build'
     | '/candidates'
     | '/dashboard'
@@ -256,19 +299,23 @@ export interface FileRouteTypes {
     | '/result'
     | '/terms'
     | '/admin/billing'
+    | '/admin/blog'
     | '/admin/candidates'
     | '/admin/job-requests'
     | '/admin/partners'
     | '/admin/team'
+    | '/blog/$slug'
     | '/partner/dashboard'
     | '/ref/$code'
     | '/admin/'
+    | '/blog/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRouteWithChildren
+  BlogRoute: typeof BlogRouteWithChildren
   BuildRoute: typeof BuildRoute
   CandidatesRoute: typeof CandidatesRoute
   DashboardRoute: typeof DashboardRoute
@@ -284,74 +331,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/build': {
-      id: '/build'
-      path: '/build'
-      fullPath: '/build'
-      preLoaderRoute: typeof BuildRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/candidates': {
-      id: '/candidates'
-      path: '/candidates'
-      fullPath: '/candidates'
-      preLoaderRoute: typeof CandidatesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/employer': {
-      id: '/employer'
-      path: '/employer'
-      fullPath: '/employer'
-      preLoaderRoute: typeof EmployerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/employers': {
-      id: '/employers'
-      path: '/employers'
-      fullPath: '/employers'
-      preLoaderRoute: typeof EmployersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/partners': {
-      id: '/partners'
-      path: '/partners'
-      fullPath: '/partners'
-      preLoaderRoute: typeof PartnersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/result': {
@@ -361,12 +345,89 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResultRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/partners': {
+      id: '/partners'
+      path: '/partners'
+      fullPath: '/partners'
+      preLoaderRoute: typeof PartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/employers': {
+      id: '/employers'
+      path: '/employers'
+      fullPath: '/employers'
+      preLoaderRoute: typeof EmployersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/employer': {
+      id: '/employer'
+      path: '/employer'
+      fullPath: '/employer'
+      preLoaderRoute: typeof EmployerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/candidates': {
+      id: '/candidates'
+      path: '/candidates'
+      fullPath: '/candidates'
+      preLoaderRoute: typeof CandidatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/build': {
+      id: '/build'
+      path: '/build'
+      fullPath: '/build'
+      preLoaderRoute: typeof BuildRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog': {
+      id: '/blog'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof BlogRoute
     }
     '/admin/': {
       id: '/admin/'
@@ -375,25 +436,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/billing': {
-      id: '/admin/billing'
-      path: '/billing'
-      fullPath: '/admin/billing'
-      preLoaderRoute: typeof AdminBillingRouteImport
-      parentRoute: typeof AdminRoute
+    '/ref/$code': {
+      id: '/ref/$code'
+      path: '/ref/$code'
+      fullPath: '/ref/$code'
+      preLoaderRoute: typeof RefCodeRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/admin/candidates': {
-      id: '/admin/candidates'
-      path: '/candidates'
-      fullPath: '/admin/candidates'
-      preLoaderRoute: typeof AdminCandidatesRouteImport
-      parentRoute: typeof AdminRoute
+    '/partner/dashboard': {
+      id: '/partner/dashboard'
+      path: '/partner/dashboard'
+      fullPath: '/partner/dashboard'
+      preLoaderRoute: typeof PartnerDashboardRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/admin/job-requests': {
-      id: '/admin/job-requests'
-      path: '/job-requests'
-      fullPath: '/admin/job-requests'
-      preLoaderRoute: typeof AdminJobRequestsRouteImport
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof BlogRoute
+    }
+    '/admin/team': {
+      id: '/admin/team'
+      path: '/team'
+      fullPath: '/admin/team'
+      preLoaderRoute: typeof AdminTeamRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/partners': {
@@ -403,32 +471,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPartnersRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/team': {
-      id: '/admin/team'
-      path: '/team'
-      fullPath: '/admin/team'
-      preLoaderRoute: typeof AdminTeamRouteImport
+    '/admin/job-requests': {
+      id: '/admin/job-requests'
+      path: '/job-requests'
+      fullPath: '/admin/job-requests'
+      preLoaderRoute: typeof AdminJobRequestsRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/partner/dashboard': {
-      id: '/partner/dashboard'
-      path: '/partner/dashboard'
-      fullPath: '/partner/dashboard'
-      preLoaderRoute: typeof PartnerDashboardRouteImport
-      parentRoute: typeof rootRouteImport
+    '/admin/candidates': {
+      id: '/admin/candidates'
+      path: '/candidates'
+      fullPath: '/admin/candidates'
+      preLoaderRoute: typeof AdminCandidatesRouteImport
+      parentRoute: typeof AdminRoute
     }
-    '/ref/$code': {
-      id: '/ref/$code'
-      path: '/ref/$code'
-      fullPath: '/ref/$code'
-      preLoaderRoute: typeof RefCodeRouteImport
-      parentRoute: typeof rootRouteImport
+    '/admin/blog': {
+      id: '/admin/blog'
+      path: '/blog'
+      fullPath: '/admin/blog'
+      preLoaderRoute: typeof AdminBlogRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/billing': {
+      id: '/admin/billing'
+      path: '/billing'
+      fullPath: '/admin/billing'
+      preLoaderRoute: typeof AdminBillingRouteImport
+      parentRoute: typeof AdminRoute
     }
   }
 }
 
 interface AdminRouteChildren {
   AdminBillingRoute: typeof AdminBillingRoute
+  AdminBlogRoute: typeof AdminBlogRoute
   AdminCandidatesRoute: typeof AdminCandidatesRoute
   AdminJobRequestsRoute: typeof AdminJobRequestsRoute
   AdminPartnersRoute: typeof AdminPartnersRoute
@@ -438,6 +514,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminBillingRoute: AdminBillingRoute,
+  AdminBlogRoute: AdminBlogRoute,
   AdminCandidatesRoute: AdminCandidatesRoute,
   AdminJobRequestsRoute: AdminJobRequestsRoute,
   AdminPartnersRoute: AdminPartnersRoute,
@@ -447,10 +524,23 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface BlogRouteChildren {
+  BlogSlugRoute: typeof BlogSlugRoute
+  BlogIndexRoute: typeof BlogIndexRoute
+}
+
+const BlogRouteChildren: BlogRouteChildren = {
+  BlogSlugRoute: BlogSlugRoute,
+  BlogIndexRoute: BlogIndexRoute,
+}
+
+const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AdminRoute: AdminRouteWithChildren,
+  BlogRoute: BlogRouteWithChildren,
   BuildRoute: BuildRoute,
   CandidatesRoute: CandidatesRoute,
   DashboardRoute: DashboardRoute,
@@ -466,3 +556,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

@@ -8,12 +8,13 @@ type AdminRole = "admin" | "super_admin";
 type UserRole = AdminRole | "other" | null;
 
 const NAV = [
-  { label: "Overview",     to: "/admin",             superAdminOnly: false },
-  { label: "Candidates",   to: "/admin/candidates",  superAdminOnly: false },
+  { label: "Overview",     to: "/admin",              superAdminOnly: false },
+  { label: "Candidates",   to: "/admin/candidates",   superAdminOnly: false },
   { label: "Job Requests", to: "/admin/job-requests", superAdminOnly: false },
-  { label: "Partners",     to: "/admin/partners",    superAdminOnly: false },
-  { label: "Team",         to: "/admin/team",        superAdminOnly: true },
-  { label: "Billing",      to: "/admin/billing",     superAdminOnly: true },
+  { label: "Partners",     to: "/admin/partners",     superAdminOnly: false },
+  { label: "Blog",         to: "/admin/blog",         superAdminOnly: false },
+  { label: "Team",         to: "/admin/team",         superAdminOnly: true },
+  { label: "Billing",      to: "/admin/billing",      superAdminOnly: true },
 ];
 
 function AdminLayout() {
