@@ -6,6 +6,7 @@ import type { CVData } from "./cv.functions";
 
 export type CoverLetterInput = {
   cvData: CVData;
+  cvDocumentId?: string;
   jobAdvert: string;
   jobTitle: string;
   company: string;
@@ -16,6 +17,7 @@ export type CoverLetterInput = {
 };
 
 export type CoverLetterResult = {
+  id?: string;
   english: string;
   native: string;
   gaps: string[];
@@ -123,7 +125,10 @@ export const generateCoverLetterServer = createServerFn({ method: "POST" })
     if (!supabaseUrl || !supabaseAnonKey) {
       throw new Error("Server misconfiguration — Supabase env vars missing.");
     }
-    const sb = createClient(supabaseUrl, supabaseAnonKey);
+    // Use user-scoped client so RLS applies to all subsequent DB calls
+    const sb = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${input.accessToken}` } },
+    });
     const {
       data: { user },
       error: authErr,
@@ -181,7 +186,39 @@ export const generateCoverLetterServer = createServerFn({ method: "POST" })
       ? (parsed.gaps as unknown[]).filter((g): g is string => typeof g === "string")
       : [];
 
+    const mode = input.jobAdvert.trim() ? "advert" : "speculative";
+    const { data: saved, error: insertErr } = await sb
+      .from("cover_letters")
+      .insert({
+        user_id: user.id,
+        cv_document_id: input.cvDocumentId ?? null,
+        mode,
+        job_title: input.jobTitle || null,
+        company: input.company || null,
+        advert_text: input.jobAdvert || null,
+        answers: {
+          whyThisJob: input.whyThisJob,
+          explain: input.explain,
+        },
+        length: input.length,
+        language: input.cvData.language ?? "English",
+        english_text: english,
+        native_text: native,
+        gaps,
+      })
+      .select("id")
+      .single();
+
+    if (insertErr) {
+      // P0001 = cover_letter_limit_reached trigger
+      if (insertErr.code === "P0001" || insertErr.message?.includes("cover_letter_limit_reached")) {
+        throw new Error("cap_reached");
+      }
+      throw new Error(`Failed to save letter: ${insertErr.message}`);
+    }
+
     return {
+      id: saved?.id,
       english,
       native,
       gaps,

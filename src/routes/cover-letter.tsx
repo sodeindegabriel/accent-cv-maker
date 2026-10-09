@@ -197,6 +197,7 @@ function CoverLetterPage() {
       const res = await generateCoverLetterServer({
         data: {
           cvData,
+          cvDocumentId: selectedCvId || undefined,
           jobAdvert: advert,
           jobTitle: jobTitle.trim(),
           company: company.trim(),
@@ -213,7 +214,8 @@ function CoverLetterPage() {
       setView("result");
       if (trimmed) setAdvertTrimmed(true);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : t("en", "clError");
+      const raw = err instanceof Error ? err.message : t("en", "clError");
+      const msg = raw === "cap_reached" ? t("en", "clCapReached") : raw;
       setGenError(msg);
     } finally {
       setGenerating(false);
@@ -633,16 +635,16 @@ const ResultView = ({
               <button
                 type="button"
                 onClick={() => {
-                  // Save is just keeping editText — the active text is always editText when set
-                  const saved = editText;
+                  const saved = editText!;
                   setEditText(null);
-                  // re-open with saved text by updating the tab content
-                  // We achieve this by keeping it in editText = null state
-                  // and returning the saved value as the tab text
-                  // In Part 2 we persist to DB; for now just confirm save
-                  setEditText(null);
-                  // Brief confirmation feedback via the copy button is enough for Part 1
-                  void navigator.clipboard.writeText(saved).catch(() => null);
+                  // Persist to DB
+                  if (result?.id) {
+                    const field = tab === "english" ? "english_text" : "native_text";
+                    void supabase
+                      .from("cover_letters")
+                      .update({ [field]: saved })
+                      .eq("id", result.id);
+                  }
                 }}
                 className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 min-h-[44px]"
               >

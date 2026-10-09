@@ -101,7 +101,8 @@ export type TKey =
   | "clEnglishLetter"
   | "clThingsToCheck" | "clCopy" | "clCopied"
   | "clDownloadPdf" | "clDownloadWord" | "clRegenerate"
-  | "clEdit" | "clEditSave" | "clEditCancel";
+  | "clEdit" | "clEditSave" | "clEditCancel"
+  | "clCapReached";
 
 
 type Dict = Partial<Record<TKey, string>>;
@@ -393,6 +394,7 @@ const en: Record<TKey, string> = {
   clEdit: "Edit letter",
   clEditSave: "Done",
   clEditCancel: "Cancel",
+  clCapReached: "You've reached your cover letter limit. Upgrade your plan to generate more.",
 };
 
 const pl: Dict = {
