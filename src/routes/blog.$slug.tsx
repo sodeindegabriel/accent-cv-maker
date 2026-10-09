@@ -1,8 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { supabase } from "@/lib/supabaseClient";
 import ReactMarkdown from "react-markdown";
+import type { ComponentPropsWithoutRef } from "react";
 import remarkGfm from "remark-gfm";
 import { ArrowLeft, Calendar, User } from "lucide-react";
+
+const markdownComponents: ComponentPropsWithoutRef<typeof ReactMarkdown>["components"] = {
+  a: ({ href, children, ...props }) => {
+    if (!href) return <a {...props}>{children}</a>;
+    const lower = href.toLowerCase().trim();
+    if (lower.startsWith("javascript:") || lower.startsWith("data:")) {
+      return <span>{children}</span>;
+    }
+    const isInternal = href.startsWith("/") || href.startsWith("#") || href.includes("cvlingo.com");
+    if (isInternal) {
+      return <a href={href} {...props}>{children}</a>;
+    }
+    return <a href={href} target="_blank" rel="noopener noreferrer" {...props}>{children}</a>;
+  },
+};
 
 type BlogPost = {
   id: string;
@@ -170,7 +186,7 @@ function BlogPostPage() {
         </header>
 
         <div className="prose prose-neutral max-w-none dark:prose-invert prose-headings:font-serif prose-a:text-primary prose-a:no-underline hover:prose-a:underline">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
             {post.content}
           </ReactMarkdown>
         </div>

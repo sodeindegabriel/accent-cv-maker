@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState, useCallback } from "react";
-import { Eye, EyeOff, Pencil, Plus, Trash2, X } from "lucide-react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { Eye, EyeOff, Pencil, Plus, Trash2, X, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import type { ComponentPropsWithoutRef } from "react";
 import remarkGfm from "remark-gfm";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
@@ -103,6 +104,32 @@ function loadImageElement(file: File): Promise<HTMLImageElement> {
     img.src = url;
   });
 }
+
+function scaleImageToMaxWidth(imgEl: HTMLImageElement, maxWidth: number): HTMLCanvasElement {
+  const w = Math.min(imgEl.naturalWidth, maxWidth);
+  const h = Math.round(imgEl.naturalHeight * (w / imgEl.naturalWidth));
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  canvas.getContext("2d")!.drawImage(imgEl, 0, 0, w, h);
+  return canvas;
+}
+
+// Shared markdown components for safe link rendering
+const markdownComponents: ComponentPropsWithoutRef<typeof ReactMarkdown>["components"] = {
+  a: ({ href, children, ...props }) => {
+    if (!href) return <a {...props}>{children}</a>;
+    const lower = href.toLowerCase().trim();
+    if (lower.startsWith("javascript:") || lower.startsWith("data:")) {
+      return <span>{children}</span>;
+    }
+    const isInternal = href.startsWith("/") || href.startsWith("#") || href.includes("cvlingo.com");
+    if (isInternal) {
+      return <a href={href} {...props}>{children}</a>;
+    }
+    return <a href={href} target="_blank" rel="noopener noreferrer" {...props}>{children}</a>;
+  },
+};
 
 function CoverImageUploader({
   form,
@@ -259,6 +286,18 @@ function AdminBlogPage() {
   const [slugTaken, setSlugTaken] = useState(false);
   const [preview, setPreview] = useState(false);
 
+  // Toolbar / editor state
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const bodyImgInputRef = useRef<HTMLInputElement>(null);
+  const [linkDialog, setLinkDialog] = useState<{ linkText: string; url: string } | null>(null);
+  const [linkPostResults, setLinkPostResults] = useState<{ slug: string; title: string }[]>([]);
+  const [linkPostSearch, setLinkPostSearch] = useState("");
+  const [bodyImgUploading, setBodyImgUploading] = useState(false);
+  const [bodyImgError, setBodyImgError] = useState<string | null>(null);
+  const [bodyImgSaving, setBodyImgSaving] = useState<string | null>(null);
+  const [pendingBodyImg, setPendingBodyImg] = useState<{ url: string; originalSize: number; blobSize: number } | null>(null);
+  const [bodyImgAlt, setBodyImgAlt] = useState("");
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate({ to: "/build" }); return; }
@@ -294,6 +333,17 @@ function AdminBlogPage() {
     if (!isAdmin) return;
     void loadPosts();
   }, [isAdmin, loadPosts]);
+
+  // Load published posts for link dialog search
+  useEffect(() => {
+    if (linkDialog === null) return;
+    supabase
+      .from("blog_posts")
+      .select("slug, title")
+      .eq("status", "published")
+      .order("published_at", { ascending: false })
+      .then(({ data }) => setLinkPostResults((data ?? []) as { slug: string; title: string }[]));
+  }, [linkDialog]);
 
   function openNew() {
     setForm({ ...emptyForm(), author_name: form.author_name });
@@ -339,6 +389,118 @@ function AdminBlogPage() {
       slug: f.id ? f.slug : slugify(title),
     }));
     setSlugTaken(false);
+  }
+
+  // Toolbar helper: insert markdown at cursor/selection
+  function insertMarkdown(prefix: string, suffix = "", replaceSelection = true) {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const selected = ta.value.slice(start, end);
+    const inserted = replaceSelection && selected
+      ? `${prefix}${selected}${suffix}`
+      : `${prefix}${suffix}`;
+    const newValue = ta.value.slice(0, start) + inserted + ta.value.slice(end);
+    setForm((f) => ({ ...f, content: newValue }));
+    // Restore focus and move cursor after inserted text
+    requestAnimationFrame(() => {
+      ta.focus();
+      const newPos = start + inserted.length;
+      ta.setSelectionRange(newPos, newPos);
+    });
+  }
+
+  function handleToolbarH2() { insertMarkdown("\n## ", "", false); }
+  function handleToolbarH3() { insertMarkdown("\n### ", "", false); }
+  function handleToolbarBold() { insertMarkdown("**", "**"); }
+  function handleToolbarItalic() { insertMarkdown("*", "*"); }
+  function handleToolbarUL() { insertMarkdown("\n- ", "", false); }
+  function handleToolbarOL() { insertMarkdown("\n1. ", "", false); }
+  function handleToolbarQuote() { insertMarkdown("\n> ", "", false); }
+
+  function handleToolbarLink() {
+    const ta = textareaRef.current;
+    const selected = ta ? ta.value.slice(ta.selectionStart, ta.selectionEnd) : "";
+    setLinkPostSearch("");
+    setLinkDialog({ linkText: selected, url: "" });
+  }
+
+  function insertLink() {
+    if (!linkDialog) return;
+    const { linkText, url } = linkDialog;
+    const ta = textareaRef.current;
+    const text = linkText || "link text";
+    const markdown = `[${text}](${url})`;
+    if (ta) {
+      const start = ta.selectionStart;
+      const newValue = ta.value.slice(0, start) + markdown + ta.value.slice(ta.selectionEnd);
+      setForm((f) => ({ ...f, content: newValue }));
+      requestAnimationFrame(() => {
+        ta.focus();
+        const newPos = start + markdown.length;
+        ta.setSelectionRange(newPos, newPos);
+      });
+    }
+    setLinkDialog(null);
+  }
+
+  async function handleBodyImageFile(file: File) {
+    setBodyImgError(null);
+    setBodyImgSaving(null);
+    setPendingBodyImg(null);
+    setBodyImgAlt("");
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      setBodyImgError("Please upload a JPEG, PNG or WebP image.");
+      return;
+    }
+    if (file.size > MAX_INPUT_BYTES) {
+      setBodyImgError("Image must be under 10 MB.");
+      return;
+    }
+    setBodyImgUploading(true);
+    try {
+      const img = await loadImageElement(file);
+      const canvas = scaleImageToMaxWidth(img, 1400);
+      let blob: Blob;
+      try {
+        blob = await canvasToBlob(canvas, "image/webp", 0.82);
+        if (!blob.type.includes("webp")) throw new Error("no webp");
+      } catch {
+        blob = await canvasToBlob(canvas, "image/jpeg", 0.85);
+      }
+      const ext = blob.type.includes("webp") ? "webp" : "jpg";
+      const filename = `body/${form.slug || "post"}-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("blog-images").upload(filename, blob, { contentType: blob.type, upsert: true });
+      if (error) throw new Error(error.message);
+      const url = supabase.storage.from("blog-images").getPublicUrl(filename).data.publicUrl;
+      const savedPct = Math.round((1 - blob.size / file.size) * 100);
+      setBodyImgSaving(`${fmtBytes(file.size)} → ${fmtBytes(blob.size)}${savedPct > 0 ? ` — ${savedPct}% smaller` : ""}`);
+      setPendingBodyImg({ url, originalSize: file.size, blobSize: blob.size });
+    } catch (err) {
+      setBodyImgError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setBodyImgUploading(false);
+    }
+  }
+
+  function insertBodyImage(alt: string) {
+    if (!pendingBodyImg) return;
+    const markdown = `![${alt}](${pendingBodyImg.url})`;
+    const ta = textareaRef.current;
+    if (ta) {
+      const start = ta.selectionStart;
+      const newValue = ta.value.slice(0, start) + markdown + ta.value.slice(ta.selectionEnd);
+      setForm((f) => ({ ...f, content: newValue }));
+      requestAnimationFrame(() => {
+        ta.focus();
+        const newPos = start + markdown.length;
+        ta.setSelectionRange(newPos, newPos);
+      });
+    }
+    setPendingBodyImg(null);
+    setBodyImgAlt("");
+    setBodyImgSaving(null);
   }
 
   async function handleSave(publish: boolean) {
@@ -415,6 +577,183 @@ function AdminBlogPage() {
 
   const inputCls = "w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20";
   const labelCls = "mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground";
+  const toolbarBtnCls = "inline-flex items-center justify-center h-9 min-w-[36px] px-2 rounded-lg border border-border bg-background text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition-colors select-none";
+
+  // Filtered posts for link dialog
+  const filteredLinkPosts = linkPostSearch.trim()
+    ? linkPostResults.filter((p) =>
+        p.title.toLowerCase().includes(linkPostSearch.toLowerCase()) ||
+        p.slug.toLowerCase().includes(linkPostSearch.toLowerCase())
+      )
+    : linkPostResults;
+
+  // Shared textarea for both preview and non-preview mode
+  const ContentTextarea = (
+    <div className="relative">
+      {/* Toolbar */}
+      <div className="flex flex-wrap gap-1 mb-1.5">
+        <button type="button" className={toolbarBtnCls} onClick={handleToolbarH2} title="Heading 2">H2</button>
+        <button type="button" className={toolbarBtnCls} onClick={handleToolbarH3} title="Heading 3">H3</button>
+        <span className="w-px bg-border self-stretch mx-0.5" />
+        <button type="button" className={`${toolbarBtnCls} font-bold`} onClick={handleToolbarBold} title="Bold">B</button>
+        <button type="button" className={`${toolbarBtnCls} italic`} onClick={handleToolbarItalic} title="Italic">I</button>
+        <span className="w-px bg-border self-stretch mx-0.5" />
+        <button type="button" className={toolbarBtnCls} onClick={handleToolbarUL} title="Bullet list">UL</button>
+        <button type="button" className={toolbarBtnCls} onClick={handleToolbarOL} title="Numbered list">OL</button>
+        <button type="button" className={toolbarBtnCls} onClick={handleToolbarQuote} title="Blockquote">"</button>
+        <span className="w-px bg-border self-stretch mx-0.5" />
+        <button type="button" className={toolbarBtnCls} onClick={handleToolbarLink} title="Insert link">
+          <LinkIcon className="h-3.5 w-3.5" />
+        </button>
+        <button
+          type="button"
+          className={`${toolbarBtnCls} ${bodyImgUploading ? "opacity-50 pointer-events-none" : ""}`}
+          title="Insert image"
+          onClick={() => bodyImgInputRef.current?.click()}
+        >
+          <ImageIcon className="h-3.5 w-3.5" />
+        </button>
+        <input
+          ref={bodyImgInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="sr-only"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void handleBodyImageFile(f);
+            e.target.value = "";
+          }}
+        />
+      </div>
+
+      {/* Link dialog */}
+      {linkDialog !== null && (
+        <div className="mb-2 rounded-xl border border-border bg-background p-4 shadow-md space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold text-foreground">Insert link</span>
+            <button type="button" onClick={() => setLinkDialog(null)} className="text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className={labelCls}>Link text</label>
+              <input
+                className={inputCls}
+                value={linkDialog.linkText}
+                onChange={(e) => setLinkDialog((d) => d ? { ...d, linkText: e.target.value } : d)}
+                placeholder="Visible text"
+              />
+            </div>
+            <div>
+              <label className={labelCls}>URL</label>
+              <input
+                className={inputCls}
+                value={linkDialog.url}
+                onChange={(e) => setLinkDialog((d) => d ? { ...d, url: e.target.value } : d)}
+                placeholder="https://... or /blog/slug"
+              />
+            </div>
+          </div>
+          <div>
+            <label className={labelCls}>Link to a published CVLingo post</label>
+            <input
+              className={inputCls}
+              value={linkPostSearch}
+              onChange={(e) => setLinkPostSearch(e.target.value)}
+              placeholder="Search posts…"
+            />
+            {filteredLinkPosts.length > 0 && (
+              <div className="mt-1 max-h-36 overflow-y-auto rounded-lg border border-border bg-background divide-y divide-border">
+                {filteredLinkPosts.map((p) => (
+                  <button
+                    key={p.slug}
+                    type="button"
+                    className="w-full px-3 py-2 text-left text-sm hover:bg-muted transition-colors"
+                    onClick={() => {
+                      setLinkDialog((d) => d ? { ...d, url: `/blog/${p.slug}` } : d);
+                      setLinkPostSearch("");
+                    }}
+                  >
+                    <span className="font-medium text-foreground">{p.title}</span>
+                    <span className="ml-2 text-xs text-muted-foreground">/blog/{p.slug}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={insertLink}
+              className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              Insert
+            </button>
+            <button
+              type="button"
+              onClick={() => setLinkDialog(null)}
+              className="rounded-xl border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Body image alt prompt */}
+      {pendingBodyImg !== null && (
+        <div className="mb-2 rounded-xl border border-border bg-background p-4 shadow-md space-y-3">
+          <span className="text-sm font-semibold text-foreground">Image uploaded — add alt text</span>
+          {bodyImgSaving && <p className="text-xs text-emerald-600">{bodyImgSaving}</p>}
+          <input
+            className={inputCls}
+            value={bodyImgAlt}
+            onChange={(e) => setBodyImgAlt(e.target.value)}
+            placeholder="Describe the image for screen readers"
+            autoFocus
+          />
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => insertBodyImage(bodyImgAlt)}
+              className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              Insert
+            </button>
+            <button
+              type="button"
+              onClick={() => insertBodyImage("")}
+              className="rounded-xl border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted transition-colors"
+            >
+              Skip alt text
+            </button>
+          </div>
+        </div>
+      )}
+
+      {bodyImgError && <p className="mb-1 text-xs text-red-600">{bodyImgError}</p>}
+
+      <textarea
+        ref={textareaRef}
+        className={`${inputCls} resize-y font-mono text-xs`}
+        rows={20}
+        value={form.content}
+        onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
+        placeholder="Write your post in Markdown..."
+      />
+
+      {/* Markdown quick reference */}
+      <details className="mt-1.5 text-xs text-muted-foreground">
+        <summary className="cursor-pointer select-none hover:text-foreground transition-colors">Markdown quick reference</summary>
+        <div className="mt-1.5 space-y-0.5 font-mono pl-2 border-l border-border">
+          <div>[link text](https://url.com) — hyperlink</div>
+          <div>[post title](/blog/slug) — internal link (same tab)</div>
+          <div>![alt text](https://image-url) — image</div>
+        </div>
+      </details>
+    </div>
+  );
 
   return (
     <div className="p-6 space-y-6">
@@ -641,27 +980,15 @@ function AdminBlogPage() {
 
             {preview ? (
               <div className="grid gap-4 lg:grid-cols-2">
-                <textarea
-                  className={`${inputCls} resize-y font-mono text-xs`}
-                  rows={20}
-                  value={form.content}
-                  onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
-                  placeholder="Write your post in Markdown..."
-                />
+                {ContentTextarea}
                 <div className="overflow-auto rounded-xl border border-border bg-background p-4 prose prose-neutral max-w-none prose-sm dark:prose-invert prose-headings:font-serif prose-a:text-primary">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
                     {form.content || "*Nothing to preview yet.*"}
                   </ReactMarkdown>
                 </div>
               </div>
             ) : (
-              <textarea
-                className={`${inputCls} resize-y font-mono text-xs`}
-                rows={20}
-                value={form.content}
-                onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
-                placeholder="Write your post in Markdown..."
-              />
+              ContentTextarea
             )}
           </div>
 
