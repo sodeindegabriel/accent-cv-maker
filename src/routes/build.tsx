@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { generateCV, type GeneratedCV } from "@/utils/generateCV";
 import { GeneratingOverlay } from "@/components/GeneratingOverlay";
 import { FlagIcon, langToCountry } from "@/components/FlagIcon";
-import { Clock, Lock, Search, Check, X } from "lucide-react";
+import { Clock, Lock, Search, Check, X, Plus } from "lucide-react";
 import { t, type TKey } from "@/lib/buildTranslations";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/context/AuthContext";
@@ -1055,8 +1055,23 @@ function Step2JobType({ data, update, displayLang, originalLang, onToggleLang, o
     update("jobTypes", Array.from(selected));
   };
 
+  const staticJobIds = new Set(jobs.map((j) => j.id));
+  const approvedTitles = new Set(approvedJobs.map((j) => j.title));
+  const customCount = data.jobTypes.filter(
+    (id) => !staticJobIds.has(id) && !approvedTitles.has(id)
+  ).length;
+
+  const addCustomJobType = (text: string) => {
+    const trimmed = text.trim();
+    if (trimmed.length < 2 || trimmed.length > 60) return;
+    if (/[<>]/.test(trimmed)) return;
+    // Case-insensitive deduplication
+    if (data.jobTypes.some((id) => id.toLowerCase() === trimmed.toLowerCase())) return;
+    update("jobTypes", [...data.jobTypes, trimmed]);
+    setQuery("");
+  };
+
   const searchableJobs = jobs.filter((j) => j.id !== "other");
-  const otherJob = jobs.find((j) => j.id === "other")!;
 
   const q = query.toLowerCase().trim();
   const filteredStatic =
@@ -1081,6 +1096,18 @@ function Step2JobType({ data, update, displayLang, originalLang, onToggleLang, o
   }))];
 
   type FilteredItem = typeof filtered[number];
+
+  const trimmedQuery = query.trim();
+  const showAdd =
+    trimmedQuery.length >= 2 &&
+    customCount < 3 &&
+    !data.jobTypes.some((id) => id.toLowerCase() === trimmedQuery.toLowerCase()) &&
+    !filtered.some((item) => {
+      const label = (item as FilteredItem & { _approved?: true; _label?: string })._approved
+        ? (item as FilteredItem & { _label: string })._label
+        : t(displayLang, item.tKey as TKey);
+      return label.toLowerCase() === trimmedQuery.toLowerCase();
+    });
 
   return (
     <StepShell
@@ -1118,10 +1145,9 @@ function Step2JobType({ data, update, displayLang, originalLang, onToggleLang, o
       </div>
 
       {/* Selected chips */}
-      {data.jobTypes.filter((id) => id !== "other").length > 0 && (
+      {data.jobTypes.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-1.5">
           {data.jobTypes
-            .filter((id) => id !== "other")
             .map((id) => {
               const staticJob = jobs.find((j) => j.id === id);
               if (staticJob) {
@@ -1158,61 +1184,63 @@ function Step2JobType({ data, update, displayLang, originalLang, onToggleLang, o
       {/* Scrollable filtered list */}
       <div className="max-h-64 overflow-y-auto rounded-xl border border-border">
         {filtered.length === 0 ? (
-          <p className="px-4 py-6 text-center text-sm text-muted-foreground">
-            {t(displayLang, "step2NoResults")}
-          </p>
+          showAdd ? (
+            <div className="p-2">
+              <button
+                type="button"
+                onClick={() => addCustomJobType(trimmedQuery)}
+                className="w-full text-left px-4 py-3 text-sm font-medium text-primary hover:bg-muted rounded-xl border border-dashed border-primary/40 flex items-center gap-2 transition-colors"
+              >
+                <Plus className="h-4 w-4 flex-shrink-0" />
+                {t(displayLang, "addCustomJobType", { title: trimmedQuery })}
+              </button>
+            </div>
+          ) : (
+            <p className="px-4 py-6 text-center text-sm text-muted-foreground">
+              {t(displayLang, "step2NoResults")}
+            </p>
+          )
         ) : (
-          <div className="divide-y divide-border">
-            {filtered.map((job) => {
-              const selected = data.jobTypes.includes(job.id);
-              const label = (job as FilteredItem & { _approved?: true; _label?: string })._approved
-                ? (job as FilteredItem & { _label: string })._label
-                : t(displayLang, job.tKey as TKey);
-              return (
+          <>
+            <div className="divide-y divide-border">
+              {filtered.map((job) => {
+                const selected = data.jobTypes.includes(job.id);
+                const label = (job as FilteredItem & { _approved?: true; _label?: string })._approved
+                  ? (job as FilteredItem & { _label: string })._label
+                  : t(displayLang, job.tKey as TKey);
+                return (
+                  <button
+                    key={job.id}
+                    type="button"
+                    onClick={() => toggle(job.id)}
+                    className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition ${
+                      selected
+                        ? "bg-primary/10 text-primary"
+                        : "bg-background text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <span className="text-xl" aria-hidden="true">{job.emoji}</span>
+                    <span className="flex-1 font-medium">{label}</span>
+                    {selected && <Check className="h-4 w-4 shrink-0 text-primary" />}
+                  </button>
+                );
+              })}
+            </div>
+            {showAdd && (
+              <div className="p-2 border-t border-border">
                 <button
-                  key={job.id}
                   type="button"
-                  onClick={() => toggle(job.id)}
-                  className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition ${
-                    selected
-                      ? "bg-primary/10 text-primary"
-                      : "bg-background text-foreground hover:bg-muted"
-                  }`}
+                  onClick={() => addCustomJobType(trimmedQuery)}
+                  className="w-full text-left px-4 py-3 text-sm font-medium text-primary hover:bg-muted rounded-xl border border-dashed border-primary/40 flex items-center gap-2 transition-colors"
                 >
-                  <span className="text-xl" aria-hidden="true">{job.emoji}</span>
-                  <span className="flex-1 font-medium">{label}</span>
-                  {selected && <Check className="h-4 w-4 shrink-0 text-primary" />}
+                  <Plus className="h-4 w-4 flex-shrink-0" />
+                  {t(displayLang, "addCustomJobType", { title: trimmedQuery })}
                 </button>
-              );
-            })}
-          </div>
+              </div>
+            )}
+          </>
         )}
       </div>
-
-      {/* "Something else" always pinned below the list */}
-      <button
-        type="button"
-        onClick={() => toggle("other")}
-        className={`mt-3 flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-sm transition ${
-          data.jobTypes.includes("other")
-            ? "border-primary bg-primary/10 text-primary"
-            : "border-border bg-background text-foreground hover:bg-muted"
-        }`}
-      >
-        <span className="text-xl" aria-hidden="true">{otherJob.emoji}</span>
-        <span className="flex-1 font-medium">{t(displayLang, "job_other")}</span>
-        {data.jobTypes.includes("other") && <Check className="h-4 w-4 shrink-0 text-primary" />}
-      </button>
-
-      {data.jobTypes.includes("other") && (
-        <TextField
-          className="mt-4"
-          label={t(displayLang, "otherWorkType")}
-          value={data.otherJobType}
-          onChange={(value) => update("otherJobType", value)}
-          placeholder={t(displayLang, "otherWorkPlaceholder")}
-        />
-      )}
     </StepShell>
   );
 }
@@ -1791,18 +1819,36 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
         }
       }
 
-      // Fire-and-forget: capture custom "other" job title for admin review.
+      // Fire-and-forget: capture custom job titles for admin review.
+      // Custom = not in static list AND not in approved list.
       // Never blocks navigation or throws to the user.
-      if (data.jobTypes.includes("other") && data.otherJobType?.trim()) {
-        const rawTitle = data.otherJobType.trim();
-        const normalizedTitle = rawTitle.toLowerCase();
-        void Promise.resolve(
-          supabase.rpc("upsert_job_title_request", { p_title: rawTitle, p_normalized: normalizedTitle })
-        )
-          .then(({ error }) => {
-            if (error) console.error("[job_title_requests] upsert error:", error);
-          })
-          .catch((e: unknown) => console.error("[job_title_requests] upsert exception:", e));
+      {
+        const staticIds = new Set(jobs.map((j) => j.id));
+        // approvedJobs is in scope via the outer handleGenerate closure; use a snapshot.
+        // We access it via data which was already captured at generate time.
+        const customTitles = data.jobTypes.filter(
+          (id) => !staticIds.has(id)
+        );
+        // Also handle legacy "other" + otherJobType for old in-flight form data
+        if (data.jobTypes.includes("other") && data.otherJobType?.trim()) {
+          customTitles.push(data.otherJobType.trim());
+        }
+        for (const rawTitle of customTitles) {
+          const trimmed = rawTitle.trim();
+          if (!trimmed) continue;
+          const normalizedTitle = trimmed.toLowerCase();
+          void Promise.resolve(
+            supabase.rpc("upsert_job_title_request", {
+              p_title: trimmed,
+              p_normalized: normalizedTitle,
+              p_source_language: data.languageCode || "en",
+            })
+          )
+            .then(({ error }) => {
+              if (error) console.error("[job_title_requests] upsert error:", error);
+            })
+            .catch((e: unknown) => console.error("[job_title_requests] upsert exception:", e));
+        }
       }
 
       // Candidate pool opt-in is handled on the result page (CandidatePoolCard)

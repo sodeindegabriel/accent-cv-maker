@@ -102,7 +102,8 @@ export type TKey =
   | "clThingsToCheck" | "clCopy" | "clCopied"
   | "clDownloadPdf" | "clDownloadWord" | "clRegenerate"
   | "clEdit" | "clEditSave" | "clEditCancel"
-  | "clCapReached" | "clRemaining";
+  | "clCapReached" | "clRemaining"
+  | "addCustomJobType";
 
 
 type Dict = Partial<Record<TKey, string>>;
@@ -143,7 +144,7 @@ const en: Record<TKey, string> = {
   job_translation: "Translation & interpreting",
   job_other: "Something else",
   step2SearchPlaceholder: "Search job types…",
-  step2NoResults: "No matches — try different words or choose 'Something else' below.",
+  step2NoResults: "No matches — try different words.",
   otherWorkType: "Other work type",
   otherWorkPlaceholder: "Tell us what kind of work",
   fullName: "Full name", phoneNumber: "Phone number", email: "Email",
@@ -396,6 +397,7 @@ const en: Record<TKey, string> = {
   clEditCancel: "Cancel",
   clCapReached: "You've reached your cover letter limit. Upgrade your plan to generate more.",
   clRemaining: "{n} letter{s} left",
+  addCustomJobType: 'Add "{title}"',
 };
 
 const pl: Dict = {
@@ -675,6 +677,7 @@ const pl: Dict = {
   clEditCancel: "Anuluj",
   clCapReached: "Osiągnąłeś/aś limit listów motywacyjnych. Ulepsz plan, aby generować więcej.",
   clRemaining: "Pozostało {n} listów",
+  addCustomJobType: 'Dodaj „{title}"',
 };
 
 const ro: Dict = {
@@ -954,6 +957,7 @@ const ro: Dict = {
   clEditCancel: "Anulează",
   clCapReached: "Ai atins limita de scrisori de intenție. Fă upgrade pentru a genera mai multe.",
   clRemaining: "{n} scrisori rămase",
+  addCustomJobType: 'Adaugă „{title}"',
 };
 
 const es: Dict = {
@@ -1233,6 +1237,7 @@ const es: Dict = {
   clEditCancel: "Cancelar",
   clCapReached: "Has alcanzado el límite de cartas de presentación. Mejora tu plan para generar más.",
   clRemaining: "{n} cartas disponibles",
+  addCustomJobType: 'Añadir «{title}»',
 };
 
 const pt: Dict = {
@@ -1512,6 +1517,7 @@ const pt: Dict = {
   clEditCancel: "Cancelar",
   clCapReached: "Atingiu o limite de cartas de apresentação. Melhore o seu plano para gerar mais.",
   clRemaining: "{n} cartas disponíveis",
+  addCustomJobType: 'Adicionar "{title}"',
 };
 
 const fr: Dict = {
@@ -1791,6 +1797,7 @@ const fr: Dict = {
   clEditCancel: "Annuler",
   clCapReached: "Vous avez atteint votre limite de lettres de motivation. Passez à la version supérieure pour en générer davantage.",
   clRemaining: "{n} lettre(s) restante(s)",
+  addCustomJobType: 'Ajouter « {title} »',
 };
 
 const ar: Dict = {
@@ -2070,6 +2077,7 @@ const ar: Dict = {
   clEditCancel: "إلغاء",
   clCapReached: "لقد وصلت إلى حد خطابات التقديم. طوّر خطتك لتوليد المزيد.",
   clRemaining: "تبقّى {n} خطاب",
+  addCustomJobType: 'إضافة "{title}"',
 };
 
 const ur: Dict = {
@@ -2349,6 +2357,7 @@ const ur: Dict = {
   clEditCancel: "منسوخ کریں",
   clCapReached: "آپ نے اپنی کور لیٹر کی حد پوری کر لی ہے۔ مزید بنانے کے لیے اپ گریڈ کریں۔",
   clRemaining: "{n} خط باقی",
+  addCustomJobType: '"{title}" شامل کریں',
 };
 
 const hi: Dict = {
@@ -2628,6 +2637,7 @@ const hi: Dict = {
   clEditCancel: "रद्द करें",
   clCapReached: "आपने कवर लेटर की सीमा पूरी कर ली है। अधिक बनाने के लिए अपग्रेड करें।",
   clRemaining: "{n} पत्र शेष",
+  addCustomJobType: '"{title}" जोड़ें',
 };
 
 const bn: Dict = {
@@ -2907,6 +2917,7 @@ const bn: Dict = {
   clEditCancel: "বাতিল করুন",
   clCapReached: "আপনি কভার লেটারের সীমায় পৌঁছে গেছেন। আরও তৈরি করতে আপগ্রেড করুন।",
   clRemaining: "{n}টি চিঠি বাকি",
+  addCustomJobType: '"{title}" যোগ করুন',
 };
 
 const so: Dict = {
@@ -3186,6 +3197,7 @@ const so: Dict = {
   clEditCancel: "Jooji",
   clCapReached: "Waxaad gaadhay xaddiga warqadaha codsiga. Kor u qaad qorshahaga si aad u sameysato kuwo dheeraad ah.",
   clRemaining: "{n} warqadood ayaa kuu hadhay",
+  addCustomJobType: 'Ku dar "{title}"',
 };
 
 const tr: Dict = {
@@ -3465,6 +3477,7 @@ const tr: Dict = {
   clEditCancel: "İptal",
   clCapReached: "Ön yazı limitinize ulaştınız. Daha fazla oluşturmak için planınızı yükseltin.",
   clRemaining: "{n} mektup kaldı",
+  addCustomJobType: '"{title}" ekle',
 };
 
 const fa: Dict = {
@@ -3744,6 +3757,7 @@ const fa: Dict = {
   clEditCancel: "لغو",
   clCapReached: "به سقف نامه‌های معرفی رسیده‌اید. برای ساختن بیشتر، ارتقا دهید.",
   clRemaining: "{n} نامه باقی مانده",
+  addCustomJobType: 'افزودن "{title}"',
 };
 
 const uk: Dict = {
@@ -4023,6 +4037,7 @@ const uk: Dict = {
   clEditCancel: "Скасувати",
   clCapReached: "Ви досягли ліміту супровідних листів. Оновіть план, щоб генерувати більше.",
   clRemaining: "Залишилось {n} листів",
+  addCustomJobType: 'Додати „{title}"',
 };
 
 const zh: Dict = {
@@ -4302,6 +4317,7 @@ const zh: Dict = {
   clEditCancel: "取消",
   clCapReached: "您已达到求职信上限。升级您的计划以生成更多。",
   clRemaining: "还剩 {n} 封",
+  addCustomJobType: '添加"{title}"',
 };
 
 const pa: Dict = {
@@ -4581,6 +4597,7 @@ const pa: Dict = {
   clEditCancel: "ਰੱਦ ਕਰੋ",
   clCapReached: "ਤੁਸੀਂ ਕਵਰ ਲੈਟਰ ਦੀ ਸੀਮਾ ਪੂਰੀ ਕਰ ਲਈ ਹੈ। ਹੋਰ ਬਣਾਉਣ ਲਈ ਅੱਪਗ੍ਰੇਡ ਕਰੋ।",
   clRemaining: "{n} ਪੱਤਰ ਬਾਕੀ",
+  addCustomJobType: '"{title}" ਜੋੜੋ',
 };
 
 const gu: Dict = {
@@ -4860,6 +4877,7 @@ const gu: Dict = {
   clEditCancel: "રદ કરો",
   clCapReached: "તમે કવર લેટરની મર્યાદા પૂરી કરી લીધી છે. વધુ બનાવવા અપગ્રેડ કરો.",
   clRemaining: "{n} પત્ર બાકી",
+  addCustomJobType: '"{title}" ઉમેરો',
 };
 
 const ku: Dict = {
@@ -5139,6 +5157,7 @@ const ku: Dict = {
   clEditCancel: "Betal bike",
   clCapReached: "Tu gihîştî sînorê nameyên pêşniyarê. Planê xwe bilind bike da ku bêtir çêbikî.",
   clRemaining: "{n} name maye",
+  addCustomJobType: '"{title}" zêde bike',
 };
 
 const ta: Dict = {
@@ -5418,6 +5437,7 @@ const ta: Dict = {
   clEditCancel: "ரத்துசெய்",
   clCapReached: "அறிமுக கடித வரம்பை அடைந்துவிட்டீர்கள். மேலும் உருவாக்க திட்டத்தை மேம்படுத்துங்கள்.",
   clRemaining: "{n} கடிதங்கள் மீதம்",
+  addCustomJobType: '"{title}" சேர்',
 };
 
 const am: Dict = {
@@ -5697,6 +5717,7 @@ const am: Dict = {
   clEditCancel: "ይቅር",
   clCapReached: "የሽፋን ደብዳቤ ገደቡ ደርሷል። ተጨማሪ ለመፍጠር ያሻሽሉ።",
   clRemaining: "{n} ደብዳቤ ቀርቷል",
+  addCustomJobType: '"{title}" አክል',
 };
 
 const ti: Dict = {
@@ -5976,6 +5997,7 @@ const ti: Dict = {
   clEditCancel: "ሰርዞ",
   clCapReached: "ናይ ሽፋን ደብዳቤ ደረት ኣኺሉ። ንዝበዝሐ ምፍጣር ኣሻሽሎ።",
   clRemaining: "{n} ደብዳቤ ተሪፉ",
+  addCustomJobType: '"{title}" ወስኽ',
 };
 
 const translations: Record<string, Dict> = {
