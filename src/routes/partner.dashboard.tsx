@@ -41,7 +41,6 @@ interface PartnerClient {
   job_types: string[];
   opted_in_at: string;
   has_cv: boolean;
-  cv_english_html: string | null;
 }
 
 interface PartnerCoverLetter {
@@ -845,8 +844,20 @@ function CoverLetterModal({ client, letters, loading, error, onClose }: {
   );
 }
 
+const CLIENTS_PAGE_SIZE = 10;
+
 // ── Client list table ──────────────────────────────────────────────────────────
-function ClientTable({ clients }: { clients: PartnerClient[] }) {
+function ClientTable({
+  clients,
+  total,
+  page,
+  onPageChange,
+}: {
+  clients: PartnerClient[];
+  total: number;
+  page: number;
+  onPageChange: (p: number) => void;
+}) {
   const [downloadingPdf, setDownloadingPdf] = useState<string | null>(null);
   const [downloadingWord, setDownloadingWord] = useState<string | null>(null);
   const [comingSoonToast, setComingSoonToast] = useState(false);
@@ -876,21 +887,29 @@ function ClientTable({ clients }: { clients: PartnerClient[] }) {
     }
   }
 
+  async function fetchCvHtml(candidateId: string): Promise<string | null> {
+    const { data, error } = await supabase.rpc("get_partner_client_cv", {
+      p_candidate_id: candidateId,
+    });
+    if (error || !data) { console.error("[cv fetch]", error?.message); return null; }
+    return data as string;
+  }
+
   async function handlePdf(client: PartnerClient) {
-    if (!client.cv_english_html) return;
     setDownloadingPdf(client.candidate_id);
     try {
-      downloadCvPdf(client.cv_english_html, client.display_name);
+      const html = await fetchCvHtml(client.candidate_id);
+      if (html) downloadCvPdf(html, client.display_name);
     } finally {
       setDownloadingPdf(null);
     }
   }
 
   async function handleWord(client: PartnerClient) {
-    if (!client.cv_english_html) return;
     setDownloadingWord(client.candidate_id);
     try {
-      await downloadCvDocx(client.cv_english_html, client.display_name);
+      const html = await fetchCvHtml(client.candidate_id);
+      if (html) await downloadCvDocx(html, client.display_name);
     } catch (err) {
       console.error("[word export]", err);
     } finally {
@@ -898,7 +917,11 @@ function ClientTable({ clients }: { clients: PartnerClient[] }) {
     }
   }
 
-  if (clients.length === 0) return null;
+  if (clients.length === 0 && total === 0) return null;
+
+  const totalPages = Math.ceil(total / CLIENTS_PAGE_SIZE);
+  const from = total === 0 ? 0 : page * CLIENTS_PAGE_SIZE + 1;
+  const to = Math.min((page + 1) * CLIENTS_PAGE_SIZE, total);
 
   return (
     <div className="mb-8 rounded-2xl border border-border bg-card">
@@ -917,7 +940,7 @@ function ClientTable({ clients }: { clients: PartnerClient[] }) {
         />
       )}
       <div className="border-b border-border px-6 py-4">
-        <h2 className="font-semibold text-foreground">Your clients ({clients.length})</h2>
+        <h2 className="font-semibold text-foreground">Your clients ({total})</h2>
         <p className="mt-0.5 text-xs text-muted-foreground">
           Candidates referred through your link. Names show first name and last initial only.
         </p>
@@ -950,7 +973,7 @@ function ClientTable({ clients }: { clients: PartnerClient[] }) {
                 </td>
                 <td className="px-4 py-2">
                   <div className="flex flex-wrap gap-1.5">
-                    {c.has_cv && c.cv_english_html ? (
+                    {c.has_cv ? (
                       <>
                         <button
                           type="button"
@@ -993,6 +1016,33 @@ function ClientTable({ clients }: { clients: PartnerClient[] }) {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between gap-3 border-t border-border px-6 py-4">
+          <p className="text-sm text-muted-foreground">
+            Showing {from}–{to} of {total}
+          </p>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => onPageChange(Math.max(0, page - 1))}
+              disabled={page === 0}
+              className="min-h-[44px] rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-40 transition-colors"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              onClick={() => onPageChange(Math.min(totalPages - 1, page + 1))}
+              disabled={page >= totalPages - 1}
+              className="min-h-[44px] rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-40 transition-colors"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1003,8 +1053,22 @@ function PartnerDashboardPage() {
   const navigate = useNavigate();
   const [data, setData] = useState<PartnerDashboardData | null>(null);
   const [clients, setClients] = useState<PartnerClient[]>([]);
+  const [clientsTotal, setClientsTotal] = useState(0);
+  const [clientsPage, setClientsPage] = useState(0);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  async function fetchClients(p_offset: number) {
+    const { data: clientsRaw, error: clientsErr } = await supabase.rpc("get_partner_clients", {
+      p_limit: CLIENTS_PAGE_SIZE,
+      p_offset,
+    });
+    if (!clientsErr && clientsRaw) {
+      const typed = clientsRaw as { rows: PartnerClient[]; total: number };
+      setClients(typed.rows ?? []);
+      setClientsTotal(typed.total ?? 0);
+    }
+  }
 
   useEffect(() => {
     if (authLoading) return;
@@ -1012,16 +1076,23 @@ function PartnerDashboardPage() {
 
     Promise.all([
       supabase.rpc("get_partner_dashboard_data"),
-      supabase.rpc("get_partner_clients"),
+      supabase.rpc("get_partner_clients", { p_limit: CLIENTS_PAGE_SIZE, p_offset: 0 }),
     ]).then(([{ data: raw, error }, { data: clientsRaw, error: clientsErr }]) => {
       if (error) { setLoadError(error.message); return; }
       if (!raw) { navigate({ to: "/dashboard" }); return; }
       setData(raw as PartnerDashboardData);
-      if (!clientsErr && Array.isArray(clientsRaw)) {
-        setClients(clientsRaw as PartnerClient[]);
+      if (!clientsErr && clientsRaw) {
+        const typed = clientsRaw as { rows: PartnerClient[]; total: number };
+        setClients(typed.rows ?? []);
+        setClientsTotal(typed.total ?? 0);
       }
     });
   }, [authLoading, user, navigate]);
+
+  function handleClientsPageChange(newPage: number) {
+    setClientsPage(newPage);
+    void fetchClients(newPage * CLIENTS_PAGE_SIZE);
+  }
 
   if (authLoading || (!data && !loadError)) {
     return (
@@ -1128,9 +1199,14 @@ function PartnerDashboardPage() {
         </div>
 
         {/* Client list with PDF/Word download */}
-        <ClientTable clients={clients} />
+        <ClientTable
+          clients={clients}
+          total={clientsTotal}
+          page={clientsPage}
+          onPageChange={handleClientsPageChange}
+        />
 
-        {clients.length === 0 && data!.total_cvs === 0 && (
+        {clientsTotal === 0 && data!.total_cvs === 0 && (
           <div className="mb-8 rounded-2xl border border-border bg-card px-6 py-10 text-center">
             <p className="font-medium text-foreground">No activity yet</p>
             <p className="mt-1 text-sm text-muted-foreground">
