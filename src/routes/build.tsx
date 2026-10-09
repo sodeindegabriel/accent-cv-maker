@@ -122,6 +122,9 @@ const languages = [
   { code: "ti", name: "Tigrinya", native: "ትግርኛ", flag: "🇪🇷" },
 ];
 
+// Module-level cache for approved job titles fetched from DB (avoids re-fetching on remount)
+let approvedJobsCache: { title: string; translations: Record<string, string> }[] | null = null;
+
 const jobs: { id: string; tKey: TKey; emoji: string }[] = [
   { id: "hospitality",    tKey: "job_hospitality",    emoji: "🍽️" },
   { id: "retail",         tKey: "job_retail",         emoji: "🛍️" },
@@ -1018,6 +1021,32 @@ function LanguageChoiceModal({
 
 function Step2JobType({ data, update, displayLang, originalLang, onToggleLang, onBack, onNext }: StepProps) {
   const [query, setQuery] = useState("");
+  const [approvedJobs, setApprovedJobs] = useState<{ title: string; translations: Record<string, string> }[]>(
+    approvedJobsCache ?? []
+  );
+
+  useEffect(() => {
+    if (approvedJobsCache !== null) {
+      setApprovedJobs(approvedJobsCache);
+      return;
+    }
+    // Build set of static job IDs and English labels for deduplication
+    const staticIds = new Set(jobs.map((j) => j.id.toLowerCase()));
+    void Promise.resolve(supabase.rpc("get_approved_job_titles")).then(
+      ({ data: rows }) => {
+        if (!rows) { approvedJobsCache = []; return; }
+        const deduped = (rows as { title: string; translations: Record<string, string> }[]).filter(
+          (r) => !staticIds.has(r.title.toLowerCase())
+        );
+        approvedJobsCache = deduped;
+        setApprovedJobs(deduped);
+      },
+      () => {
+        // Fail gracefully — approved jobs are additive, not critical
+        approvedJobsCache = [];
+      }
+    );
+  }, []);
 
   const toggle = (id: string) => {
     const selected = new Set(data.jobTypes);
@@ -1029,12 +1058,29 @@ function Step2JobType({ data, update, displayLang, originalLang, onToggleLang, o
   const searchableJobs = jobs.filter((j) => j.id !== "other");
   const otherJob = jobs.find((j) => j.id === "other")!;
 
-  const filtered =
-    query.trim() === ""
+  const q = query.toLowerCase().trim();
+  const filteredStatic =
+    q === ""
       ? searchableJobs
       : searchableJobs.filter((j) =>
-          t(displayLang, j.tKey).toLowerCase().includes(query.toLowerCase().trim())
+          t(displayLang, j.tKey).toLowerCase().includes(q)
         );
+  const filteredApproved =
+    q === ""
+      ? approvedJobs
+      : approvedJobs.filter((j) => {
+          const label = j.translations[displayLang] || j.title;
+          return label.toLowerCase().includes(q) || j.title.toLowerCase().includes(q);
+        });
+  const filtered = [...filteredStatic, ...filteredApproved.map((j) => ({
+    id: j.title,
+    tKey: null as unknown as TKey,
+    emoji: "✨",
+    _approved: true as const,
+    _label: j.translations[displayLang] || j.title,
+  }))];
+
+  type FilteredItem = typeof filtered[number];
 
   return (
     <StepShell
@@ -1077,18 +1123,34 @@ function Step2JobType({ data, update, displayLang, originalLang, onToggleLang, o
           {data.jobTypes
             .filter((id) => id !== "other")
             .map((id) => {
-              const job = jobs.find((j) => j.id === id);
-              return job ? (
+              const staticJob = jobs.find((j) => j.id === id);
+              if (staticJob) {
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => toggle(id)}
+                    className="inline-flex items-center gap-1 rounded-full border border-primary bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary"
+                  >
+                    {staticJob.emoji} {t(displayLang, staticJob.tKey)}
+                    <X className="h-3 w-3" />
+                  </button>
+                );
+              }
+              // Approved job — id IS the English title
+              const approved = approvedJobs.find((j) => j.title === id);
+              const label = approved ? (approved.translations[displayLang] || id) : id;
+              return (
                 <button
                   key={id}
                   type="button"
                   onClick={() => toggle(id)}
                   className="inline-flex items-center gap-1 rounded-full border border-primary bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary"
                 >
-                  {job.emoji} {t(displayLang, job.tKey)}
+                  ✨ {label}
                   <X className="h-3 w-3" />
                 </button>
-              ) : null;
+              );
             })}
         </div>
       )}
@@ -1103,6 +1165,9 @@ function Step2JobType({ data, update, displayLang, originalLang, onToggleLang, o
           <div className="divide-y divide-border">
             {filtered.map((job) => {
               const selected = data.jobTypes.includes(job.id);
+              const label = (job as FilteredItem & { _approved?: true; _label?: string })._approved
+                ? (job as FilteredItem & { _label: string })._label
+                : t(displayLang, job.tKey as TKey);
               return (
                 <button
                   key={job.id}
@@ -1115,7 +1180,7 @@ function Step2JobType({ data, update, displayLang, originalLang, onToggleLang, o
                   }`}
                 >
                   <span className="text-xl" aria-hidden="true">{job.emoji}</span>
-                  <span className="flex-1 font-medium">{t(displayLang, job.tKey)}</span>
+                  <span className="flex-1 font-medium">{label}</span>
                   {selected && <Check className="h-4 w-4 shrink-0 text-primary" />}
                 </button>
               );
@@ -1753,7 +1818,9 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
         .map((id) => {
           if (id === "other") return data.otherJobType || t(displayLang, "job_other");
           const job = jobs.find((j) => j.id === id);
-          return job ? t(displayLang, job.tKey) : null;
+          if (job) return t(displayLang, job.tKey);
+          // Approved job: id IS the English title — return it directly
+          return id;
         })
         .filter(Boolean)
         .join(", "),
