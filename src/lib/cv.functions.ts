@@ -36,7 +36,10 @@ function isEnglishOnly(cvData: CVData) {
 }
 
 function buildPrompt(cvData: CVData) {
-  const { language, jobTypes, personalDetails, experience, education, skills, availability } = cvData;
+  const { language, jobTypes, otherJobType, personalDetails, experience, education, skills, availability } = cvData;
+  const resolvedJobTypes = jobTypes.map((t) =>
+    t === "other" ? (otherJobType?.trim() || t) : t
+  );
   const hasEducation = Array.isArray(education) && education.length > 0;
 
   return `You are a professional UK CV writer. Generate a complete, well-formatted UK CV as clean HTML only.
@@ -111,7 +114,7 @@ Location: ${personalDetails.city}${personalDetails.postcode ? `, ${personalDetai
 Phone: ${personalDetails.phone}
 Email: ${personalDetails.email || "Not provided"}
 Right to work: ${personalDetails.rightToWork}
-Job types wanted: ${jobTypes.join(", ")}
+Job types wanted: ${resolvedJobTypes.join(", ")}
 
 Work experience:
 ${

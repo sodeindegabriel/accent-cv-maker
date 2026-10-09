@@ -684,7 +684,9 @@ function CandidatePoolCard({ lang = "en" }: { lang?: string }) {
         email: (input?.personalDetails?.email ?? "").trim(),
         name: input?.personalDetails?.name ?? "",
         phone: input?.personalDetails?.phone || null,
-        jobTypes: Array.isArray(input?.jobTypes) ? input.jobTypes : [],
+        jobTypes: (Array.isArray(input?.jobTypes) ? input.jobTypes : []).map((t: string) =>
+          t === "other" ? (input?.otherJobType?.trim() || t) : t
+        ),
         language: input?.language ?? "",
         rightToWork: input?.personalDetails?.rightToWork ?? "",
         city: input?.personalDetails?.city ?? "",

@@ -1724,8 +1724,11 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
       localStorage.removeItem("cvlingo_form_data");
 
       if (user) {
-        const title = data.jobTypes.length > 0
-          ? `${data.personalDetails.name} — ${data.jobTypes.join(", ")}`
+        const resolvedJobTypes = data.jobTypes.map((t) =>
+          t === "other" ? (data.otherJobType?.trim() || t) : t
+        );
+        const title = resolvedJobTypes.length > 0
+          ? `${data.personalDetails.name} — ${resolvedJobTypes.join(", ")}`
           : data.personalDetails.name || "My CV";
 
         if (editingCvId) {
