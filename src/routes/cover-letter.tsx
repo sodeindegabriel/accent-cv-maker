@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import { t } from "@/lib/buildTranslations";
 import type { CVData } from "@/lib/cv.functions";
-import { generateCoverLetterServer, type CoverLetterResult } from "@/lib/cover-letter.functions";
+import { generateCoverLetterServer, getCoverLettersRemainingServer, type CoverLetterResult } from "@/lib/cover-letter.functions";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -109,6 +109,9 @@ function CoverLetterPage() {
   const [explain, setExplain] = useState("");
   const [length, setLength] = useState<"short" | "standard">("standard");
 
+  // Remaining count
+  const [remaining, setRemaining] = useState<number | null>(null);
+
   // Generation
   const [generating, setGenerating] = useState(false);
   const [genError, setGenError] = useState<string | null>(null);
@@ -163,6 +166,18 @@ function CoverLetterPage() {
     })();
   }, [user, cvParam]);
 
+  // ── Fetch remaining count ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (!user) return;
+    void (async () => {
+      const { data: session } = await supabase.auth.getSession();
+      const token = session.session?.access_token;
+      if (!token) return;
+      const n = await getCoverLettersRemainingServer({ data: { accessToken: token } });
+      setRemaining(n);
+    })();
+  }, [user]);
+
   // ── Scroll to result on generation ────────────────────────────────────────
   useEffect(() => {
     if (view === "result") {
@@ -213,6 +228,7 @@ function CoverLetterPage() {
       setEditText(null);
       setView("result");
       if (trimmed) setAdvertTrimmed(true);
+      setRemaining((prev) => (prev !== null ? Math.max(0, prev - 1) : null));
     } catch (err) {
       const raw = err instanceof Error ? err.message : t("en", "clError");
       const msg = raw === "cap_reached" ? t("en", "clCapReached") : raw;
@@ -290,6 +306,7 @@ function CoverLetterPage() {
             setLength={setLength}
             generating={generating}
             genError={genError}
+            remaining={remaining}
             onGenerate={handleGenerate}
             navigate={navigate}
           />
@@ -350,6 +367,7 @@ function FormView({
   setLength,
   generating,
   genError,
+  remaining,
   onGenerate,
   navigate,
 }: {
@@ -372,6 +390,7 @@ function FormView({
   setLength: (v: "short" | "standard") => void;
   generating: boolean;
   genError: string | null;
+  remaining: number | null;
   onGenerate: () => void;
   navigate: ReturnType<typeof useNavigate>;
 }) {
@@ -526,7 +545,7 @@ function FormView({
       <button
         type="button"
         onClick={onGenerate}
-        disabled={generating || !selectedCvId}
+        disabled={generating || !selectedCvId || remaining === 0}
         className="w-full rounded-xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 min-h-[44px]"
       >
         {generating ? (
@@ -538,6 +557,15 @@ function FormView({
           t("en", "clGenerate")
         )}
       </button>
+
+      {/* Remaining count */}
+      {remaining !== null && (
+        <p className={`text-center text-xs ${remaining === 0 ? "text-red-500 font-medium" : "text-gray-400"}`}>
+          {remaining === 0
+            ? t("en", "clCapReached")
+            : t("en", "clRemaining", { n: String(remaining), s: remaining === 1 ? "" : "s" })}
+        </p>
+      )}
     </div>
   );
 }

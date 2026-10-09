@@ -102,6 +102,27 @@ CREATE POLICY "admins read all cover letters"
   TO authenticated
   USING (is_admin());
 
--- ── 6. Grants ────────────────────────────────────────────────────────────────
+-- ── 6. Remaining-count helper function ───────────────────────────────────────
+-- Returns how many cover letters the calling user can still generate (minimum 0).
+-- Uses auth.uid() internally — never accepts a user_id parameter.
+CREATE OR REPLACE FUNCTION cover_letters_remaining()
+RETURNS integer LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  v_used  integer;
+  v_limit integer;
+BEGIN
+  SELECT COUNT(*) INTO v_used
+  FROM cover_letters
+  WHERE user_id = auth.uid();
+
+  SELECT cover_letter_limit(auth.uid()) INTO v_limit;
+
+  RETURN GREATEST(0, v_limit - v_used);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION cover_letters_remaining() TO authenticated;
+
+-- ── 7. Grants ────────────────────────────────────────────────────────────────
 -- Required alongside RLS — silent 403s occur without explicit grants.
 GRANT SELECT, INSERT, UPDATE, DELETE ON cover_letters TO authenticated;

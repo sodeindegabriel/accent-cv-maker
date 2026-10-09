@@ -137,6 +137,12 @@ export const generateCoverLetterServer = createServerFn({ method: "POST" })
       throw new Error("Unauthorized: your session has expired. Please sign in again.");
     }
 
+    // Pre-flight cap check — avoid wasting an Anthropic call when already at limit
+    const { data: remaining } = await sb.rpc("cover_letters_remaining");
+    if (typeof remaining === "number" && remaining <= 0) {
+      throw new Error("cap_reached");
+    }
+
     // Call Claude
     const apiKey = process.env["ANTHROPIC_API_KEY"] ?? process.env["ANTHROPIC_KEY"];
     if (!apiKey) throw new Error("Server configuration error — API key missing.");
@@ -225,4 +231,17 @@ export const generateCoverLetterServer = createServerFn({ method: "POST" })
       language: input.cvData.language ?? "English",
       languageCode: input.cvData.languageCode ?? "en",
     };
+  });
+
+export const getCoverLettersRemainingServer = createServerFn({ method: "POST" })
+  .inputValidator((data: { accessToken: string }) => data)
+  .handler(async ({ data: input }): Promise<number> => {
+    const supabaseUrl = process.env["VITE_SUPABASE_URL"];
+    const supabaseAnonKey = process.env["VITE_SUPABASE_ANON_KEY"];
+    if (!supabaseUrl || !supabaseAnonKey) return 0;
+    const sb = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${input.accessToken}` } },
+    });
+    const { data } = await sb.rpc("cover_letters_remaining");
+    return typeof data === "number" ? data : 0;
   });
