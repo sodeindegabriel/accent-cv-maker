@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { Eye, EyeOff, Pencil, Plus, Trash2, X, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { ComponentPropsWithoutRef } from "react";
@@ -297,6 +297,7 @@ function AdminBlogPage() {
   const [bodyImgSaving, setBodyImgSaving] = useState<string | null>(null);
   const [pendingBodyImg, setPendingBodyImg] = useState<{ url: string; originalSize: number; blobSize: number } | null>(null);
   const [bodyImgAlt, setBodyImgAlt] = useState("");
+  const [seoOpen, setSeoOpen] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -572,6 +573,33 @@ function AdminBlogPage() {
       if (form.id === id) closeForm();
     }
   }
+
+  const seoChecks = useMemo(() => {
+    const kw = (form.focus_keyword ?? "").toLowerCase().trim();
+    const titleLower = (form.seo_title ?? form.title).toLowerCase();
+    const slugLower = form.slug.toLowerCase();
+    const descLower = (form.meta_description ?? form.excerpt ?? "").toLowerCase();
+    const contentLower = form.content.toLowerCase();
+    const first100words = contentLower.split(/\s+/).slice(0, 100).join(" ");
+    const altLower = (form.cover_image_alt ?? "").toLowerCase();
+    const wordCount = form.content.trim() ? form.content.trim().split(/\s+/).length : 0;
+    const hasHeading = /^#{2,3}\s/m.test(form.content);
+    const hasInternalLink = /\]\(\//.test(form.content);
+    const hasExternalLink = /\]\(https?:\/\//.test(form.content);
+
+    const checks: { label: string; pass: boolean; na?: boolean }[] = [
+      { label: "Keyword in title", pass: kw.length > 0 && titleLower.includes(kw), na: kw.length === 0 },
+      { label: "Keyword in slug", pass: kw.length > 0 && slugLower.includes(kw.replace(/\s+/g, "-")), na: kw.length === 0 },
+      { label: "Keyword in meta description", pass: kw.length > 0 && descLower.includes(kw), na: kw.length === 0 },
+      { label: "Keyword in first 100 words", pass: kw.length > 0 && first100words.includes(kw), na: kw.length === 0 },
+      { label: "Keyword in a heading (H2/H3)", pass: kw.length > 0 && hasHeading && contentLower.includes(kw), na: kw.length === 0 },
+      { label: "Keyword in cover image alt text", pass: kw.length > 0 && altLower.includes(kw), na: kw.length === 0 },
+      { label: "Word count ≥ 600", pass: wordCount >= 600 },
+      { label: "At least one internal link (/blog/...)", pass: hasInternalLink },
+      { label: "At least one external link (https://...)", pass: hasExternalLink },
+    ];
+    return checks;
+  }, [form]);
 
   if (!isAdmin) return null;
 
@@ -931,39 +959,6 @@ function AdminBlogPage() {
             />
           </div>
 
-          {/* SEO fields */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className={labelCls}>SEO title (overrides page title)</label>
-              <input
-                className={inputCls}
-                value={form.seo_title ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, seo_title: e.target.value }))}
-                placeholder="Falls back to post title"
-              />
-            </div>
-            <div>
-              <label className={labelCls}>Focus keyword (internal only)</label>
-              <input
-                className={inputCls}
-                value={form.focus_keyword ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, focus_keyword: e.target.value }))}
-                placeholder="e.g. UK CV format"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className={labelCls}>Meta description (overrides excerpt)</label>
-            <textarea
-              className={`${inputCls} resize-none`}
-              rows={2}
-              value={form.meta_description ?? ""}
-              onChange={(e) => setForm((f) => ({ ...f, meta_description: e.target.value }))}
-              placeholder="Falls back to excerpt. Aim for 150–160 characters."
-            />
-          </div>
-
           {/* Markdown editor + preview */}
           <div>
             <div className="mb-2 flex items-center justify-between">
@@ -989,6 +984,89 @@ function AdminBlogPage() {
               </div>
             ) : (
               ContentTextarea
+            )}
+          </div>
+
+          {/* SEO panel */}
+          <div className="rounded-2xl border border-border bg-card overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setSeoOpen((v) => !v)}
+              className="w-full flex items-center justify-between px-5 py-3 text-sm font-semibold text-foreground hover:bg-muted transition-colors"
+            >
+              <span>SEO {seoOpen ? "▴" : "▾"}</span>
+            </button>
+            {seoOpen && (
+              <div className="px-5 pb-5 space-y-4 border-t border-border pt-4">
+                <div>
+                  <label className={labelCls}>
+                    SEO title
+                    <span className={`ml-2 text-xs font-normal ${(form.seo_title?.length ?? 0) > 60 ? "text-red-500" : "text-muted-foreground"}`}>
+                      {form.seo_title?.length ?? 0}/60
+                    </span>
+                  </label>
+                  <input
+                    className={inputCls}
+                    value={form.seo_title ?? ""}
+                    onChange={(e) => setForm((f) => ({ ...f, seo_title: e.target.value }))}
+                    placeholder={`${form.title} — CVLingo Blog (falls back to title)`}
+                    maxLength={80}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>
+                    Meta description
+                    <span className={`ml-2 text-xs font-normal ${(form.meta_description?.length ?? 0) > 155 ? "text-red-500" : "text-muted-foreground"}`}>
+                      {form.meta_description?.length ?? 0}/155
+                    </span>
+                  </label>
+                  <textarea
+                    className={`${inputCls} resize-none`}
+                    rows={2}
+                    value={form.meta_description ?? ""}
+                    onChange={(e) => setForm((f) => ({ ...f, meta_description: e.target.value }))}
+                    placeholder="Falls back to excerpt if left empty"
+                    maxLength={200}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>Focus keyword <span className="font-normal normal-case text-[10px] text-muted-foreground">(admin only — never published)</span></label>
+                  <input
+                    className={inputCls}
+                    value={form.focus_keyword ?? ""}
+                    onChange={(e) => setForm((f) => ({ ...f, focus_keyword: e.target.value }))}
+                    placeholder="e.g. UK CV tips"
+                  />
+                </div>
+                <div className="rounded-xl border border-border bg-background p-4 space-y-0.5">
+                  <p className="text-xs text-muted-foreground mb-1">Search preview</p>
+                  <p className="text-sm text-blue-700 dark:text-blue-400 font-medium truncate">
+                    {(form.seo_title?.trim() || form.title || "Post title") + " — CVLingo Blog"}
+                  </p>
+                  <p className="text-xs text-emerald-700 dark:text-emerald-500 truncate">
+                    https://www.cvlingo.com/blog/{form.slug || "post-slug"}
+                  </p>
+                  <p className="text-xs text-muted-foreground line-clamp-2">
+                    {form.meta_description?.trim() || form.excerpt?.trim() || "Your meta description or excerpt will appear here."}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">SEO checklist</p>
+                  {seoChecks.map((c) => (
+                    <div key={c.label} className="flex items-center gap-2 text-xs">
+                      <span className={`h-3.5 w-3.5 flex-shrink-0 rounded-full flex items-center justify-center text-white text-[8px] font-bold ${c.na ? "bg-gray-300" : c.pass ? "bg-emerald-500" : "bg-amber-400"}`}>
+                        {c.na ? "–" : c.pass ? "✓" : "!"}
+                      </span>
+                      <span className={c.na ? "text-muted-foreground/50" : c.pass ? "text-foreground" : "text-amber-700 dark:text-amber-400"}>
+                        {c.label}
+                        {c.label === "Word count ≥ 600" && !c.na && (
+                          <span className="ml-1 text-muted-foreground">({form.content.trim() ? form.content.trim().split(/\s+/).length : 0} words)</span>
+                        )}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
 
