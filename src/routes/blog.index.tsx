@@ -8,6 +8,7 @@ type BlogPost = {
   title: string;
   excerpt: string | null;
   cover_image_url: string | null;
+  cover_image_alt: string | null;
   author_name: string | null;
   published_at: string | null;
 };
@@ -25,7 +26,7 @@ export const Route = createFileRoute("/blog/")({
   loader: async () => {
     const { data, error } = await supabase
       .from("blog_posts")
-      .select("id, slug, title, excerpt, cover_image_url, author_name, published_at")
+      .select("id, slug, title, excerpt, cover_image_url, cover_image_alt, author_name, published_at")
       .eq("status", "published")
       .order("published_at", { ascending: false })
       .limit(20);
@@ -82,7 +83,9 @@ function BlogListPage() {
                   <div className="aspect-[16/9] overflow-hidden bg-muted">
                     <img
                       src={post.cover_image_url}
-                      alt={post.title}
+                      alt={post.cover_image_alt ?? post.title}
+                      width={800}
+                      height={450}
                       className="h-full w-full object-cover transition group-hover:scale-105"
                       loading="lazy"
                     />

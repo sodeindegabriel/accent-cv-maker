@@ -11,6 +11,10 @@ type BlogPost = {
   excerpt: string | null;
   content: string;
   cover_image_url: string | null;
+  og_image_url: string | null;
+  cover_image_alt: string | null;
+  seo_title: string | null;
+  meta_description: string | null;
   author_name: string | null;
   published_at: string | null;
 };
@@ -28,7 +32,7 @@ export const Route = createFileRoute("/blog/$slug")({
   loader: async ({ params }) => {
     const { data } = await supabase
       .from("blog_posts")
-      .select("id, slug, title, excerpt, content, cover_image_url, author_name, published_at")
+      .select("id, slug, title, excerpt, content, cover_image_url, og_image_url, cover_image_alt, seo_title, meta_description, author_name, published_at")
       .eq("slug", params.slug)
       .eq("status", "published")
       .maybeSingle();
@@ -46,22 +50,29 @@ export const Route = createFileRoute("/blog/$slug")({
       };
     }
     const url = `https://www.cvlingo.com/blog/${post.slug}`;
-    const description = post.excerpt ?? "Read this article on the CVLingo blog.";
-    const image = post.cover_image_url ?? "https://www.cvlingo.com/cvlingo-logo.png";
+    const description = post.meta_description ?? post.excerpt ?? "Read this article on the CVLingo blog.";
+    const seoTitle = post.seo_title ? `${post.seo_title} — CVLingo Blog` : `${post.title} — CVLingo Blog`;
+    // og:image uses the JPEG (og_image_url), falls back to WebP, then site default
+    const ogImage = (() => {
+      const raw = post.og_image_url ?? post.cover_image_url ?? "https://www.cvlingo.com/cvlingo-logo.png";
+      return raw.startsWith("http") ? raw : `https://www.cvlingo.com${raw}`;
+    })();
     return {
       meta: [
-        { title: `${post.title} — CVLingo Blog` },
+        { title: seoTitle },
         { name: "description", content: description },
-        { property: "og:title", content: post.title },
+        { property: "og:title", content: post.seo_title ?? post.title },
         { property: "og:description", content: description },
         { property: "og:type", content: "article" },
         { property: "og:url", content: url },
-        { property: "og:image", content: image },
+        { property: "og:image", content: ogImage },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
         { property: "article:published_time", content: post.published_at ?? "" },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: post.title },
+        { name: "twitter:title", content: post.seo_title ?? post.title },
         { name: "twitter:description", content: description },
-        { name: "twitter:image", content: image },
+        { name: "twitter:image", content: ogImage },
       ],
       links: [{ rel: "canonical", href: url }],
       scripts: [
@@ -72,7 +83,7 @@ export const Route = createFileRoute("/blog/$slug")({
             "@type": "Article",
             headline: post.title,
             description,
-            image,
+            image: ogImage,
             url,
             datePublished: post.published_at,
             author: post.author_name
@@ -118,7 +129,9 @@ function BlogPostPage() {
         <div className="aspect-[21/9] w-full overflow-hidden bg-muted">
           <img
             src={post.cover_image_url}
-            alt={post.title}
+            alt={post.cover_image_alt ?? post.title}
+            width={1200}
+            height={630}
             className="h-full w-full object-cover"
           />
         </div>

@@ -13,6 +13,11 @@ type BlogPost = {
   excerpt: string | null;
   content: string;
   cover_image_url: string | null;
+  og_image_url: string | null;
+  cover_image_alt: string | null;
+  seo_title: string | null;
+  meta_description: string | null;
+  focus_keyword: string | null;
   author_name: string | null;
   status: "draft" | "published";
   published_at: string | null;
@@ -27,6 +32,11 @@ const emptyForm = (): FormState => ({
   excerpt: null,
   content: "",
   cover_image_url: null,
+  og_image_url: null,
+  cover_image_alt: null,
+  seo_title: null,
+  meta_description: null,
+  focus_keyword: null,
   author_name: null,
   status: "draft",
   published_at: null,
@@ -39,6 +49,200 @@ function slugify(t: string) {
 function fmtDate(iso: string | null) {
   if (!iso) return "—";
   return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
+// Accepted MIME types
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_INPUT_BYTES = 10 * 1024 * 1024; // 10 MB
+
+function fmtBytes(b: number) {
+  if (b < 1024) return `${b} B`;
+  if (b < 1024 * 1024) return `${(b / 1024).toFixed(0)} KB`;
+  return `${(b / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+// Center-crop + scale image on a canvas, return a Blob
+function processImageToCanvas(
+  imgEl: HTMLImageElement,
+  targetW: number,
+  targetH: number,
+): HTMLCanvasElement {
+  const srcRatio = imgEl.naturalWidth / imgEl.naturalHeight;
+  const tgtRatio = targetW / targetH;
+  let sx = 0, sy = 0, sw = imgEl.naturalWidth, sh = imgEl.naturalHeight;
+  if (srcRatio > tgtRatio) {
+    sw = sh * tgtRatio;
+    sx = (imgEl.naturalWidth - sw) / 2;
+  } else {
+    sh = sw / tgtRatio;
+    sy = (imgEl.naturalHeight - sh) / 2;
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = targetW;
+  canvas.height = targetH;
+  canvas.getContext("2d")!.drawImage(imgEl, sx, sy, sw, sh, 0, 0, targetW, targetH);
+  return canvas;
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => blob ? resolve(blob) : reject(new Error("Canvas encode failed")),
+      type,
+      quality,
+    );
+  });
+}
+
+function loadImageElement(file: File): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Failed to load image")); };
+    img.src = url;
+  });
+}
+
+function CoverImageUploader({
+  form,
+  setForm,
+  inputCls,
+  labelCls,
+}: {
+  form: FormState;
+  setForm: React.Dispatch<React.SetStateAction<FormState>>;
+  inputCls: string;
+  labelCls: string;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [sizeSaving, setSizeSaving] = useState<string | null>(null);
+
+  async function handleFile(file: File) {
+    setUploadError(null);
+    setSizeSaving(null);
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      setUploadError("Please upload a JPEG, PNG or WebP image.");
+      return;
+    }
+    if (file.size > MAX_INPUT_BYTES) {
+      setUploadError("Image must be under 10 MB.");
+      return;
+    }
+    setUploading(true);
+    try {
+      const img = await loadImageElement(file);
+      const slug = form.slug || "post";
+      const ts = Date.now();
+
+      // WebP for on-page display (1200x630 center-crop)
+      const coverCanvas = processImageToCanvas(img, 1200, 630);
+      let webpBlob: Blob;
+      try {
+        webpBlob = await canvasToBlob(coverCanvas, "image/webp", 0.82);
+        // Verify browser actually produced WebP
+        if (!webpBlob.type.includes("webp")) throw new Error("WebP not supported");
+      } catch {
+        // Fallback to JPEG if browser cannot encode WebP
+        webpBlob = await canvasToBlob(coverCanvas, "image/jpeg", 0.85);
+      }
+
+      // JPEG for og:image (1200x630 center-crop — same crop, JPEG format)
+      const ogCanvas = processImageToCanvas(img, 1200, 630);
+      const jpegBlob = await canvasToBlob(ogCanvas, "image/jpeg", 0.85);
+
+      const webpExt = webpBlob.type.includes("webp") ? "webp" : "jpg";
+      const webpFilename = `covers/${slug}-${ts}.${webpExt}`;
+      const jpegFilename = `covers/${slug}-${ts}-og.jpg`;
+
+      // Upload both
+      const [{ error: webpErr }, { error: jpegErr }] = await Promise.all([
+        supabase.storage.from("blog-images").upload(webpFilename, webpBlob, { contentType: webpBlob.type, upsert: true }),
+        supabase.storage.from("blog-images").upload(jpegFilename, jpegBlob, { contentType: "image/jpeg", upsert: true }),
+      ]);
+      if (webpErr) throw new Error(webpErr.message);
+      if (jpegErr) throw new Error(jpegErr.message);
+
+      const webpUrl = supabase.storage.from("blog-images").getPublicUrl(webpFilename).data.publicUrl;
+      const jpegUrl = supabase.storage.from("blog-images").getPublicUrl(jpegFilename).data.publicUrl;
+
+      const savedPct = Math.round((1 - (webpBlob.size + jpegBlob.size) / (file.size * 2)) * 100);
+      setSizeSaving(`${fmtBytes(file.size)} → ${fmtBytes(webpBlob.size)} (WebP) + ${fmtBytes(jpegBlob.size)} (og:JPEG)${savedPct > 0 ? ` — ${savedPct}% smaller` : ""}`);
+
+      setForm((f) => ({ ...f, cover_image_url: webpUrl, og_image_url: jpegUrl }));
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className={labelCls}>Cover image</label>
+          <label className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted/30 px-4 py-5 text-sm text-muted-foreground hover:bg-muted/60 transition-colors ${uploading ? "opacity-50 pointer-events-none" : ""}`}>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="sr-only"
+              disabled={uploading}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) void handleFile(f);
+                e.target.value = "";
+              }}
+            />
+            {uploading ? "Processing…" : "Upload JPEG / PNG / WebP (max 10 MB)"}
+          </label>
+          {uploadError && <p className="mt-1 text-xs text-red-600">{uploadError}</p>}
+          {sizeSaving && <p className="mt-1 text-xs text-emerald-600">{sizeSaving}</p>}
+        </div>
+        <div>
+          <label className={labelCls}>Cover image alt text</label>
+          <input
+            className={inputCls}
+            value={form.cover_image_alt ?? ""}
+            onChange={(e) => setForm((f) => ({ ...f, cover_image_alt: e.target.value }))}
+            placeholder="Describe the image for screen readers"
+          />
+        </div>
+      </div>
+
+      {/* Fallback URL field */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className={`${labelCls} font-normal normal-case text-[10px]`}>Or paste URL (WebP / display)</label>
+          <input
+            className={inputCls}
+            type="url"
+            value={form.cover_image_url ?? ""}
+            onChange={(e) => setForm((f) => ({ ...f, cover_image_url: e.target.value }))}
+            placeholder="https://..."
+          />
+        </div>
+        <div>
+          <label className={`${labelCls} font-normal normal-case text-[10px]`}>og:image URL (JPEG, auto-set on upload)</label>
+          <input
+            className={inputCls}
+            type="url"
+            value={form.og_image_url ?? ""}
+            onChange={(e) => setForm((f) => ({ ...f, og_image_url: e.target.value }))}
+            placeholder="https://..."
+          />
+        </div>
+      </div>
+
+      {/* Preview */}
+      {form.cover_image_url && (
+        <div className="rounded-xl overflow-hidden border border-border bg-muted max-h-40">
+          <img src={form.cover_image_url} alt={form.cover_image_alt ?? ""} className="w-full h-full object-cover" />
+        </div>
+      )}
+    </div>
+  );
 }
 
 function AdminBlogPage() {
@@ -107,6 +311,11 @@ function AdminBlogPage() {
       excerpt: post.excerpt,
       content: post.content,
       cover_image_url: post.cover_image_url,
+      og_image_url: post.og_image_url,
+      cover_image_alt: post.cover_image_alt,
+      seo_title: post.seo_title,
+      meta_description: post.meta_description,
+      focus_keyword: post.focus_keyword,
       author_name: post.author_name,
       status: post.status,
       published_at: post.published_at,
@@ -144,6 +353,11 @@ function AdminBlogPage() {
       excerpt: form.excerpt?.trim() || null,
       content: form.content,
       cover_image_url: form.cover_image_url?.trim() || null,
+      og_image_url: form.og_image_url?.trim() || null,
+      cover_image_alt: form.cover_image_alt?.trim() || null,
+      seo_title: form.seo_title?.trim() || null,
+      meta_description: form.meta_description?.trim() || null,
+      focus_keyword: form.focus_keyword?.trim() || null,
       author_name: form.author_name?.trim() || null,
       status: publish ? "published" : form.status,
       published_at: publish && !form.published_at ? now : form.published_at,
@@ -364,26 +578,51 @@ function AdminBlogPage() {
             />
           </div>
 
+          <div className="sm:col-span-2">
+            <CoverImageUploader form={form} setForm={setForm} inputCls={inputCls} labelCls={labelCls} />
+          </div>
+
+          <div>
+            <label className={labelCls}>Author name</label>
+            <input
+              className={inputCls}
+              value={form.author_name ?? ""}
+              onChange={(e) => setForm((f) => ({ ...f, author_name: e.target.value }))}
+              placeholder="Ezinwa / Gee"
+            />
+          </div>
+
+          {/* SEO fields */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className={labelCls}>Cover image URL</label>
+              <label className={labelCls}>SEO title (overrides page title)</label>
               <input
                 className={inputCls}
-                type="url"
-                value={form.cover_image_url ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, cover_image_url: e.target.value }))}
-                placeholder="https://..."
+                value={form.seo_title ?? ""}
+                onChange={(e) => setForm((f) => ({ ...f, seo_title: e.target.value }))}
+                placeholder="Falls back to post title"
               />
             </div>
             <div>
-              <label className={labelCls}>Author name</label>
+              <label className={labelCls}>Focus keyword (internal only)</label>
               <input
                 className={inputCls}
-                value={form.author_name ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, author_name: e.target.value }))}
-                placeholder="Ezinwa / Gee"
+                value={form.focus_keyword ?? ""}
+                onChange={(e) => setForm((f) => ({ ...f, focus_keyword: e.target.value }))}
+                placeholder="e.g. UK CV format"
               />
             </div>
+          </div>
+
+          <div>
+            <label className={labelCls}>Meta description (overrides excerpt)</label>
+            <textarea
+              className={`${inputCls} resize-none`}
+              rows={2}
+              value={form.meta_description ?? ""}
+              onChange={(e) => setForm((f) => ({ ...f, meta_description: e.target.value }))}
+              placeholder="Falls back to excerpt. Aim for 150–160 characters."
+            />
           </div>
 
           {/* Markdown editor + preview */}
