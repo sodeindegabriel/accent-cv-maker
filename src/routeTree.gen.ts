@@ -15,6 +15,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as BuildRouteImport } from './routes/build'
 import { Route as CandidatesRouteImport } from './routes/candidates'
+import { Route as CoverLetterRouteImport } from './routes/cover-letter'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as EmployerRouteImport } from './routes/employer'
 import { Route as EmployersRouteImport } from './routes/employers'
@@ -62,6 +63,11 @@ const BuildRoute = BuildRouteImport.update({
 const CandidatesRoute = CandidatesRouteImport.update({
   id: '/candidates',
   path: '/candidates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoverLetterRoute = CoverLetterRouteImport.update({
+  id: '/cover-letter',
+  path: '/cover-letter',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -162,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/blog': typeof BlogRouteWithChildren
   '/build': typeof BuildRoute
   '/candidates': typeof CandidatesRoute
+  '/cover-letter': typeof CoverLetterRoute
   '/dashboard': typeof DashboardRoute
   '/employer': typeof EmployerRoute
   '/employers': typeof EmployersRoute
@@ -186,6 +193,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/build': typeof BuildRoute
   '/candidates': typeof CandidatesRoute
+  '/cover-letter': typeof CoverLetterRoute
   '/dashboard': typeof DashboardRoute
   '/employer': typeof EmployerRoute
   '/employers': typeof EmployersRoute
@@ -213,6 +221,7 @@ export interface FileRoutesById {
   '/blog': typeof BlogRouteWithChildren
   '/build': typeof BuildRoute
   '/candidates': typeof CandidatesRoute
+  '/cover-letter': typeof CoverLetterRoute
   '/dashboard': typeof DashboardRoute
   '/employer': typeof EmployerRoute
   '/employers': typeof EmployersRoute
@@ -241,6 +250,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/build'
     | '/candidates'
+    | '/cover-letter'
     | '/dashboard'
     | '/employer'
     | '/employers'
@@ -265,6 +275,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/build'
     | '/candidates'
+    | '/cover-letter'
     | '/dashboard'
     | '/employer'
     | '/employers'
@@ -291,6 +302,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/build'
     | '/candidates'
+    | '/cover-letter'
     | '/dashboard'
     | '/employer'
     | '/employers'
@@ -318,6 +330,7 @@ export interface RootRouteChildren {
   BlogRoute: typeof BlogRouteWithChildren
   BuildRoute: typeof BuildRoute
   CandidatesRoute: typeof CandidatesRoute
+  CoverLetterRoute: typeof CoverLetterRoute
   DashboardRoute: typeof DashboardRoute
   EmployerRoute: typeof EmployerRoute
   EmployersRoute: typeof EmployersRoute
@@ -371,6 +384,13 @@ declare module '@tanstack/react-router' {
       path: '/candidates'
       fullPath: '/candidates'
       preLoaderRoute: typeof CandidatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cover-letter': {
+      id: '/cover-letter'
+      path: '/cover-letter'
+      fullPath: '/cover-letter'
+      preLoaderRoute: typeof CoverLetterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -543,6 +563,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogRoute: BlogRouteWithChildren,
   BuildRoute: BuildRoute,
   CandidatesRoute: CandidatesRoute,
+  CoverLetterRoute: CoverLetterRoute,
   DashboardRoute: DashboardRoute,
   EmployerRoute: EmployerRoute,
   EmployersRoute: EmployersRoute,

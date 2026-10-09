@@ -88,7 +88,20 @@ export type TKey =
   | "dashboardFreeLimitReached" | "dashboardNeedHelp"
   | "uploadCvTeaser" | "uploadCvTeaserBadge" | "uploadCvTeaserToast"
   | "dashboardUploadCv" | "dashboardUploadCvToast"
-  | "dashboardCoverLetter" | "dashboardCoverLetterToast";
+  | "dashboardCoverLetter" | "dashboardCoverLetterToast"
+  // Cover letter page
+  | "clTitle" | "clSubtitle" | "clSelectCv" | "clNoCvs" | "clNoCvsHint"
+  | "clJobAdvert" | "clJobAdvertHint" | "clJobAdvertPlaceholder" | "clAdvertTrimmed"
+  | "clJobTitle" | "clJobTitleHint" | "clJobTitlePlaceholder" | "clJobTitleRequired"
+  | "clCompany" | "clCompanyPlaceholder"
+  | "clWhyJob" | "clWhyJobHint" | "clOwnLangPlaceholder"
+  | "clExplain" | "clExplainHint"
+  | "clLength" | "clLengthShort" | "clLengthStandard"
+  | "clGenerate" | "clGenerating" | "clError" | "clEditForm"
+  | "clEnglishLetter"
+  | "clThingsToCheck" | "clCopy" | "clCopied"
+  | "clDownloadPdf" | "clDownloadWord" | "clRegenerate"
+  | "clEdit" | "clEditSave" | "clEditCancel";
 
 
 type Dict = Partial<Record<TKey, string>>;
@@ -342,6 +355,44 @@ const en: Record<TKey, string> = {
   dashboardUploadCvToast: "Upload & rework is coming soon!",
   dashboardCoverLetter: "Write a Cover Letter",
   dashboardCoverLetterToast: "Cover letters are coming soon!",
+  // Cover letter page (English only for now; other languages fall back)
+  clTitle: "Write a Cover Letter",
+  clSubtitle: "We'll use your CV details so you never have to re-enter them.",
+  clSelectCv: "Which CV should we use?",
+  clNoCvs: "You need a CV before writing a cover letter.",
+  clNoCvsHint: "Build your CV first — it takes about 5 minutes.",
+  clJobAdvert: "Paste the job advert (optional)",
+  clJobAdvertHint: "If left blank we'll write a general speculative letter.",
+  clJobAdvertPlaceholder: "Paste the full job advert here…",
+  clAdvertTrimmed: "The advert was very long and has been trimmed to fit.",
+  clJobTitle: "Job title",
+  clJobTitleHint: "(required when no advert is pasted)",
+  clJobTitlePlaceholder: "e.g. Care Worker",
+  clJobTitleRequired: "Please enter a job title (required when no advert is pasted).",
+  clCompany: "Company name (optional)",
+  clCompanyPlaceholder: "e.g. NHS Trust",
+  clWhyJob: "Why do you want this job?",
+  clWhyJobHint: "(optional — write in your own language)",
+  clOwnLangPlaceholder: "Write in your own language…",
+  clExplain: "Anything you'd like to explain?",
+  clExplainHint: "(optional — e.g. a gap in work history, or that you are new to the UK)",
+  clLength: "Length",
+  clLengthShort: "Short email (~130 words)",
+  clLengthStandard: "Standard letter (~300 words)",
+  clGenerate: "Write my cover letter",
+  clGenerating: "Writing your cover letter…",
+  clError: "Something went wrong. Please try again.",
+  clEditForm: "Back to form",
+  clEnglishLetter: "English version",
+  clThingsToCheck: "Things to check before you send",
+  clCopy: "Copy",
+  clCopied: "Copied!",
+  clDownloadPdf: "Download PDF",
+  clDownloadWord: "Download Word",
+  clRegenerate: "Regenerate",
+  clEdit: "Edit letter",
+  clEditSave: "Done",
+  clEditCancel: "Cancel",
 };
 
 const pl: Dict = {

@@ -352,14 +352,10 @@ function DashboardPage() {
             </button>
             <button
               type="button"
-              onClick={() => {
-                setComingSoonMsg(t(lang, "dashboardCoverLetterToast"));
-                setTimeout(() => setComingSoonMsg(null), 3000);
-              }}
-              className="inline-flex items-center gap-2 rounded-xl border border-dashed border-border px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
+              onClick={() => navigate({ to: "/cover-letter", search: { cv: undefined } })}
+              className="inline-flex items-center gap-2 rounded-xl border border-dashed border-border px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               {t(lang, "dashboardCoverLetter")}
-              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium leading-4">{t(lang, "uploadCvTeaserBadge")}</span>
             </button>
           </div>
 
@@ -447,6 +443,7 @@ function CVCard({
   referralLink: string;
   onEdit: (cvId: string) => Promise<void>;
 }) {
+  const navigate = useNavigate();
   const urls = makeCVLingoShareUrls(referralLink);
   const [editing, setEditing] = useState(false);
 
@@ -489,6 +486,16 @@ function CVCard({
         >
           <Pencil className="h-3 w-3" />
           {editing ? "…" : t(lang, "dashboardEdit")}
+        </button>
+
+        {/* Cover Letter */}
+        <button
+          type="button"
+          onClick={() => navigate({ to: "/cover-letter", search: { cv: cv.id } })}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+        >
+          <Pencil className="h-3 w-3" />
+          {t(lang, "dashboardCoverLetter")}
         </button>
 
         {/* WhatsApp share */}
