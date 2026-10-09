@@ -704,23 +704,26 @@ const ResultView = ({
       </div>
 
       {/* Things to check */}
-      {result.gaps.length > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-          <p className="text-sm font-semibold text-amber-800 mb-2">
-            {t("en", "clThingsToCheck")}
-          </p>
-          <ul className="space-y-1.5">
-            {result.gaps.map((gap, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm text-amber-700">
-                <span className="mt-0.5 h-4 w-4 shrink-0 rounded-full bg-amber-200 flex items-center justify-center text-[10px] font-bold text-amber-800">
-                  {i + 1}
-                </span>
-                {gap}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {(() => {
+        const activeGaps = tab === "english" ? result.gapsEnglish : result.gapsNative;
+        return activeGaps.length > 0 ? (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <p className="text-sm font-semibold text-amber-800 mb-2">
+              {t("en", "clThingsToCheck")}
+            </p>
+            <ul className="space-y-1.5">
+              {activeGaps.map((gap, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm text-amber-700">
+                  <span className="mt-0.5 h-4 w-4 shrink-0 rounded-full bg-amber-200 flex items-center justify-center text-[10px] font-bold text-amber-800">
+                    {i + 1}
+                  </span>
+                  {gap}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null;
+      })()}
 
       {/* Action row — 2-col grid on mobile so buttons are wide enough to tap */}
       <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
