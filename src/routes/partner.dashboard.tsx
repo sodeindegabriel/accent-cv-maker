@@ -44,6 +44,16 @@ interface PartnerClient {
   cv_english_html: string | null;
 }
 
+interface PartnerCoverLetter {
+  id: string;
+  job_title: string | null;
+  company: string | null;
+  language: string;
+  english_text: string;
+  native_text: string;
+  created_at: string;
+}
+
 // ── Email helper ───────────────────────────────────────────────────────────────
 async function sendTeamInviteEmail(partnerName: string, inviteeEmail: string) {
   if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
@@ -586,15 +596,284 @@ function InviteTeamMember({
   );
 }
 
+// ── Cover letter Word download ─────────────────────────────────────────────────
+async function downloadCoverLetterDocx(text: string, filename: string) {
+  const { Document, Packer, Paragraph, TextRun } = await import("docx");
+  const children = text.split("\n").map(
+    (line) => new Paragraph({ children: [new TextRun({ text: line, size: 24, font: "Calibri" })], spacing: { after: line.trim() ? 120 : 0 } })
+  );
+  const doc = new Document({ sections: [{ properties: {}, children }] });
+  const blob = await Packer.toBlob(doc);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ── Cover letter modal ─────────────────────────────────────────────────────────
+const RTL_LANGS = new Set(["Arabic", "Urdu", "Persian", "Kurdish", "Farsi"]);
+
+function CoverLetterModal({ client, letters, loading, error, onClose }: {
+  client: PartnerClient;
+  letters: PartnerCoverLetter[];
+  loading: boolean;
+  error: string | null;
+  onClose: () => void;
+}) {
+  const [activeTab, setActiveTab] = useState<Record<number, "english" | "native">>({});
+  const [editState, setEditState] = useState<Record<number, { english_text: string; native_text: string } | null>>({});
+  const [saving, setSaving] = useState<Record<number, boolean>>({});
+  const [saveError, setSaveError] = useState<Record<number, string | null>>({});
+  const [copied, setCopied] = useState<number | null>(null);
+
+  function getTab(idx: number): "english" | "native" {
+    return activeTab[idx] ?? "english";
+  }
+
+  function isRtl(language: string) {
+    return RTL_LANGS.has(language);
+  }
+
+  function showNativeTab(letter: PartnerCoverLetter) {
+    return letter.language !== "English" && letter.language !== "en";
+  }
+
+  async function handleSave(idx: number, letter: PartnerCoverLetter) {
+    const edit = editState[idx];
+    if (!edit) return;
+    setSaving((s) => ({ ...s, [idx]: true }));
+    setSaveError((s) => ({ ...s, [idx]: null }));
+    try {
+      const { error: rpcErr } = await supabase.rpc("partner_update_cover_letter", {
+        p_letter_id: letter.id,
+        p_english_text: edit.english_text,
+        p_native_text: edit.native_text,
+      });
+      if (rpcErr) { setSaveError((s) => ({ ...s, [idx]: rpcErr.message })); return; }
+      setEditState((s) => ({ ...s, [idx]: null }));
+    } finally {
+      setSaving((s) => ({ ...s, [idx]: false }));
+    }
+  }
+
+  function handleCopy(idx: number, letter: PartnerCoverLetter) {
+    const tab = getTab(idx);
+    const edit = editState[idx];
+    const text = edit
+      ? (tab === "english" ? edit.english_text : edit.native_text)
+      : (tab === "english" ? letter.english_text : letter.native_text);
+    void navigator.clipboard.writeText(text).then(() => {
+      setCopied(idx);
+      setTimeout(() => setCopied(null), 2000);
+    });
+  }
+
+  function handleDownload(idx: number, letter: PartnerCoverLetter) {
+    const edit = editState[idx];
+    const text = edit ? edit.english_text : letter.english_text;
+    const title = letter.job_title ?? "cover-letter";
+    const company = letter.company ?? "";
+    const safeTitle = `${title}${company ? "-" + company : ""}`.replace(/[^\w\s-]/g, "").trim();
+    void downloadCoverLetterDocx(text, `${client.display_name} - ${safeTitle} - CVLingo.docx`);
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-border px-6 py-4 shrink-0">
+          <h2 className="font-semibold text-foreground">{client.display_name} — Cover letters</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-1 text-muted-foreground hover:bg-muted transition-colors"
+            aria-label="Close"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="overflow-y-auto flex-1 p-6">
+          {loading && (
+            <div className="flex justify-center py-8">
+              <div className="h-7 w-7 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            </div>
+          )}
+          {error && !loading && (
+            <p className="text-sm text-destructive">{error}</p>
+          )}
+          {!loading && !error && letters.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              This client has not written a cover letter yet. Clients create them from their own dashboard.
+            </p>
+          )}
+          {!loading && !error && letters.length > 0 && (
+            <div className="space-y-6">
+              {letters.map((letter, idx) => {
+                const tab = getTab(idx);
+                const edit = editState[idx] ?? null;
+                const showNative = showNativeTab(letter);
+                const rtl = isRtl(letter.language);
+                const displayText = edit
+                  ? (tab === "english" ? edit.english_text : edit.native_text)
+                  : (tab === "english" ? letter.english_text : letter.native_text);
+
+                return (
+                  <div key={letter.id} className="rounded-xl border border-border overflow-hidden">
+                    {/* Card header */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 bg-muted/50 px-4 py-3">
+                      <div>
+                        <span className="font-medium text-foreground">{letter.job_title ?? "Untitled"}</span>
+                        {letter.company && (
+                          <span className="ml-2 text-sm text-muted-foreground">{letter.company}</span>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground">{fmtDate(letter.created_at)}</span>
+                    </div>
+
+                    {/* Tabs */}
+                    {showNative && (
+                      <div className="flex border-b border-border">
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab((s) => ({ ...s, [idx]: "english" }))}
+                          className={`px-4 py-2 text-xs font-medium transition-colors ${tab === "english" ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                        >
+                          English
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab((s) => ({ ...s, [idx]: "native" }))}
+                          className={`px-4 py-2 text-xs font-medium transition-colors ${tab === "native" ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                        >
+                          {letter.language}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Text / Edit area */}
+                    <div className="p-4">
+                      {edit ? (
+                        <textarea
+                          className="w-full min-h-[200px] rounded-lg border border-border bg-background p-3 text-sm text-foreground outline-none focus:border-primary resize-y"
+                          value={tab === "english" ? edit.english_text : edit.native_text}
+                          dir={tab === "native" && rtl ? "rtl" : undefined}
+                          style={tab === "native" && rtl ? { textAlign: "right" } : undefined}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setEditState((s) => ({
+                              ...s,
+                              [idx]: tab === "english"
+                                ? { ...edit, english_text: val }
+                                : { ...edit, native_text: val },
+                            }));
+                          }}
+                        />
+                      ) : (
+                        <pre
+                          className="w-full text-sm text-foreground whitespace-pre-wrap font-sans"
+                          dir={tab === "native" && rtl ? "rtl" : undefined}
+                          style={tab === "native" && rtl ? { textAlign: "right" } : undefined}
+                        >{displayText}</pre>
+                      )}
+
+                      {saveError[idx] && (
+                        <p className="mt-2 text-xs text-destructive">{saveError[idx]}</p>
+                      )}
+
+                      {/* Action buttons */}
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {edit ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => void handleSave(idx, letter)}
+                              disabled={saving[idx]}
+                              className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-opacity"
+                            >
+                              {saving[idx] ? "Saving…" : "Save"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditState((s) => ({ ...s, [idx]: null }))}
+                              disabled={saving[idx]}
+                              className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted transition-colors disabled:opacity-50"
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setEditState((s) => ({
+                              ...s,
+                              [idx]: { english_text: letter.english_text, native_text: letter.native_text },
+                            }))}
+                            className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+                          >
+                            Edit
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(idx, letter)}
+                          className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+                        >
+                          {copied === idx ? "Copied!" : "Copy"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDownload(idx, letter)}
+                          className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+                        >
+                          Word (.docx)
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Client list table ──────────────────────────────────────────────────────────
 function ClientTable({ clients }: { clients: PartnerClient[] }) {
   const [downloadingPdf, setDownloadingPdf] = useState<string | null>(null);
   const [downloadingWord, setDownloadingWord] = useState<string | null>(null);
   const [comingSoonToast, setComingSoonToast] = useState(false);
+  const [clModalClient, setClModalClient] = useState<PartnerClient | null>(null);
+  const [clLetters, setClLetters] = useState<PartnerCoverLetter[]>([]);
+  const [clLoading, setClLoading] = useState(false);
+  const [clError, setClError] = useState<string | null>(null);
 
   function showComingSoon() {
     setComingSoonToast(true);
     setTimeout(() => setComingSoonToast(false), 3000);
+  }
+
+  async function openCoverLetters(c: PartnerClient) {
+    setClLetters([]);
+    setClError(null);
+    setClLoading(true);
+    setClModalClient(c);
+    try {
+      const { data, error } = await supabase.rpc("get_partner_client_cover_letters", {
+        p_candidate_id: c.candidate_id,
+      });
+      if (error) { setClError(error.message); return; }
+      setClLetters(Array.isArray(data) ? (data as PartnerCoverLetter[]) : []);
+    } finally {
+      setClLoading(false);
+    }
   }
 
   async function handlePdf(client: PartnerClient) {
@@ -627,6 +906,15 @@ function ClientTable({ clients }: { clients: PartnerClient[] }) {
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-xl bg-foreground px-5 py-3 text-sm font-medium text-background shadow-lg">
           Coming soon
         </div>
+      )}
+      {clModalClient && (
+        <CoverLetterModal
+          client={clModalClient}
+          letters={clLetters}
+          loading={clLoading}
+          error={clError}
+          onClose={() => setClModalClient(null)}
+        />
       )}
       <div className="border-b border-border px-6 py-4">
         <h2 className="font-semibold text-foreground">Your clients ({clients.length})</h2>
@@ -693,11 +981,10 @@ function ClientTable({ clients }: { clients: PartnerClient[] }) {
                     </button>
                     <button
                       type="button"
-                      onClick={showComingSoon}
-                      className="inline-flex items-center gap-1 rounded-lg border border-dashed border-border px-3 py-1 text-xs text-muted-foreground hover:bg-muted transition-colors"
+                      onClick={() => void openCoverLetters(c)}
+                      className="rounded-lg border border-border px-3 py-1 text-xs font-medium text-foreground hover:bg-muted transition-colors"
                     >
-                      Cover Letter
-                      <span className="rounded-full bg-muted px-1.5 py-0 text-[10px] font-medium leading-4">Soon</span>
+                      Cover letters
                     </button>
                   </div>
                 </td>
