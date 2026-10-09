@@ -103,6 +103,7 @@ function AdminIndexPage() {
   const [data, setData] = useState<AdminData | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [pendingJobRequests, setPendingJobRequests] = useState<{ count: number; top: PendingJobRequest | null }>({ count: 0, top: null });
+  const [signupStats, setSignupStats] = useState<{ today: number; last_7_days: number } | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -121,6 +122,13 @@ function AdminIndexPage() {
         }
       });
   }, [authLoading, user, navigate]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    supabase.rpc("users_signup_stats").then(({ data: d }) => {
+      if (d) setSignupStats(d as { today: number; last_7_days: number });
+    });
+  }, [isAdmin]);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -266,6 +274,8 @@ function AdminIndexPage() {
           </div>
           <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
             <MetricCard label="Candidates opted in" value={data.candidateCount} href="/admin/candidates" />
+            <MetricCard label="New today" value={signupStats?.today ?? "—"} href="/admin/users" />
+            <MetricCard label="New (7 days)" value={signupStats?.last_7_days ?? "—"} href="/admin/users" />
           </div>
         </section>
 

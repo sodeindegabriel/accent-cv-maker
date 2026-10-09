@@ -12,6 +12,7 @@ const NAV = [
   { label: "Candidates",   to: "/admin/candidates",   superAdminOnly: false },
   { label: "Job Requests", to: "/admin/job-requests", superAdminOnly: false },
   { label: "Partners",     to: "/admin/partners",     superAdminOnly: false },
+  { label: "Users",        to: "/admin/users",        superAdminOnly: false },
   { label: "Blog",         to: "/admin/blog",         superAdminOnly: false },
   { label: "Team",         to: "/admin/team",         superAdminOnly: true },
   { label: "Billing",      to: "/admin/billing",      superAdminOnly: true },

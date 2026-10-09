@@ -30,6 +30,7 @@ import { Route as AdminCandidatesRouteImport } from './routes/admin.candidates'
 import { Route as AdminJobRequestsRouteImport } from './routes/admin.job-requests'
 import { Route as AdminPartnersRouteImport } from './routes/admin.partners'
 import { Route as AdminTeamRouteImport } from './routes/admin.team'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as PartnerDashboardRouteImport } from './routes/partner.dashboard'
@@ -140,6 +141,11 @@ const AdminTeamRoute = AdminTeamRouteImport.update({
   path: '/team',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -182,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/admin/job-requests': typeof AdminJobRequestsRoute
   '/admin/partners': typeof AdminPartnersRoute
   '/admin/team': typeof AdminTeamRoute
+  '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/partner/dashboard': typeof PartnerDashboardRoute
   '/ref/$code': typeof RefCodeRoute
@@ -207,6 +214,7 @@ export interface FileRoutesByTo {
   '/admin/job-requests': typeof AdminJobRequestsRoute
   '/admin/partners': typeof AdminPartnersRoute
   '/admin/team': typeof AdminTeamRoute
+  '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/partner/dashboard': typeof PartnerDashboardRoute
   '/ref/$code': typeof RefCodeRoute
@@ -235,6 +243,7 @@ export interface FileRoutesById {
   '/admin/job-requests': typeof AdminJobRequestsRoute
   '/admin/partners': typeof AdminPartnersRoute
   '/admin/team': typeof AdminTeamRoute
+  '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/partner/dashboard': typeof PartnerDashboardRoute
   '/ref/$code': typeof RefCodeRoute
@@ -264,6 +273,7 @@ export interface FileRouteTypes {
     | '/admin/job-requests'
     | '/admin/partners'
     | '/admin/team'
+    | '/admin/users'
     | '/blog/$slug'
     | '/partner/dashboard'
     | '/ref/$code'
@@ -289,6 +299,7 @@ export interface FileRouteTypes {
     | '/admin/job-requests'
     | '/admin/partners'
     | '/admin/team'
+    | '/admin/users'
     | '/blog/$slug'
     | '/partner/dashboard'
     | '/ref/$code'
@@ -316,6 +327,7 @@ export interface FileRouteTypes {
     | '/admin/job-requests'
     | '/admin/partners'
     | '/admin/team'
+    | '/admin/users'
     | '/blog/$slug'
     | '/partner/dashboard'
     | '/ref/$code'
@@ -491,6 +503,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTeamRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/blog/': {
       id: '/blog/'
       path: '/'
@@ -529,6 +548,7 @@ interface AdminRouteChildren {
   AdminJobRequestsRoute: typeof AdminJobRequestsRoute
   AdminPartnersRoute: typeof AdminPartnersRoute
   AdminTeamRoute: typeof AdminTeamRoute
+  AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -539,6 +559,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminJobRequestsRoute: AdminJobRequestsRoute,
   AdminPartnersRoute: AdminPartnersRoute,
   AdminTeamRoute: AdminTeamRoute,
+  AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
