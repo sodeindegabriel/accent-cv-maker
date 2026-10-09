@@ -143,54 +143,82 @@ export const generateCoverLetterServer = createServerFn({ method: "POST" })
       throw new Error("cap_reached");
     }
 
-    // Call Claude
+    // Call Claude (up to 3 attempts on network/parse failure)
     const apiKey = process.env["ANTHROPIC_API_KEY"] ?? process.env["ANTHROPIC_KEY"];
     if (!apiKey) throw new Error("Server configuration error — API key missing.");
 
     const prompt = buildCoverLetterPrompt(input);
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-5",
-        max_tokens: 2000,
-        messages: [{ role: "user", content: prompt }],
-      }),
-    });
+    type Parsed = { english?: unknown; native?: unknown; gaps?: unknown };
+    let english = "";
+    let native = "";
+    let gaps: string[] = [];
+    let lastError: Error = new Error("Unknown error");
 
-    const responseText = await response.text();
-    if (!response.ok) {
-      throw new Error(`AI API error ${response.status}: ${responseText || response.statusText}`);
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      let response: Response;
+      try {
+        response = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": apiKey,
+            "anthropic-version": "2023-06-01",
+          },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-5",
+            max_tokens: 2000,
+            messages: [{ role: "user", content: prompt }],
+          }),
+        });
+      } catch (fetchErr) {
+        lastError = fetchErr instanceof Error ? fetchErr : new Error("Network error");
+        if (attempt < 3) continue;
+        break;
+      }
+
+      const responseText = await response.text();
+      if (!response.ok) {
+        // Non-retryable HTTP errors (4xx auth/quota issues)
+        throw new Error(`AI API error ${response.status}: ${responseText || response.statusText}`);
+      }
+
+      const apiResult = JSON.parse(responseText) as { content?: { text?: string }[] };
+      const raw: string = apiResult?.content?.[0]?.text ?? "";
+
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        lastError = new Error("Invalid AI response — please try again.");
+        if (attempt < 3) continue;
+        break;
+      }
+
+      let parsed: Parsed;
+      try {
+        parsed = JSON.parse(jsonMatch[0]) as Parsed;
+      } catch {
+        lastError = new Error("Could not parse AI response — please try again.");
+        if (attempt < 3) continue;
+        break;
+      }
+
+      english = typeof parsed.english === "string" ? parsed.english.trim() : "";
+      if (!english) {
+        lastError = new Error("Incomplete AI response — please try again.");
+        if (attempt < 3) continue;
+        break;
+      }
+
+      native = typeof parsed.native === "string" ? parsed.native.trim() : english;
+      gaps = Array.isArray(parsed.gaps)
+        ? (parsed.gaps as unknown[]).filter((g): g is string => typeof g === "string")
+        : [];
+
+      // Success — exit retry loop
+      break;
     }
 
-    const apiResult = JSON.parse(responseText) as { content?: { text?: string }[] };
-    const raw: string = apiResult?.content?.[0]?.text ?? "";
-
-    // Parse JSON from response
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error("Invalid AI response — please try again.");
-    }
-
-    let parsed: { english?: unknown; native?: unknown; gaps?: unknown };
-    try {
-      parsed = JSON.parse(jsonMatch[0]) as typeof parsed;
-    } catch {
-      throw new Error("Could not parse AI response — please try again.");
-    }
-
-    const english = typeof parsed.english === "string" ? parsed.english.trim() : "";
-    if (!english) throw new Error("Incomplete AI response — please try again.");
-
-    const native = typeof parsed.native === "string" ? parsed.native.trim() : english;
-    const gaps = Array.isArray(parsed.gaps)
-      ? (parsed.gaps as unknown[]).filter((g): g is string => typeof g === "string")
-      : [];
+    if (!english) throw lastError;
 
     const mode = input.jobAdvert.trim() ? "advert" : "speculative";
     const { data: saved, error: insertErr } = await sb

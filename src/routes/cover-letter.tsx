@@ -12,6 +12,8 @@ import { generateCoverLetterServer, getCoverLettersRemainingServer, type CoverLe
 
 const ADVERT_LIMIT = 8000;
 
+const RTL_CODES = new Set(["ar", "ur", "fa", "ku"]);
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type CVWithData = {
@@ -461,7 +463,7 @@ function FormView({
         </p>
       </Field>
 
-      {/* Job title + Company */}
+      {/* Job title + Company — single column on mobile, two on sm+ */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field
           label={t("en", "clJobTitle")}
@@ -608,6 +610,8 @@ const ResultView = ({
       ? result.english
       : result.native;
 
+  const isRtl = tab === "native" && RTL_CODES.has(result.languageCode);
+
   return (
     <div className="space-y-5">
       {/* Tabs */}
@@ -639,11 +643,17 @@ const ResultView = ({
           <textarea
             value={editText}
             onChange={(e) => setEditText(e.target.value)}
+            dir={isRtl ? "rtl" : "ltr"}
             className="w-full min-h-[320px] text-sm text-gray-800 leading-relaxed resize-y outline-none font-mono"
+            style={isRtl ? { textAlign: "right", fontFamily: "system-ui, sans-serif" } : undefined}
             autoFocus
           />
         ) : (
-          <pre className="whitespace-pre-wrap text-sm text-gray-800 leading-relaxed font-sans">
+          <pre
+            dir={isRtl ? "rtl" : "ltr"}
+            className="whitespace-pre-wrap text-sm text-gray-800 leading-relaxed font-sans"
+            style={isRtl ? { textAlign: "right" } : undefined}
+          >
             {displayText}
           </pre>
         )}
@@ -712,12 +722,12 @@ const ResultView = ({
         </div>
       )}
 
-      {/* Action row */}
-      <div className="flex flex-wrap gap-2">
+      {/* Action row — 2-col grid on mobile so buttons are wide enough to tap */}
+      <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
         <button
           type="button"
           onClick={onCopy}
-          className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors min-h-[44px]"
+          className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors min-h-[44px]"
         >
           {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
           {copied ? t("en", "clCopied") : t("en", "clCopy")}
@@ -726,7 +736,7 @@ const ResultView = ({
           type="button"
           onClick={onDownloadPdf}
           disabled={pdfLoading}
-          className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors min-h-[44px] disabled:opacity-50"
+          className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors min-h-[44px] disabled:opacity-50"
         >
           <FileDown className="h-4 w-4" />
           {pdfLoading ? "…" : t("en", "clDownloadPdf")}
@@ -735,7 +745,7 @@ const ResultView = ({
           type="button"
           onClick={onDownloadWord}
           disabled={wordLoading}
-          className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors min-h-[44px] disabled:opacity-50"
+          className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors min-h-[44px] disabled:opacity-50"
         >
           <FileDown className="h-4 w-4" />
           {wordLoading ? "…" : t("en", "clDownloadWord")}
@@ -743,7 +753,7 @@ const ResultView = ({
         <button
           type="button"
           onClick={onRegenerate}
-          className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors min-h-[44px]"
+          className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors min-h-[44px]"
         >
           <RefreshCw className="h-4 w-4" />
           {t("en", "clRegenerate")}
