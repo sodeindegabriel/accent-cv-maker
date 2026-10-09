@@ -1180,6 +1180,26 @@ function Step3PersonalDetails({ data, update, displayLang, originalLang, onToggl
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.email]);
+
+  // Pre-fill name from profiles or user metadata if the field is currently empty
+  useEffect(() => {
+    if (personal.name || !user?.id) return;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .single();
+      const resolved =
+        (data?.full_name as string | undefined) ||
+        (user?.user_metadata?.full_name as string | undefined);
+      if (resolved) {
+        update("personalDetails", { ...personal, name: resolved });
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
   const isOther = personal.rightToWork.startsWith("Other:") || personal.rightToWork === "Other / not sure";
   const otherDetail = personal.rightToWork.startsWith("Other:") ? personal.rightToWork.slice(6).trim() : "";
   const phoneValid = isValidUKPhone(personal.phone);
