@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
-import { Eye, EyeOff, Pencil, Plus, Trash2, X, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
+import { Eye, EyeOff, Pencil, Plus, Trash2, X, Link as LinkIcon, Image as ImageIcon, ExternalLink, Check } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { ComponentPropsWithoutRef } from "react";
 import remarkGfm from "remark-gfm";
@@ -272,6 +272,25 @@ function CoverImageUploader({
   );
 }
 
+function CopyLinkButton({ slug }: { slug: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      title="Copy link"
+      onClick={() => {
+        void navigator.clipboard.writeText(`https://www.cvlingo.com/blog/${slug}`).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        });
+      }}
+      className="rounded-lg border border-border p-1.5 text-muted-foreground hover:bg-muted transition-colors"
+    >
+      {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <LinkIcon className="h-3.5 w-3.5" />}
+    </button>
+  );
+}
+
 function AdminBlogPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -285,6 +304,9 @@ function AdminBlogPage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [slugTaken, setSlugTaken] = useState(false);
   const [preview, setPreview] = useState(false);
+  const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
+  const [bannerCopied, setBannerCopied] = useState(false);
+  const [previewOnlyMode, setPreviewOnlyMode] = useState(false);
 
   // Toolbar / editor state
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -352,6 +374,8 @@ function AdminBlogPage() {
     setSaveError(null);
     setSlugTaken(false);
     setPreview(false);
+    setPublishedUrl(null);
+    setPreviewOnlyMode(false);
   }
 
   function openEdit(post: BlogPost) {
@@ -377,10 +401,18 @@ function AdminBlogPage() {
     setPreview(false);
   }
 
+  function openPreview(post: BlogPost) {
+    openEdit(post);
+    setPreview(true);
+    setPreviewOnlyMode(true);
+  }
+
   function closeForm() {
     setEditing(false);
     setForm(emptyForm());
     setSaveError(null);
+    setPublishedUrl(null);
+    setPreviewOnlyMode(false);
   }
 
   function handleTitleChange(title: string) {
@@ -546,11 +578,21 @@ function AdminBlogPage() {
         setSaving(false);
         return;
       }
-      if (data) setPosts((prev) => [data as BlogPost, ...prev]);
+      if (data) {
+        setPosts((prev) => [data as BlogPost, ...prev]);
+        setForm((f) => ({ ...f, id: (data as BlogPost).id }));
+      }
     }
 
     setSaving(false);
-    closeForm();
+
+    const isPublished = publish || payload.status === "published";
+    if (isPublished) {
+      setPublishedUrl(`https://www.cvlingo.com/blog/${payload.slug}`);
+    } else {
+      setPublishedUrl(null);
+      closeForm();
+    }
   }
 
   async function togglePublish(post: BlogPost) {
@@ -846,6 +888,30 @@ function AdminBlogPage() {
                           ? <EyeOff className="h-3.5 w-3.5" />
                           : <Eye className="h-3.5 w-3.5" />}
                       </button>
+                      {post.status === "published" && (
+                        <>
+                          <a
+                            href={`https://www.cvlingo.com/blog/${post.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="View live"
+                            className="rounded-lg border border-border p-1.5 text-muted-foreground hover:bg-muted transition-colors"
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                          <CopyLinkButton slug={post.slug} />
+                        </>
+                      )}
+                      {post.status === "draft" && (
+                        <button
+                          type="button"
+                          title="Preview"
+                          onClick={() => openPreview(post)}
+                          className="rounded-lg border border-border p-1.5 text-muted-foreground hover:bg-muted transition-colors"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => openEdit(post)}
@@ -1069,6 +1135,32 @@ function AdminBlogPage() {
               </div>
             )}
           </div>
+
+          {publishedUrl && (
+            <div className="flex flex-wrap items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+              <span className="text-sm text-emerald-800 font-medium flex-1 min-w-0 truncate">{publishedUrl}</span>
+              <a
+                href={publishedUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-lg border border-emerald-300 px-3 py-1.5 text-xs font-medium text-emerald-800 hover:bg-emerald-100 transition-colors whitespace-nowrap"
+              >
+                Open ↗
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  void navigator.clipboard.writeText(publishedUrl).then(() => {
+                    setBannerCopied(true);
+                    setTimeout(() => setBannerCopied(false), 2000);
+                  });
+                }}
+                className="rounded-lg border border-emerald-300 px-3 py-1.5 text-xs font-medium text-emerald-800 hover:bg-emerald-100 transition-colors whitespace-nowrap"
+              >
+                {bannerCopied ? "Copied!" : "Copy link"}
+              </button>
+            </div>
+          )}
 
           <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-border">
             <button
