@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { generateCV, type GeneratedCV } from "@/utils/generateCV";
 import { GeneratingOverlay } from "@/components/GeneratingOverlay";
 import { FlagIcon, langToCountry } from "@/components/FlagIcon";
@@ -1266,28 +1266,32 @@ function Step3PersonalDetails({ data, update, displayLang, originalLang, onToggl
     update("personalDetails", { ...personal, [key]: value });
   };
 
-  // Pre-fill email from auth if the field is currently empty
-  useEffect(() => {
-    if (!personal.email && user?.email) {
-      update("personalDetails", { ...personal, email: user.email });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.email]);
+  // Keep a stable ref to personal so async callbacks read the current value.
+  const personalRef = useRef(personal);
+  personalRef.current = personal;
 
-  // Pre-fill name from profiles or user metadata if the field is currently empty
+  // Pre-fill email and name once user is available, only when fields are empty.
+  // Reads personalRef.current after the async profile fetch to avoid spreading
+  // a stale snapshot (which caused name/email to overwrite each other).
   useEffect(() => {
-    if (personal.name || !user?.id) return;
+    if (!user?.id) return;
+    const email = user.email?.trim() || "";
     (async () => {
-      const { data } = await supabase
+      const { data: profile } = await supabase
         .from("profiles")
         .select("full_name")
         .eq("id", user.id)
         .single();
-      const resolved =
-        (data?.full_name as string | undefined) ||
-        (user?.user_metadata?.full_name as string | undefined);
-      if (resolved) {
-        update("personalDetails", { ...personal, name: resolved });
+      const resolvedName =
+        (profile?.full_name as string | undefined)?.trim() ||
+        (user?.user_metadata?.full_name as string | undefined)?.trim() ||
+        "";
+      const current = personalRef.current;
+      const patch: Partial<PersonalDetails> = {};
+      if (!current.name && resolvedName) patch.name = resolvedName;
+      if (!current.email && email) patch.email = email;
+      if (Object.keys(patch).length > 0) {
+        update("personalDetails", { ...current, ...patch });
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
