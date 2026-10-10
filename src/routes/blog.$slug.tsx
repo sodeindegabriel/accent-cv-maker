@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabaseClient";
 import ReactMarkdown from "react-markdown";
 import type { ComponentPropsWithoutRef } from "react";
 import remarkGfm from "remark-gfm";
-import { ArrowLeft, Calendar, User } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 const markdownComponents: ComponentPropsWithoutRef<typeof ReactMarkdown>["components"] = {
   a: ({ href, children, ...props }) => {
@@ -35,14 +35,15 @@ type BlogPost = {
   published_at: string | null;
 };
 
-function fmtDate(iso: string | null) {
-  if (!iso) return "";
-  return new Date(iso).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
+type RelatedPost = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  cover_image_url: string | null;
+  cover_image_alt: string | null;
+  published_at: string | null;
+};
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: async ({ params }) => {
@@ -53,7 +54,18 @@ export const Route = createFileRoute("/blog/$slug")({
       .eq("status", "published")
       .maybeSingle();
 
-    return { post: data as BlogPost | null };
+    const { data: relatedPosts } = await supabase
+      .from("blog_posts")
+      .select("id, slug, title, excerpt, cover_image_url, cover_image_alt, published_at")
+      .eq("status", "published")
+      .neq("slug", params.slug)
+      .order("published_at", { ascending: false })
+      .limit(3);
+
+    return {
+      post: data as BlogPost | null,
+      relatedPosts: (relatedPosts ?? []) as RelatedPost[],
+    };
   },
   head: ({ loaderData }) => {
     const post = loaderData?.post;
@@ -68,7 +80,6 @@ export const Route = createFileRoute("/blog/$slug")({
     const url = `https://www.cvlingo.com/blog/${post.slug}`;
     const description = post.meta_description ?? post.excerpt ?? "Read this article on the CVLingo blog.";
     const seoTitle = post.seo_title ? `${post.seo_title} — CVLingo Blog` : `${post.title} — CVLingo Blog`;
-    // og:image uses the JPEG (og_image_url), falls back to WebP, then site default
     const ogImage = (() => {
       const raw = post.og_image_url ?? post.cover_image_url ?? "https://www.cvlingo.com/cvlingo-logo.png";
       return raw.startsWith("http") ? raw : `https://www.cvlingo.com${raw}`;
@@ -119,7 +130,7 @@ export const Route = createFileRoute("/blog/$slug")({
 });
 
 function BlogPostPage() {
-  const { post } = Route.useLoaderData();
+  const { post, relatedPosts } = Route.useLoaderData();
 
   if (!post) {
     return (
@@ -139,58 +150,104 @@ function BlogPostPage() {
     );
   }
 
+  const wordCount = post.content.trim().split(/\s+/).length;
+  const readingTime = Math.ceil(wordCount / 200);
+
   return (
     <main className="min-h-screen bg-background text-foreground">
-      {post.cover_image_url && (
-        <div className="aspect-[21/9] w-full overflow-hidden bg-muted">
-          <img
-            src={post.cover_image_url}
-            alt={post.cover_image_alt ?? post.title}
-            width={1200}
-            height={630}
-            className="h-full w-full object-cover"
-          />
-        </div>
-      )}
-
-      <article className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
+      {/* Post header: two-column on desktop, stacked on mobile */}
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 pt-10 pb-6">
         <Link
           to="/blog"
-          className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Blog
         </Link>
 
-        <header className="mb-8">
-          <h1 className="font-serif text-3xl font-semibold text-foreground sm:text-4xl leading-tight">
-            {post.title}
-          </h1>
-          {post.excerpt && (
-            <p className="mt-3 text-lg text-muted-foreground leading-relaxed">{post.excerpt}</p>
+        <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-start">
+          {/* Image: ~42% wide on desktop, full width stacked on mobile */}
+          {post.cover_image_url && (
+            <div className="w-full sm:w-[42%] flex-shrink-0">
+              <img
+                src={post.cover_image_url}
+                alt={post.cover_image_alt ?? post.title}
+                width={1200}
+                height={630}
+                className="w-full rounded-xl object-cover sm:max-h-[360px] max-h-[240px]"
+                style={{ aspectRatio: "1200/630" }}
+              />
+            </div>
           )}
-          <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-muted-foreground border-t border-border pt-4">
-            {post.author_name && (
-              <span className="flex items-center gap-1.5">
-                <User className="h-4 w-4" />
-                {post.author_name}
-              </span>
+          {/* Text column */}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight mb-3">
+              {post.title}
+            </h1>
+            {post.excerpt && (
+              <p className="text-muted-foreground text-base mb-4 leading-relaxed">{post.excerpt}</p>
             )}
-            {post.published_at && (
-              <span className="flex items-center gap-1.5">
-                <Calendar className="h-4 w-4" />
-                {fmtDate(post.published_at)}
-              </span>
-            )}
+            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+              <time dateTime={post.published_at ?? undefined}>
+                {new Date(post.published_at ?? new Date().toISOString()).toLocaleDateString("en-GB", {
+                  day: "numeric", month: "long", year: "numeric",
+                })}
+              </time>
+              {post.author_name && <span>· {post.author_name}</span>}
+              <span>· {readingTime} min read</span>
+            </div>
           </div>
-        </header>
+        </div>
+      </div>
 
+      <article className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
         <div className="prose prose-neutral max-w-none dark:prose-invert prose-headings:font-serif prose-a:text-primary prose-a:no-underline hover:prose-a:underline">
           <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
             {post.content}
           </ReactMarkdown>
         </div>
       </article>
+
+      {/* Keep reading */}
+      {relatedPosts.length > 0 && (
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 py-10 border-t border-border">
+          <h2 className="text-xl font-semibold mb-6">Keep reading</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {relatedPosts.map((rp) => (
+              <Link
+                key={rp.slug}
+                to="/blog/$slug"
+                params={{ slug: rp.slug }}
+                className="group block rounded-xl border border-border overflow-hidden hover:shadow-md transition-shadow"
+              >
+                {rp.cover_image_url && (
+                  <img
+                    src={rp.cover_image_url}
+                    alt={rp.cover_image_alt ?? rp.title}
+                    width={800}
+                    height={450}
+                    className="w-full object-cover"
+                    style={{ aspectRatio: "16/9", maxHeight: "160px" }}
+                  />
+                )}
+                <div className="p-4">
+                  <p className="font-semibold text-sm leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                    {rp.title}
+                  </p>
+                  {rp.excerpt && (
+                    <p className="text-muted-foreground text-xs mt-1 line-clamp-2">{rp.excerpt}</p>
+                  )}
+                  <p className="text-muted-foreground text-xs mt-2">
+                    {new Date(rp.published_at ?? new Date().toISOString()).toLocaleDateString("en-GB", {
+                      day: "numeric", month: "short", year: "numeric",
+                    })}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </main>
   );
 }
