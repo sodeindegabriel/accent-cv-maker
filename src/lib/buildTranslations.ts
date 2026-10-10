@@ -103,7 +103,8 @@ export type TKey =
   | "clDownloadPdf" | "clDownloadWord" | "clRegenerate"
   | "clEdit" | "clEditSave" | "clEditCancel"
   | "clCapReached" | "clRemaining" | "clQuotaLabel" | "clQuotaInfo"
-  | "addCustomJobType";
+  | "addCustomJobType"
+  | "myCoverLetters" | "noCoverLetters" | "generateCoverLetter";
 
 
 type Dict = Partial<Record<TKey, string>>;
@@ -400,6 +401,9 @@ const en: Record<TKey, string> = {
   clQuotaLabel: "{used} of {limit} letters left",
   clQuotaInfo: "Generating or regenerating uses one letter. Editing is free.",
   addCustomJobType: 'Add "{title}"',
+  myCoverLetters: "My Cover Letters",
+  noCoverLetters: "No cover letters yet.",
+  generateCoverLetter: "Generate one →",
 };
 
 const pl: Dict = {

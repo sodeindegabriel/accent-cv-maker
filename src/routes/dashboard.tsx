@@ -43,6 +43,14 @@ interface CVDocument {
   created_at: string;
 }
 
+interface CoverLetterDoc {
+  id: string;
+  job_title: string | null;
+  company: string | null;
+  created_at: string;
+  language: string | null;
+}
+
 const FREE_LIMIT = 2;
 
 // Derive a stable 10-char hex code from user UUID (unique by construction)
@@ -67,6 +75,7 @@ function DashboardPage() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [cvs, setCVs] = useState<CVDocument[]>([]);
+  const [letters, setLetters] = useState<CoverLetterDoc[]>([]);
   const [downloadCount, setDownloadCount] = useState(0);
   const [dataLoading, setDataLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -117,7 +126,7 @@ function DashboardPage() {
     setError(null);
     setErrorDetail(null);
     try {
-      const [profileRes, cvsRes, downloadsRes] = await Promise.all([
+      const [profileRes, cvsRes, downloadsRes, lettersRes] = await Promise.all([
         supabase
           .from("profiles")
           .select("full_name, preferred_ui_language, default_cv_language, referral_code, role")
@@ -132,6 +141,11 @@ function DashboardPage() {
           .from("downloads")
           .select("id", { count: "exact", head: true })
           .eq("user_id", user.id),
+        supabase
+          .from("cover_letters")
+          .select("id, job_title, company, created_at, language")
+          .order("created_at", { ascending: false })
+          .limit(20),
       ]);
 
       if (profileRes.error) {
@@ -180,6 +194,7 @@ function DashboardPage() {
 
       setProfile(resolvedProfile);
       setCVs((cvsRes.data as CVDocument[]) ?? []);
+      setLetters((lettersRes.data as CoverLetterDoc[]) ?? []);
       setDownloadCount(downloadsRes.count ?? 0);
     } catch (err) {
       console.error("Dashboard: load failed:", err);
@@ -352,7 +367,7 @@ function DashboardPage() {
             </button>
             <button
               type="button"
-              onClick={() => navigate({ to: "/cover-letter", search: { cv: undefined } })}
+              onClick={() => navigate({ to: "/cover-letter", search: { cv: undefined, letter: undefined } })}
               className="inline-flex items-center gap-2 rounded-xl border border-dashed border-border px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               {t(lang, "dashboardCoverLetter")}
@@ -407,6 +422,55 @@ function DashboardPage() {
                         referralLink={referralLink}
                         onEdit={handleEdit}
                       />
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              {/* My Cover Letters */}
+              <section>
+                <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                  {t(lang, "myCoverLetters")}
+                </h2>
+                {letters.length === 0 ? (
+                  <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+                    <p className="text-gray-500 text-sm mb-2">{t(lang, "noCoverLetters")}</p>
+                    <button
+                      type="button"
+                      onClick={() => navigate({ to: "/cover-letter", search: { cv: undefined, letter: undefined } })}
+                      className="text-sm text-primary hover:underline font-medium"
+                    >
+                      {t(lang, "generateCoverLetter")}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {letters.map((letter) => (
+                      <button
+                        key={letter.id}
+                        type="button"
+                        onClick={() => navigate({ to: "/cover-letter", search: { cv: undefined, letter: letter.id } })}
+                        className="w-full text-left bg-white rounded-xl border border-gray-200 p-4 hover:border-gray-300 transition-colors"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="font-medium text-gray-900 text-sm truncate">
+                              {letter.job_title || t(lang, "dashboardCoverLetter")}
+                            </p>
+                            {letter.company && (
+                              <p className="text-xs text-gray-400 mt-0.5 truncate">{letter.company}</p>
+                            )}
+                            <p className="text-xs text-gray-400 mt-0.5">
+                              {formatDate(letter.created_at)}
+                            </p>
+                          </div>
+                          {letter.language && (
+                            <span className="shrink-0 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded">
+                              {letter.language}
+                            </span>
+                          )}
+                        </div>
+                      </button>
                     ))}
                   </div>
                 )}
@@ -491,7 +555,7 @@ function CVCard({
         {/* Cover Letter */}
         <button
           type="button"
-          onClick={() => navigate({ to: "/cover-letter", search: { cv: cv.id } })}
+          onClick={() => navigate({ to: "/cover-letter", search: { cv: cv.id, letter: undefined } })}
           className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
         >
           <Pencil className="h-3 w-3" />

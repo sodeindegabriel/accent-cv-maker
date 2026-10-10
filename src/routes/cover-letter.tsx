@@ -85,6 +85,7 @@ async function downloadLetterWord(text: string) {
 export const Route = createFileRoute("/cover-letter")({
   validateSearch: (search: Record<string, unknown>) => ({
     cv: typeof search.cv === "string" ? search.cv : undefined,
+    letter: typeof search.letter === "string" ? search.letter : undefined,
   }),
   component: CoverLetterPage,
 });
@@ -94,7 +95,7 @@ export const Route = createFileRoute("/cover-letter")({
 function CoverLetterPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { cv: cvParam } = Route.useSearch();
+  const { cv: cvParam, letter: letterParam } = Route.useSearch();
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [view, setView] = useState<View>("form");
@@ -180,6 +181,34 @@ function CoverLetterPage() {
       setQuota(q);
     })();
   }, [user]);
+
+  // ── Load saved letter from URL param ──────────────────────────────────────
+  useEffect(() => {
+    if (!user || !letterParam) return;
+    void (async () => {
+      const { data: row } = await supabase
+        .from("cover_letters")
+        .select("id, job_title, company, language, english_text, native_text, gaps")
+        .eq("id", letterParam)
+        .single();
+      if (!row) return;
+      const gaps = row.gaps as { english?: string[]; native?: string[] } | null;
+      const savedResult: CoverLetterResult = {
+        id: row.id as string,
+        english: (row.english_text as string) ?? "",
+        native: (row.native_text as string) ?? "",
+        gapsEnglish: (gaps?.english ?? []) as string[],
+        gapsNative: (gaps?.native ?? []) as string[],
+        language: (row.language as string) ?? "English",
+        languageCode: "en",
+      };
+      setResult(savedResult);
+      if (row.job_title) setJobTitle(row.job_title as string);
+      if (row.company) setCompany(row.company as string);
+      setTab("english");
+      setView("result");
+    })();
+  }, [user, letterParam]);
 
   // ── Scroll to result on generation ────────────────────────────────────────
   useEffect(() => {
