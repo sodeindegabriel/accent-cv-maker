@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import { t } from "@/lib/buildTranslations";
 import type { CVData } from "@/lib/cv.functions";
-import { generateCoverLetterServer, getCoverLettersRemainingServer, type CoverLetterResult } from "@/lib/cover-letter.functions";
+import { generateCoverLetterServer, getCoverLetterQuotaServer, type CoverLetterQuota, type CoverLetterResult } from "@/lib/cover-letter.functions";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -111,8 +111,9 @@ function CoverLetterPage() {
   const [explain, setExplain] = useState("");
   const [length, setLength] = useState<"short" | "standard">("standard");
 
-  // Remaining count
-  const [remaining, setRemaining] = useState<number | null>(null);
+  // Quota
+  const [quota, setQuota] = useState<CoverLetterQuota | null>(null);
+  const remaining = quota ? quota.limit - quota.used : null;
 
   // Generation
   const [generating, setGenerating] = useState(false);
@@ -168,15 +169,15 @@ function CoverLetterPage() {
     })();
   }, [user, cvParam]);
 
-  // ── Fetch remaining count ──────────────────────────────────────────────────
+  // ── Fetch quota ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!user) return;
     void (async () => {
       const { data: session } = await supabase.auth.getSession();
       const token = session.session?.access_token;
       if (!token) return;
-      const n = await getCoverLettersRemainingServer({ data: { accessToken: token } });
-      setRemaining(n);
+      const q = await getCoverLetterQuotaServer({ data: { accessToken: token } });
+      setQuota(q);
     })();
   }, [user]);
 
@@ -230,7 +231,7 @@ function CoverLetterPage() {
       setEditText(null);
       setView("result");
       if (trimmed) setAdvertTrimmed(true);
-      setRemaining((prev) => (prev !== null ? Math.max(0, prev - 1) : null));
+      setQuota((prev) => prev ? { ...prev, used: Math.min(prev.used + 1, prev.limit) } : null);
     } catch (err) {
       const raw = err instanceof Error ? err.message : t("en", "clError");
       const msg = raw === "cap_reached" ? t("en", "clCapReached") : raw;
@@ -309,6 +310,7 @@ function CoverLetterPage() {
             generating={generating}
             genError={genError}
             remaining={remaining}
+            quota={quota}
             onGenerate={handleGenerate}
             navigate={navigate}
           />
@@ -370,6 +372,7 @@ function FormView({
   generating,
   genError,
   remaining,
+  quota,
   onGenerate,
   navigate,
 }: {
@@ -393,6 +396,7 @@ function FormView({
   generating: boolean;
   genError: string | null;
   remaining: number | null;
+  quota: CoverLetterQuota | null;
   onGenerate: () => void;
   navigate: ReturnType<typeof useNavigate>;
 }) {
@@ -560,13 +564,18 @@ function FormView({
         )}
       </button>
 
-      {/* Remaining count */}
-      {remaining !== null && (
-        <p className={`text-center text-xs ${remaining === 0 ? "text-red-500 font-medium" : "text-gray-400"}`}>
-          {remaining === 0
-            ? t("en", "clCapReached")
-            : t("en", "clRemaining", { n: String(remaining), s: remaining === 1 ? "" : "s" })}
-        </p>
+      {/* Quota counter */}
+      {quota !== null && (
+        <div className="text-center space-y-1">
+          <p className={`text-xs ${remaining === 0 ? "text-red-500 font-medium" : "text-gray-400"}`}>
+            {remaining === 0
+              ? t("en", "clCapReached")
+              : t("en", "clQuotaLabel", { used: String(remaining), limit: String(quota.limit) })}
+          </p>
+          {remaining !== 0 && (
+            <p className="text-xs text-gray-400">{t("en", "clQuotaInfo")}</p>
+          )}
+        </div>
       )}
     </div>
   );

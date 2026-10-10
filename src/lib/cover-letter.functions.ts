@@ -285,3 +285,21 @@ export const getCoverLettersRemainingServer = createServerFn({ method: "POST" })
     const { data } = await sb.rpc("cover_letters_remaining");
     return typeof data === "number" ? data : 0;
   });
+
+export type CoverLetterQuota = { used: number; limit: number };
+
+export const getCoverLetterQuotaServer = createServerFn({ method: "POST" })
+  .inputValidator((data: { accessToken: string }) => data)
+  .handler(async ({ data: input }): Promise<CoverLetterQuota> => {
+    const supabaseUrl = process.env["VITE_SUPABASE_URL"];
+    const supabaseAnonKey = process.env["VITE_SUPABASE_ANON_KEY"];
+    if (!supabaseUrl || !supabaseAnonKey) return { used: 0, limit: 3 };
+    const sb = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${input.accessToken}` } },
+    });
+    const { data } = await sb.rpc("cover_letter_quota");
+    if (data && typeof data === "object" && "used" in data && "limit" in data) {
+      return { used: Number(data.used), limit: Number(data.limit) };
+    }
+    return { used: 0, limit: 3 };
+  });

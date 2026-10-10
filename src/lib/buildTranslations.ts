@@ -102,7 +102,7 @@ export type TKey =
   | "clThingsToCheck" | "clCopy" | "clCopied"
   | "clDownloadPdf" | "clDownloadWord" | "clRegenerate"
   | "clEdit" | "clEditSave" | "clEditCancel"
-  | "clCapReached" | "clRemaining"
+  | "clCapReached" | "clRemaining" | "clQuotaLabel" | "clQuotaInfo"
   | "addCustomJobType";
 
 
@@ -397,6 +397,8 @@ const en: Record<TKey, string> = {
   clEditCancel: "Cancel",
   clCapReached: "You've reached your cover letter limit. Upgrade your plan to generate more.",
   clRemaining: "{n} letter{s} left",
+  clQuotaLabel: "{used} of {limit} letters left",
+  clQuotaInfo: "Generating or regenerating uses one letter. Editing is free.",
   addCustomJobType: 'Add "{title}"',
 };
 
@@ -677,6 +679,8 @@ const pl: Dict = {
   clEditCancel: "Anuluj",
   clCapReached: "Osiągnąłeś/aś limit listów motywacyjnych. Ulepsz plan, aby generować więcej.",
   clRemaining: "Pozostało {n} listów",
+  clQuotaLabel: "Pozostało {used} z {limit} listów",
+  clQuotaInfo: "Generowanie lub ponowne generowanie zużywa jeden list. Edytowanie jest bezpłatne.",
   addCustomJobType: 'Dodaj „{title}"',
 };
 
@@ -957,6 +961,8 @@ const ro: Dict = {
   clEditCancel: "Anulează",
   clCapReached: "Ai atins limita de scrisori de intenție. Fă upgrade pentru a genera mai multe.",
   clRemaining: "{n} scrisori rămase",
+  clQuotaLabel: "{used} din {limit} scrisori rămase",
+  clQuotaInfo: "Generarea sau regenerarea consumă o scrisoare. Editarea este gratuită.",
   addCustomJobType: 'Adaugă „{title}"',
 };
 
@@ -1237,6 +1243,8 @@ const es: Dict = {
   clEditCancel: "Cancelar",
   clCapReached: "Has alcanzado el límite de cartas de presentación. Mejora tu plan para generar más.",
   clRemaining: "{n} cartas disponibles",
+  clQuotaLabel: "{used} de {limit} cartas disponibles",
+  clQuotaInfo: "Generar o regenerar consume una carta. Editar es gratuito.",
   addCustomJobType: 'Añadir «{title}»',
 };
 
@@ -1517,6 +1525,8 @@ const pt: Dict = {
   clEditCancel: "Cancelar",
   clCapReached: "Atingiu o limite de cartas de apresentação. Melhore o seu plano para gerar mais.",
   clRemaining: "{n} cartas disponíveis",
+  clQuotaLabel: "{used} de {limit} cartas disponíveis",
+  clQuotaInfo: "Gerar ou regenerar usa uma carta. Editar é gratuito.",
   addCustomJobType: 'Adicionar "{title}"',
 };
 
@@ -1797,6 +1807,8 @@ const fr: Dict = {
   clEditCancel: "Annuler",
   clCapReached: "Vous avez atteint votre limite de lettres de motivation. Passez à la version supérieure pour en générer davantage.",
   clRemaining: "{n} lettre(s) restante(s)",
+  clQuotaLabel: "{used} sur {limit} lettre(s) restante(s)",
+  clQuotaInfo: "Générer ou régénérer utilise une lettre. La modification est gratuite.",
   addCustomJobType: 'Ajouter « {title} »',
 };
 
@@ -2077,6 +2089,8 @@ const ar: Dict = {
   clEditCancel: "إلغاء",
   clCapReached: "لقد وصلت إلى حد خطابات التقديم. طوّر خطتك لتوليد المزيد.",
   clRemaining: "تبقّى {n} خطاب",
+  clQuotaLabel: "تبقّى {used} من أصل {limit} خطاب",
+  clQuotaInfo: "إنشاء الخطاب أو إعادة إنشائه يستهلك خطابًا واحدًا. التعديل مجاني.",
   addCustomJobType: 'إضافة "{title}"',
 };
 
@@ -2357,6 +2371,8 @@ const ur: Dict = {
   clEditCancel: "منسوخ کریں",
   clCapReached: "آپ نے اپنی کور لیٹر کی حد پوری کر لی ہے۔ مزید بنانے کے لیے اپ گریڈ کریں۔",
   clRemaining: "{n} خط باقی",
+  clQuotaLabel: "{limit} میں سے {used} خط باقی",
+  clQuotaInfo: "بنانا یا دوبارہ بنانا ایک خط استعمال کرتا ہے۔ ترمیم مفت ہے۔",
   addCustomJobType: '"{title}" شامل کریں',
 };
 
@@ -2637,6 +2653,8 @@ const hi: Dict = {
   clEditCancel: "रद्द करें",
   clCapReached: "आपने कवर लेटर की सीमा पूरी कर ली है। अधिक बनाने के लिए अपग्रेड करें।",
   clRemaining: "{n} पत्र शेष",
+  clQuotaLabel: "{limit} में से {used} पत्र शेष",
+  clQuotaInfo: "बनाना या दोबारा बनाना एक पत्र का उपयोग करता है। संपादन निःशुल्क है।",
   addCustomJobType: '"{title}" जोड़ें',
 };
 
@@ -2917,6 +2935,8 @@ const bn: Dict = {
   clEditCancel: "বাতিল করুন",
   clCapReached: "আপনি কভার লেটারের সীমায় পৌঁছে গেছেন। আরও তৈরি করতে আপগ্রেড করুন।",
   clRemaining: "{n}টি চিঠি বাকি",
+  clQuotaLabel: "{limit}টির মধ্যে {used}টি চিঠি বাকি",
+  clQuotaInfo: "তৈরি বা পুনরায় তৈরি করলে একটি চিঠি ব্যবহার হয়। সম্পাদনা বিনামূল্যে।",
   addCustomJobType: '"{title}" যোগ করুন',
 };
 
@@ -3197,6 +3217,8 @@ const so: Dict = {
   clEditCancel: "Jooji",
   clCapReached: "Waxaad gaadhay xaddiga warqadaha codsiga. Kor u qaad qorshahaga si aad u sameysato kuwo dheeraad ah.",
   clRemaining: "{n} warqadood ayaa kuu hadhay",
+  clQuotaLabel: "{used} ka mid ah {limit} warqadood ayaa kuu hadhay",
+  clQuotaInfo: "Sameynisku ama dib u sameynisku hal warqad buu isticmaalaa. Wax ka bedelku bilaash baa.",
   addCustomJobType: 'Ku dar "{title}"',
 };
 
@@ -3477,6 +3499,8 @@ const tr: Dict = {
   clEditCancel: "İptal",
   clCapReached: "Ön yazı limitinize ulaştınız. Daha fazla oluşturmak için planınızı yükseltin.",
   clRemaining: "{n} mektup kaldı",
+  clQuotaLabel: "{limit} mektuptan {used} mektup kaldı",
+  clQuotaInfo: "Oluşturma veya yeniden oluşturma bir mektup kullanır. Düzenleme ücretsizdir.",
   addCustomJobType: '"{title}" ekle',
 };
 
@@ -3757,6 +3781,8 @@ const fa: Dict = {
   clEditCancel: "لغو",
   clCapReached: "به سقف نامه‌های معرفی رسیده‌اید. برای ساختن بیشتر، ارتقا دهید.",
   clRemaining: "{n} نامه باقی مانده",
+  clQuotaLabel: "{used} از {limit} نامه باقی مانده",
+  clQuotaInfo: "ساختن یا بازسازی یک نامه مصرف می‌کند. ویرایش رایگان است.",
   addCustomJobType: 'افزودن "{title}"',
 };
 
@@ -4037,6 +4063,8 @@ const uk: Dict = {
   clEditCancel: "Скасувати",
   clCapReached: "Ви досягли ліміту супровідних листів. Оновіть план, щоб генерувати більше.",
   clRemaining: "Залишилось {n} листів",
+  clQuotaLabel: "Залишилось {used} з {limit} листів",
+  clQuotaInfo: "Генерація або регенерація використовує один лист. Редагування безкоштовне.",
   addCustomJobType: 'Додати „{title}"',
 };
 
@@ -4317,6 +4345,8 @@ const zh: Dict = {
   clEditCancel: "取消",
   clCapReached: "您已达到求职信上限。升级您的计划以生成更多。",
   clRemaining: "还剩 {n} 封",
+  clQuotaLabel: "还剩 {used}/{limit} 封",
+  clQuotaInfo: "生成或重新生成消耗一封信额度。编辑免费。",
   addCustomJobType: '添加"{title}"',
 };
 
@@ -4597,6 +4627,8 @@ const pa: Dict = {
   clEditCancel: "ਰੱਦ ਕਰੋ",
   clCapReached: "ਤੁਸੀਂ ਕਵਰ ਲੈਟਰ ਦੀ ਸੀਮਾ ਪੂਰੀ ਕਰ ਲਈ ਹੈ। ਹੋਰ ਬਣਾਉਣ ਲਈ ਅੱਪਗ੍ਰੇਡ ਕਰੋ।",
   clRemaining: "{n} ਪੱਤਰ ਬਾਕੀ",
+  clQuotaLabel: "{limit} ਵਿੱਚੋਂ {used} ਪੱਤਰ ਬਾਕੀ",
+  clQuotaInfo: "ਬਣਾਉਣਾ ਜਾਂ ਦੁਬਾਰਾ ਬਣਾਉਣਾ ਇੱਕ ਪੱਤਰ ਵਰਤਦਾ ਹੈ। ਸੰਪਾਦਨ ਮੁਫ਼ਤ ਹੈ।",
   addCustomJobType: '"{title}" ਜੋੜੋ',
 };
 
@@ -4877,6 +4909,8 @@ const gu: Dict = {
   clEditCancel: "રદ કરો",
   clCapReached: "તમે કવર લેટરની મર્યાદા પૂરી કરી લીધી છે. વધુ બનાવવા અપગ્રેડ કરો.",
   clRemaining: "{n} પત્ર બાકી",
+  clQuotaLabel: "{limit} માંથી {used} પત્ર બાકી",
+  clQuotaInfo: "બનાવવું અથવા ફરી બનાવવું એક પત્ર વાપરે છે। સંપાદન મફત છે.",
   addCustomJobType: '"{title}" ઉમેરો',
 };
 
@@ -5157,6 +5191,8 @@ const ku: Dict = {
   clEditCancel: "Betal bike",
   clCapReached: "Tu gihîştî sînorê nameyên pêşniyarê. Planê xwe bilind bike da ku bêtir çêbikî.",
   clRemaining: "{n} name maye",
+  clQuotaLabel: "{used} ji {limit} name maye",
+  clQuotaInfo: "Afirandin an nûafirandinê yek name bikar tîne. Guhartin belaş e.",
   addCustomJobType: '"{title}" zêde bike',
 };
 
@@ -5437,6 +5473,8 @@ const ta: Dict = {
   clEditCancel: "ரத்துசெய்",
   clCapReached: "அறிமுக கடித வரம்பை அடைந்துவிட்டீர்கள். மேலும் உருவாக்க திட்டத்தை மேம்படுத்துங்கள்.",
   clRemaining: "{n} கடிதங்கள் மீதம்",
+  clQuotaLabel: "{limit} இல் {used} கடிதங்கள் மீதம்",
+  clQuotaInfo: "உருவாக்குவது அல்லது மீண்டும் உருவாக்குவது ஒரு கடிதம் பயன்படுத்துகிறது. திருத்துவது இலவசம்.",
   addCustomJobType: '"{title}" சேர்',
 };
 
@@ -5717,6 +5755,8 @@ const am: Dict = {
   clEditCancel: "ይቅር",
   clCapReached: "የሽፋን ደብዳቤ ገደቡ ደርሷል። ተጨማሪ ለመፍጠር ያሻሽሉ።",
   clRemaining: "{n} ደብዳቤ ቀርቷል",
+  clQuotaLabel: "ከ{limit} {used} ደብዳቤ ቀርቷል",
+  clQuotaInfo: "መፍጠር ወይም እንደገና መፍጠር አንድ ደብዳቤ ይጠቀማል። ማስተካከል ነፃ ነው።",
   addCustomJobType: '"{title}" አክል',
 };
 
@@ -5997,6 +6037,8 @@ const ti: Dict = {
   clEditCancel: "ሰርዞ",
   clCapReached: "ናይ ሽፋን ደብዳቤ ደረት ኣኺሉ። ንዝበዝሐ ምፍጣር ኣሻሽሎ።",
   clRemaining: "{n} ደብዳቤ ተሪፉ",
+  clQuotaLabel: "ካብ {limit} {used} ደብዳቤ ተሪፉ",
+  clQuotaInfo: "ምፍጣር ወይም ደጊምካ ምፍጣር ሓደ ደብዳቤ ይጠቀም። ምርትዓዕ ናይ ሓሳብ ናጻ እዩ።",
   addCustomJobType: '"{title}" ወስኽ',
 };
 
