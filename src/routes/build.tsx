@@ -329,7 +329,7 @@ function BuildPage() {
   const advanceFromAuth = () => {
     try {
       const dest = sessionStorage.getItem("cvlingo:redirectAfterAuth");
-      if (dest) {
+      if (dest && /^\/[^/\\]/.test(dest) && !/^\/\//.test(dest)) {
         sessionStorage.removeItem("cvlingo:redirectAfterAuth");
         navigate({ to: dest as "/" });
         return;

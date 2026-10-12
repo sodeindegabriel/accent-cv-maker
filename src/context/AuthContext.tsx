@@ -52,11 +52,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const SS_KEYS = [
       "cvlingo:result", "cvlingo:input", "cvlingo:cvDocumentId",
       "cvlingo:redirectAfterAuth", "cvlingo:loginMode", "cvlingo:editStep",
-      "cvlingo:preselectLanguage",
+      "cvlingo:preselectLanguage", "cvlingo:referralCode",
+      "cvlingo:candidatePoolSubmitted", "cvlingo:poolAnswered",
     ];
+    const LS_KEYS = ["cvlingo_form_data", "cvlingo_referral"];
     try {
       SS_KEYS.forEach((k) => sessionStorage.removeItem(k));
-      localStorage.removeItem("cvlingo_form_data");
+      LS_KEYS.forEach((k) => localStorage.removeItem(k));
     } catch { /* ignore */ }
     await supabase.auth.signOut();
     window.location.href = "/";

@@ -95,9 +95,11 @@ function RootComponent() {
     try {
       const ref = new URLSearchParams(window.location.search).get("ref");
       if (ref) {
-        const clean = ref.trim().toLowerCase().slice(0, 64);
-        sessionStorage.setItem("cvlingo:referralCode", clean);
-        localStorage.setItem("cvlingo_referral", clean);
+        const clean = ref.trim().toLowerCase().slice(0, 40);
+        if (/^[a-z0-9-]{2,40}$/.test(clean)) {
+          sessionStorage.setItem("cvlingo:referralCode", clean);
+          localStorage.setItem("cvlingo_referral", clean);
+        }
       }
     } catch { /* ignore */ }
   }, []);
