@@ -313,6 +313,13 @@ function DashboardPage() {
             </div>
           )}
 
+          {/* Partner sharing status */}
+          {user && (
+            <div className="bg-white rounded-xl border border-gray-200 p-4">
+              <PartnerSharingStatus lang={lang} />
+            </div>
+          )}
+
           {/* Change password */}
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <ChangePasswordForm lang={lang} />
@@ -582,6 +589,62 @@ function CVCard({
           {t(lang, "shareEmail")}
         </a>
       </div>
+    </div>
+  );
+}
+
+// ── Partner Sharing Status ─────────────────────────────────────────────────
+function PartnerSharingStatus({ lang }: { lang: string }) {
+  const [status, setStatus] = useState<{ partner: string; shared: boolean } | null | "loading">("loading");
+  const [busy, setBusy] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.rpc("get_my_partner_sharing").then(({ data }) => {
+      if (data && typeof data === "object" && "partner" in (data as object)) {
+        setStatus(data as { partner: string; shared: boolean });
+      } else {
+        setStatus(null);
+      }
+    });
+  }, []);
+
+  if (status === "loading" || status === null) return null;
+
+  const toggle = async () => {
+    setBusy(true);
+    const newVal = !status.shared;
+    await supabase.rpc("set_partner_sharing", { p_share: newVal });
+    setStatus({ ...status, shared: newVal });
+    setToast(t(lang, "partnerSharingUpdated"));
+    setTimeout(() => setToast(null), 3000);
+    setBusy(false);
+  };
+
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
+        {t(lang, "partnerSharingHeading", { partner: status.partner })}
+      </p>
+      <p className="text-sm text-gray-600 mb-3">
+        {status.shared
+          ? t(lang, "partnerSharingOn", { partner: status.partner })
+          : t(lang, "partnerSharingOff", { partner: status.partner })}
+      </p>
+      <p className="text-xs text-gray-400 mb-3">
+        {t(lang, "partnerSharingAlwaysVisible", { partner: status.partner })}
+      </p>
+      <button
+        type="button"
+        onClick={toggle}
+        disabled={busy}
+        className="text-xs font-semibold text-primary underline hover:opacity-80 disabled:opacity-50"
+      >
+        {status.shared
+          ? t(lang, "partnerSharingTurnOff")
+          : t(lang, "partnerSharingTurnOn", { partner: status.partner })}
+      </button>
+      {toast && <p className="mt-2 text-xs text-emerald-600">{toast}</p>}
     </div>
   );
 }
