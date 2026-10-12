@@ -120,9 +120,28 @@ Each gap item must: (1) state what the advert requires that the CV does not show
 
 // ── Server function ───────────────────────────────────────────────────────────
 
+const CL_LIMITS = {
+  jobAdvertMax: 6000,
+  whyThisJobMax: 1000,
+  explainMax: 1000,
+  jobTitleMax: 120,
+  companyMax: 120,
+};
+
+function capCLInput(input: CoverLetterInput): CoverLetterInput {
+  return {
+    ...input,
+    jobAdvert: input.jobAdvert.slice(0, CL_LIMITS.jobAdvertMax),
+    whyThisJob: input.whyThisJob.slice(0, CL_LIMITS.whyThisJobMax),
+    explain: input.explain.slice(0, CL_LIMITS.explainMax),
+    jobTitle: input.jobTitle.slice(0, CL_LIMITS.jobTitleMax),
+    company: input.company.slice(0, CL_LIMITS.companyMax),
+  };
+}
+
 export const generateCoverLetterServer = createServerFn({ method: "POST" })
   .inputValidator((data: CoverLetterInput) => data)
-  .handler(async ({ data: input }): Promise<CoverLetterResult> => {
+  .handler(async ({ data: rawInput }): Promise<CoverLetterResult> => {
     // Server-side auth: validate the caller's Supabase session
     const supabaseUrl = process.env["VITE_SUPABASE_URL"];
     const supabaseAnonKey = process.env["VITE_SUPABASE_ANON_KEY"];
@@ -131,15 +150,18 @@ export const generateCoverLetterServer = createServerFn({ method: "POST" })
     }
     // Use user-scoped client so RLS applies to all subsequent DB calls
     const sb = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: `Bearer ${input.accessToken}` } },
+      global: { headers: { Authorization: `Bearer ${rawInput.accessToken}` } },
     });
     const {
       data: { user },
       error: authErr,
-    } = await sb.auth.getUser(input.accessToken);
+    } = await sb.auth.getUser(rawInput.accessToken);
     if (authErr || !user) {
       throw new Error("Unauthorized: your session has expired. Please sign in again.");
     }
+
+    // Cap / sanitise input fields before any DB or API calls
+    const input = capCLInput(rawInput);
 
     // Pre-flight cap check — avoid wasting an Anthropic call when already at limit
     const { data: remaining } = await sb.rpc("cover_letters_remaining");
