@@ -427,6 +427,7 @@ function ResultPage() {
             </div>
           </article>
 
+          {user && <PartnerSharingCard lang={uiLang} />}
           {!poolConsentGiven && <CandidatePoolCard lang={uiLang} />}
 
           {user && (
@@ -640,6 +641,64 @@ function EditAnswersMenu({ lang = "en" }: { lang?: string }) {
         </div>
       )}
     </div>
+  );
+}
+
+function PartnerSharingCard({ lang = "en" }: { lang?: string }) {
+  const [status, setStatus] = useState<{ partner: string; shared: boolean } | null | "loading">("loading");
+  const [acting, setActing] = useState(false);
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    supabase.rpc("get_my_partner_sharing").then(({ data }) => {
+      if (data && typeof data === "object" && "partner" in (data as object)) {
+        setStatus(data as { partner: string; shared: boolean });
+      } else {
+        setStatus(null);
+      }
+    });
+  }, []);
+
+  if (status === "loading" || status === null) return null;
+  if (status.shared || done) {
+    return (
+      <section className="no-print mt-8 rounded-2xl border border-border bg-muted/30 p-5 text-sm text-muted-foreground">
+        {t(lang, "partnerShareAlreadyShared", { partner: status.partner })}
+      </section>
+    );
+  }
+
+  return (
+    <section className="no-print mt-8 rounded-2xl border-2 border-primary/30 bg-primary/5 p-6">
+      <p className="text-base font-semibold text-foreground">
+        {t(lang, "partnerShareCardHeading", { partner: status.partner })}
+      </p>
+      <p className="mt-2 text-sm text-muted-foreground">
+        {t(lang, "partnerShareCardSubtext")}
+      </p>
+      <div className="mt-4 flex gap-3">
+        <button
+          type="button"
+          disabled={acting}
+          onClick={async () => {
+            setActing(true);
+            await supabase.rpc("set_partner_sharing", { p_share: true });
+            setActing(false);
+            setDone(true);
+          }}
+          className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
+        >
+          {t(lang, "partnerShareYes")}
+        </button>
+        <button
+          type="button"
+          onClick={() => setStatus(null)}
+          className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-muted"
+        >
+          {t(lang, "partnerShareNotNow")}
+        </button>
+      </div>
+    </section>
   );
 }
 
