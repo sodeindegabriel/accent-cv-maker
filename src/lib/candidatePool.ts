@@ -102,7 +102,11 @@ export function toCSV(entries: CandidatePoolEntry[]): string {
     "jobTypes", "language", "rightToWork",
     "city", "postcode", "skills", "availability", "referralSource",
   ];
-  const escape = (v: string) => `"${(v ?? "").replace(/"/g, '""')}"`;
+  const escape = (v: string) => {
+    const s = (v ?? "").replace(/[\r\n]/g, " ");
+    const safe = /^[=+\-@]/.test(s) ? `'${s}` : s;
+    return `"${safe.replace(/"/g, '""')}"`;
+  };
   const rows = entries.map((e) =>
     [
       e.timestamp,

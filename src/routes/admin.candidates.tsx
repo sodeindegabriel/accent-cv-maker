@@ -24,7 +24,11 @@ type Candidate = {
 
 function toCSV(rows: Candidate[]): string {
   const headers = ["opted_in_at", "name", "email", "phone", "city", "postcode", "right_to_work", "language", "job_types", "skills", "availability", "referral_source", "is_active"];
-  const esc = (v: string) => `"${(v ?? "").replace(/"/g, '""')}"`;
+  const esc = (v: string) => {
+    const s = (v ?? "").replace(/[\r\n]/g, " ");
+    const safe = /^[=+\-@]/.test(s) ? `'${s}` : s;
+    return `"${safe.replace(/"/g, '""')}"`;
+  };
   const data = rows.map((r) =>
     [
       r.opted_in_at,

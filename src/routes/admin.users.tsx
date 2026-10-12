@@ -142,7 +142,11 @@ function AdminUsersPage() {
         r.cv_count,
         r.cover_letter_count,
       ]
-        .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+        .map((v) => {
+          const s = String(v).replace(/[\r\n]/g, " ");
+          const safe = /^[=+\-@]/.test(s) ? `'${s}` : s;
+          return `"${safe.replace(/"/g, '""')}"`;
+        })
         .join(","),
     );
     const csv = [header.join(","), ...csvRows].join("\n");
