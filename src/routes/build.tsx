@@ -1754,7 +1754,10 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
         if (msg === "cv_limit_reached") { setCvLimitReached(true); setGenerating(false); return; }
         if (msg === "edit_limit_reached") { setError(t(displayLang, "editLimitReached")); setGenerating(false); return; }
         if (msg === "rate_limited") { setError(t(displayLang, "rateLimited")); setGenerating(false); return; }
-        throw genErr;
+        if (msg.includes("not_authenticated") || msg.includes("session has expired")) {
+          setError(t(displayLang, "signInRequired")); setGenerating(false); return;
+        }
+        setError(t(displayLang, "somethingWrong")); setGenerating(false); return;
       }
       sessionStorage.setItem("cvlingo:result", JSON.stringify(result));
       sessionStorage.setItem("cvlingo:input", JSON.stringify(data));
