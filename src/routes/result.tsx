@@ -645,9 +645,12 @@ function EditAnswersMenu({ lang = "en" }: { lang?: string }) {
 
 function CandidatePoolCard({ lang = "en" }: { lang?: string }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [dismissed, setDismissed] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [joining, setJoining] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
+  const [needsSignIn, setNeedsSignIn] = useState(false);
 
   useEffect(() => {
     if (hasSubmittedThisSession()) setSubmitted(true);
@@ -670,8 +673,14 @@ function CandidatePoolCard({ lang = "en" }: { lang?: string }) {
   };
 
   const doSubmit = async () => {
+    setJoinError(null);
+
+    if (!user) {
+      setNeedsSignIn(true);
+      return;
+    }
+
     setJoining(true);
-    markAnswered();
     try {
       const inputRaw = sessionStorage.getItem("cvlingo:input");
       const resultRaw = sessionStorage.getItem("cvlingo:result");
@@ -684,8 +693,8 @@ function CandidatePoolCard({ lang = "en" }: { lang?: string }) {
         email: (input?.personalDetails?.email ?? "").trim(),
         name: input?.personalDetails?.name ?? "",
         phone: input?.personalDetails?.phone || null,
-        jobTypes: (Array.isArray(input?.jobTypes) ? input.jobTypes : []).map((t: string) =>
-          t === "other" ? (input?.otherJobType?.trim() || t) : t
+        jobTypes: (Array.isArray(input?.jobTypes) ? input.jobTypes : []).map((jt: string) =>
+          jt === "other" ? (input?.otherJobType?.trim() || jt) : jt
         ),
         language: input?.language ?? "",
         rightToWork: input?.personalDetails?.rightToWork ?? "",
@@ -696,19 +705,35 @@ function CandidatePoolCard({ lang = "en" }: { lang?: string }) {
         referralSource,
         timestamp: new Date().toISOString(),
       };
-      addCandidate(entry);
-      void notifyCandidate(entry);
-      void insertCandidateToSupabase({
+
+      const insertErr = await insertCandidateToSupabase({
         ...entry,
-        userId: user?.id ?? null,
+        userId: user.id,
         cvDocumentId: cvDocId,
         cvEnglish: cvResult?.english ? { html: cvResult.english } : null,
         cvNative: cvResult?.native ? { html: cvResult.native } : null,
       });
+
+      if (insertErr) {
+        setJoinError(t(lang, "poolError"));
+        setJoining(false);
+        return;
+      }
+
+      // Only after a successful insert: update local state and send emails
+      addCandidate(entry);
+      markAnswered();
       setSubmitted(true);
+      void notifyCandidate(entry);
     } catch {
+      setJoinError(t(lang, "poolError"));
       setJoining(false);
     }
+  };
+
+  const handleSignInRedirect = () => {
+    try { sessionStorage.setItem("cvlingo:redirectAfterAuth", "/result"); } catch { /* ignore */ }
+    void navigate({ to: "/build" });
   };
 
   return (
@@ -720,23 +745,48 @@ function CandidatePoolCard({ lang = "en" }: { lang?: string }) {
           <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">
             {t(lang, "poolSubtext")}
           </p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={doSubmit}
-              disabled={joining}
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-sm transition hover:opacity-90 disabled:opacity-60"
-            >
-              {joining ? "…" : "✓"} {t(lang, "poolYes")}
-            </button>
-            <button
-              type="button"
-              onClick={() => { markAnswered(); setDismissed(true); }}
-              className="inline-flex items-center rounded-xl border border-border bg-background px-5 py-3 font-semibold text-foreground transition hover:bg-muted"
-            >
-              {t(lang, "poolNo")}
-            </button>
-          </div>
+          {needsSignIn ? (
+            <div className="mt-5">
+              <p className="mb-3 text-sm font-medium text-foreground">{t(lang, "poolSignInToJoin")}</p>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={handleSignInRedirect}
+                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-sm transition hover:opacity-90"
+                >
+                  {t(lang, "authSignIn")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { markAnswered(); setDismissed(true); }}
+                  className="inline-flex items-center rounded-xl border border-border bg-background px-5 py-3 font-semibold text-foreground transition hover:bg-muted"
+                >
+                  {t(lang, "poolNo")}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-5 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => void doSubmit()}
+                disabled={joining}
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-sm transition hover:opacity-90 disabled:opacity-60"
+              >
+                {joining ? "…" : "✓"} {t(lang, "poolYes")}
+              </button>
+              <button
+                type="button"
+                onClick={() => { markAnswered(); setDismissed(true); }}
+                className="inline-flex items-center rounded-xl border border-border bg-background px-5 py-3 font-semibold text-foreground transition hover:bg-muted"
+              >
+                {t(lang, "poolNo")}
+              </button>
+            </div>
+          )}
+          {joinError && (
+            <p className="mt-3 text-sm font-medium text-destructive">{joinError}</p>
+          )}
           <p className="mt-4 text-xs text-muted-foreground">
             🔒 {t(lang, "poolPrivacyNote")}
           </p>

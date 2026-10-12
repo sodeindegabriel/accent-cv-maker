@@ -16,7 +16,7 @@ export type CandidatePoolEntry = {
 };
 
 export type SupabaseCandidateInsert = CandidatePoolEntry & {
-  userId: string | null;
+  userId: string;
   cvDocumentId: string | null;
   cvEnglish: { html: string } | null;
   cvNative: { html: string } | null;
@@ -48,9 +48,9 @@ export function hasSubmittedThisSession(): boolean {
   return sessionStorage.getItem(SUBMITTED_FLAG) === "1";
 }
 
-export async function insertCandidateToSupabase(entry: SupabaseCandidateInsert): Promise<void> {
+export async function insertCandidateToSupabase(entry: SupabaseCandidateInsert): Promise<Error | null> {
   const { error } = await supabase.from("candidates").insert({
-    user_id: entry.userId || null,
+    user_id: entry.userId,
     name: entry.name,
     email: entry.email,
     phone: entry.phone || null,
@@ -68,7 +68,9 @@ export async function insertCandidateToSupabase(entry: SupabaseCandidateInsert):
   });
   if (error) {
     console.error("[insertCandidateToSupabase] error:", error);
+    return new Error(error.message);
   }
+  return null;
 }
 
 export function isValidEmail(email: string): boolean {
