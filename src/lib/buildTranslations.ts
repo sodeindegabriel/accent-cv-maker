@@ -104,7 +104,8 @@ export type TKey =
   | "clEdit" | "clEditSave" | "clEditCancel"
   | "clCapReached" | "clRemaining" | "clQuotaLabel" | "clQuotaInfo"
   | "addCustomJobType"
-  | "myCoverLetters" | "noCoverLetters" | "generateCoverLetter";
+  | "myCoverLetters" | "noCoverLetters" | "generateCoverLetter"
+  | "signInRequired" | "rateLimited" | "editLimitReached";
 
 
 type Dict = Partial<Record<TKey, string>>;
@@ -404,6 +405,9 @@ const en: Record<TKey, string> = {
   myCoverLetters: "My Cover Letters",
   noCoverLetters: "No cover letters yet.",
   generateCoverLetter: "Generate one →",
+  signInRequired: "Please sign in to generate a CV.",
+  rateLimited: "You've generated too many CVs recently. Please try again in an hour.",
+  editLimitReached: "You've reached the maximum number of edits for this CV.",
 };
 
 const pl: Dict = {

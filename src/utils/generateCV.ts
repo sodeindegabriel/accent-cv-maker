@@ -3,6 +3,10 @@ import type { CVData, GeneratedCV } from "@/lib/cv.functions";
 
 export type { CVData, GeneratedCV };
 
-export async function generateCV(cvData: CVData): Promise<GeneratedCV> {
-  return generateCVServer({ data: cvData });
+export async function generateCV(
+  cvData: CVData,
+  accessToken: string,
+  editingCvId?: string,
+): Promise<GeneratedCV> {
+  return generateCVServer({ data: { ...cvData, accessToken, editingCvId } });
 }

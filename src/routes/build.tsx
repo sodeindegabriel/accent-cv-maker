@@ -1737,20 +1737,25 @@ function Step7Review({ data, update, displayLang, originalLang, onToggleLang, on
     setError(null);
     setCvLimitReached(false);
     try {
-      // Pre-check CV limit only when creating a new CV (not editing)
-      if (user && !editingCvId) {
-        const { count, error: limitErr } = await supabase
-          .from("cv_documents")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", user.id);
-        if (!limitErr && (count ?? 0) >= 2) {
-          setCvLimitReached(true);
-          setGenerating(false);
-          return;
-        }
+      // Get session token — required for server-side auth on generateCVServer
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) {
+        setError(t(displayLang, "signInRequired"));
+        setGenerating(false);
+        return;
       }
 
-      const result: GeneratedCV = await generateCV(data);
+      let result: GeneratedCV;
+      try {
+        result = await generateCV(data, accessToken, editingCvId ?? undefined);
+      } catch (genErr) {
+        const msg = genErr instanceof Error ? genErr.message : "";
+        if (msg === "cv_limit_reached") { setCvLimitReached(true); setGenerating(false); return; }
+        if (msg === "edit_limit_reached") { setError(t(displayLang, "editLimitReached")); setGenerating(false); return; }
+        if (msg === "rate_limited") { setError(t(displayLang, "rateLimited")); setGenerating(false); return; }
+        throw genErr;
+      }
       sessionStorage.setItem("cvlingo:result", JSON.stringify(result));
       sessionStorage.setItem("cvlingo:input", JSON.stringify(data));
       localStorage.removeItem("cvlingo_form_data");

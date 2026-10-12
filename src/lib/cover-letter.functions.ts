@@ -147,6 +147,13 @@ export const generateCoverLetterServer = createServerFn({ method: "POST" })
       throw new Error("cap_reached");
     }
 
+    // Rate-limit reservation (before API call)
+    const { error: rateErr } = await sb.rpc("ai_usage_reserve", { p_kind: "cover_letter" });
+    if (rateErr) {
+      if (rateErr.message.includes("rate_limited")) throw new Error("rate_limited");
+      throw new Error("Could not verify rate limit. Please try again.");
+    }
+
     // Call Claude (up to 3 attempts on network/parse failure)
     const apiKey = process.env["ANTHROPIC_API_KEY"] ?? process.env["ANTHROPIC_KEY"];
     if (!apiKey) throw new Error("Server configuration error — API key missing.");

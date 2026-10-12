@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { createClient } from "@supabase/supabase-js";
 
 export type CVData = {
   language: string;
@@ -21,13 +22,88 @@ export type CVData = {
   personalStatementOverride?: string;
 };
 
-
 export type GeneratedCV = {
   native: string;
   english: string;
   language: string;
   raw: string;
 };
+
+// ── Input size limits ─────────────────────────────────────────────────────────
+// These are validated server-side in the inputValidator before any API call.
+const CV_LIMITS = {
+  jobTypesMax: 10,
+  skillMax: 200,
+  skillsMax: 30,
+  experienceMax: 10,
+  experienceDescMax: 2000,
+  experienceTitleMax: 120,
+  experiencePlaceMax: 120,
+  experienceDurationMax: 80,
+  educationMax: 10,
+  personalStatementMax: 4000,
+  nameMax: 120,
+  cityMax: 120,
+  postcodeMax: 20,
+  phoneMax: 30,
+  emailMax: 120,
+  rightToWorkMax: 200,
+  availabilityMax: 10,
+  availabilityItemMax: 80,
+};
+
+function capStr(s: unknown, max: number): string {
+  if (typeof s !== "string") return "";
+  return s.slice(0, max);
+}
+
+function validateAndCapCVData(raw: CVData): CVData {
+  const pd = raw.personalDetails ?? {};
+  return {
+    language: capStr(raw.language, 80),
+    languageCode: capStr(raw.languageCode, 10),
+    jobTypes: (Array.isArray(raw.jobTypes) ? raw.jobTypes.slice(0, CV_LIMITS.jobTypesMax) : []).map(
+      (t) => capStr(t, 80)
+    ),
+    otherJobType: capStr(raw.otherJobType, 80),
+    personalDetails: {
+      name: capStr(pd.name, CV_LIMITS.nameMax),
+      phone: capStr(pd.phone, CV_LIMITS.phoneMax),
+      email: capStr(pd.email, CV_LIMITS.emailMax),
+      city: capStr(pd.city, CV_LIMITS.cityMax),
+      postcode: pd.postcode ? capStr(pd.postcode, CV_LIMITS.postcodeMax) : undefined,
+      rightToWork: capStr(pd.rightToWork, CV_LIMITS.rightToWorkMax),
+    },
+    experienceType: capStr(raw.experienceType, 80),
+    experience: (Array.isArray(raw.experience) ? raw.experience.slice(0, CV_LIMITS.experienceMax) : []).map(
+      (e) => ({
+        title: capStr(e.title, CV_LIMITS.experienceTitleMax),
+        place: capStr(e.place, CV_LIMITS.experiencePlaceMax),
+        country: e.country ? capStr(e.country, 80) : undefined,
+        duration: capStr(e.duration, CV_LIMITS.experienceDurationMax),
+        description: capStr(e.description, CV_LIMITS.experienceDescMax),
+      })
+    ),
+    education: Array.isArray(raw.education)
+      ? raw.education.slice(0, CV_LIMITS.educationMax).map((e) => ({
+          qualification: capStr(e.qualification, 200),
+          institution: capStr(e.institution, 200),
+          country: capStr(e.country, 80),
+          year: capStr(e.year, 20),
+        }))
+      : undefined,
+    skills: (Array.isArray(raw.skills) ? raw.skills.slice(0, CV_LIMITS.skillsMax) : []).map(
+      (s) => capStr(s, CV_LIMITS.skillMax)
+    ),
+    availability: (Array.isArray(raw.availability)
+      ? raw.availability.slice(0, CV_LIMITS.availabilityMax)
+      : []
+    ).map((a) => capStr(a, CV_LIMITS.availabilityItemMax)),
+    personalStatementOverride: raw.personalStatementOverride
+      ? capStr(raw.personalStatementOverride, CV_LIMITS.personalStatementMax)
+      : undefined,
+  };
+}
 
 function isEnglishOnly(cvData: CVData) {
   const code = (cvData.languageCode || "").toLowerCase();
@@ -159,26 +235,68 @@ FORMAT YOUR RESPONSE EXACTLY LIKE THIS — no commentary before or after, no cod
 
 }
 
+export type GenerateCVInput = CVData & { accessToken: string; editingCvId?: string };
+
 export const generateCVServer = createServerFn({ method: "POST" })
-  .inputValidator((data: CVData) => data)
-  .handler(async ({ data: cvData }): Promise<GeneratedCV> => {
-    const env = process.env;
-    const apiKey = env['ANTHROPIC_API_KEY'] ?? env['ANTHROPIC_KEY'];
+  .inputValidator((data: GenerateCVInput) => data)
+  .handler(async ({ data: rawInput }): Promise<GeneratedCV> => {
+    const { accessToken, editingCvId, ...rawCvData } = rawInput;
+
+    // ── 1. Auth ───────────────────────────────────────────────────────────────
+    const supabaseUrl = process.env["VITE_SUPABASE_URL"];
+    const supabaseAnonKey = process.env["VITE_SUPABASE_ANON_KEY"];
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error("Server configuration error.");
+    }
+    const sb = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${accessToken}` } },
+    });
+    const { data: { user }, error: authErr } = await sb.auth.getUser(accessToken);
+    if (authErr || !user) {
+      throw new Error("Your session has expired. Please sign in again.");
+    }
+
+    // ── 2. Pre-flight doc/edit cap (mirror server-side trigger logic) ─────────
+    const { data: isAdmin } = await sb.rpc("is_admin");
+    if (!isAdmin) {
+      if (!editingCvId) {
+        const { count } = await sb
+          .from("cv_documents")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id);
+        if ((count ?? 0) >= 2) {
+          throw new Error("cv_limit_reached");
+        }
+      } else {
+        const { count } = await sb
+          .from("cv_edit_events")
+          .select("id", { count: "exact", head: true })
+          .eq("cv_id", editingCvId);
+        if ((count ?? 0) >= 2) {
+          throw new Error("edit_limit_reached");
+        }
+      }
+
+      // ── 3. Rate-limit reservation (before API call) ───────────────────────
+      const { error: rateErr } = await sb.rpc("ai_usage_reserve", { p_kind: "cv" });
+      if (rateErr) {
+        if (rateErr.message.includes("rate_limited")) {
+          throw new Error("rate_limited");
+        }
+        throw new Error("Could not verify rate limit. Please try again.");
+      }
+    }
+
+    // ── 4. Cap / sanitise input fields ────────────────────────────────────────
+    const cvData = validateAndCapCVData(rawCvData as CVData);
+
+    // ── 5. Call Claude ────────────────────────────────────────────────────────
+    const apiKey = process.env["ANTHROPIC_API_KEY"] ?? process.env["ANTHROPIC_KEY"];
     if (!apiKey) {
-      throw new Error(
-        'ANTHROPIC_API_KEY environment variable is not set. ' +
-        'Available env keys: ' +
-        Object.keys(process.env).filter(k => k.includes('ANTHROPIC')).join(', ')
-      );
+      throw new Error("Service temporarily unavailable. Please try again later.");
     }
 
     const prompt = buildPrompt(cvData);
-
-    const requestBody = {
-      model: "claude-sonnet-4-5",
-      max_tokens: 4000,
-      messages: [{ role: "user", content: prompt }],
-    };
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -187,15 +305,22 @@ export const generateCVServer = createServerFn({ method: "POST" })
         "x-api-key": apiKey,
         "anthropic-version": "2023-06-01",
       },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({
+        model: "claude-sonnet-4-5",
+        max_tokens: 4000,
+        messages: [{ role: "user", content: prompt }],
+      }),
     });
 
-    const responseText = await response.text();
-
     if (!response.ok) {
-      throw new Error(`Anthropic API error ${response.status}: ${responseText || response.statusText}`);
+      const body = await response.text();
+      // Log server-side only — never expose to caller
+      console.error(`[generateCVServer] Anthropic error ${response.status}:`, body.slice(0, 500));
+      if (response.status === 429) throw new Error("rate_limited");
+      throw new Error("CV generation failed. Please try again.");
     }
 
+    const responseText = await response.text();
     const result = JSON.parse(responseText);
     const raw: string = result?.content?.[0]?.text ?? "";
 
