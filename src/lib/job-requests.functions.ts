@@ -103,7 +103,8 @@ Return ONLY a valid JSON object with this exact structure, no explanation, no co
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(`Anthropic API error ${response.status}: ${text.slice(0, 300)}`);
+      console.error(`[generateJobTranslationsServer] Anthropic error ${response.status}:`, text.slice(0, 500));
+      throw new Error("Translation generation failed. Please try again.");
     }
 
     const result = await response.json() as { content: { type: string; text: string }[] };
@@ -114,7 +115,8 @@ Return ONLY a valid JSON object with this exact structure, no explanation, no co
     try {
       parsed = JSON.parse(cleaned) as typeof parsed;
     } catch {
-      throw new Error(`Failed to parse translation response: ${raw.slice(0, 200)}`);
+      console.error("[generateJobTranslationsServer] Failed to parse response:", raw.slice(0, 200));
+      throw new Error("Failed to parse translation response. Please try again.");
     }
 
     const canonicalTitle = (parsed.canonical_english ?? data.title).trim();

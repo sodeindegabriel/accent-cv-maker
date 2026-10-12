@@ -213,8 +213,9 @@ export const generateCoverLetterServer = createServerFn({ method: "POST" })
 
       const responseText = await response.text();
       if (!response.ok) {
-        // Non-retryable HTTP errors (4xx auth/quota issues)
-        throw new Error(`AI API error ${response.status}: ${responseText || response.statusText}`);
+        console.error(`[generateCoverLetterServer] Anthropic error ${response.status}:`, responseText.slice(0, 500));
+        if (response.status === 429) throw new Error("rate_limited");
+        throw new Error("Cover letter generation failed. Please try again.");
       }
 
       const apiResult = JSON.parse(responseText) as { content?: { text?: string }[] };
