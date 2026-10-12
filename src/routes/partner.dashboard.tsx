@@ -35,12 +35,14 @@ interface PartnerDashboardData {
 }
 
 interface PartnerClient {
-  candidate_id: string;
+  client_ref: string;
   display_name: string;
   language: string;
-  job_types: string[];
-  opted_in_at: string;
+  job_types: string[] | null;
+  joined_at: string;
   has_cv: boolean;
+  shared: boolean;
+  scope: string | null;
 }
 
 interface PartnerCoverLetter {
@@ -643,7 +645,7 @@ function CoverLetterModal({ client, letters, loading, error, onClose }: {
     setSaving((s) => ({ ...s, [idx]: true }));
     setSaveError((s) => ({ ...s, [idx]: null }));
     try {
-      const { error: rpcErr } = await supabase.rpc("partner_update_cover_letter", {
+      const { error: rpcErr } = await supabase.rpc("partner_update_referred_cover_letter", {
         p_letter_id: letter.id,
         p_english_text: edit.english_text,
         p_native_text: edit.native_text,
@@ -877,8 +879,8 @@ function ClientTable({
     setClLoading(true);
     setClModalClient(c);
     try {
-      const { data, error } = await supabase.rpc("get_partner_client_cover_letters", {
-        p_candidate_id: c.candidate_id,
+      const { data, error } = await supabase.rpc("get_partner_referred_cover_letters", {
+        p_client_ref: c.client_ref,
       });
       if (error) { setClError(error.message); return; }
       setClLetters(Array.isArray(data) ? (data as PartnerCoverLetter[]) : []);
@@ -887,18 +889,18 @@ function ClientTable({
     }
   }
 
-  async function fetchCvHtml(candidateId: string): Promise<string | null> {
-    const { data, error } = await supabase.rpc("get_partner_client_cv", {
-      p_candidate_id: candidateId,
+  async function fetchCvHtml(clientRef: string): Promise<string | null> {
+    const { data, error } = await supabase.rpc("get_partner_referred_cv", {
+      p_client_ref: clientRef,
     });
     if (error || !data) { console.error("[cv fetch]", error?.message); return null; }
     return data as string;
   }
 
   async function handlePdf(client: PartnerClient) {
-    setDownloadingPdf(client.candidate_id);
+    setDownloadingPdf(client.client_ref);
     try {
-      const html = await fetchCvHtml(client.candidate_id);
+      const html = await fetchCvHtml(client.client_ref);
       if (html) downloadCvPdf(html, client.display_name);
     } finally {
       setDownloadingPdf(null);
@@ -906,9 +908,9 @@ function ClientTable({
   }
 
   async function handleWord(client: PartnerClient) {
-    setDownloadingWord(client.candidate_id);
+    setDownloadingWord(client.client_ref);
     try {
-      const html = await fetchCvHtml(client.candidate_id);
+      const html = await fetchCvHtml(client.client_ref);
       if (html) await downloadCvDocx(html, client.display_name);
     } catch (err) {
       console.error("[word export]", err);
@@ -958,61 +960,78 @@ function ClientTable({
             </tr>
           </thead>
           <tbody>
-            {clients.map((c) => (
-              <tr key={c.candidate_id} className="border-t border-border">
-                <td className="px-4 py-2 font-medium">{c.display_name}</td>
-                <td className="px-4 py-2 text-muted-foreground">{c.language}</td>
-                <td className="px-4 py-2 text-muted-foreground">{c.job_types.join(", ")}</td>
-                <td className="px-4 py-2 whitespace-nowrap text-muted-foreground">{fmtDate(c.opted_in_at)}</td>
-                <td className="px-4 py-2">
-                  {c.has_cv ? (
-                    <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">Built</span>
-                  ) : (
-                    <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">Not yet</span>
-                  )}
-                </td>
-                <td className="px-4 py-2">
-                  <div className="flex flex-wrap gap-1.5">
-                    {c.has_cv ? (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => void handlePdf(c)}
-                          disabled={downloadingPdf === c.candidate_id}
-                          className="rounded-lg border border-border px-3 py-1 text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50"
-                        >
-                          {downloadingPdf === c.candidate_id ? "…" : "PDF"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => void handleWord(c)}
-                          disabled={downloadingWord === c.candidate_id}
-                          className="rounded-lg border border-border px-3 py-1 text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50"
-                        >
-                          {downloadingWord === c.candidate_id ? "…" : "Word"}
-                        </button>
-                      </>
+            {clients.map((c) => {
+              const canAct = c.shared;
+              const canCoverLetters = c.shared && c.scope !== "view_download";
+              return (
+                <tr key={c.client_ref} className={`border-t border-border ${!canAct ? "opacity-60" : ""}`}>
+                  <td className="px-4 py-2 font-medium">
+                    <span>{c.display_name}</span>
+                    {c.shared ? (
+                      <span className="ml-2 inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">Shared</span>
                     ) : (
-                      <span className="text-xs text-muted-foreground">No CV yet</span>
+                      <span className="ml-2 inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">Not shared</span>
                     )}
-                    <button
-                      type="button"
-                      onClick={showComingSoon}
-                      className="rounded-lg border border-dashed border-border px-3 py-1 text-xs text-muted-foreground hover:bg-muted transition-colors"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void openCoverLetters(c)}
-                      className="rounded-lg border border-border px-3 py-1 text-xs font-medium text-foreground hover:bg-muted transition-colors"
-                    >
-                      Cover letters
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td className="px-4 py-2 text-muted-foreground">{c.language}</td>
+                  <td className="px-4 py-2 text-muted-foreground">{c.job_types?.join(", ") ?? "—"}</td>
+                  <td className="px-4 py-2 whitespace-nowrap text-muted-foreground">{fmtDate(c.joined_at)}</td>
+                  <td className="px-4 py-2">
+                    {c.has_cv ? (
+                      <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">Built</span>
+                    ) : (
+                      <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">Not yet</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2">
+                    <div className="flex flex-wrap gap-1.5">
+                      {c.has_cv ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => canAct && void handlePdf(c)}
+                            disabled={!canAct || downloadingPdf === c.client_ref}
+                            title={!canAct ? "Client has not shared their data with you" : undefined}
+                            className="rounded-lg border border-border px-3 py-1 text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {downloadingPdf === c.client_ref ? "…" : "PDF"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => canAct && void handleWord(c)}
+                            disabled={!canAct || downloadingWord === c.client_ref}
+                            title={!canAct ? "Client has not shared their data with you" : undefined}
+                            className="rounded-lg border border-border px-3 py-1 text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {downloadingWord === c.client_ref ? "…" : "Word"}
+                          </button>
+                        </>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">No CV yet</span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={showComingSoon}
+                        disabled={!canAct}
+                        title={!canAct ? "Client has not shared their data with you" : undefined}
+                        className="rounded-lg border border-dashed border-border px-3 py-1 text-xs text-muted-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Edit
+                      </button>
+                      {canCoverLetters && (
+                        <button
+                          type="button"
+                          onClick={() => void openCoverLetters(c)}
+                          className="rounded-lg border border-border px-3 py-1 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+                        >
+                          Cover letters
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -1059,7 +1078,7 @@ function PartnerDashboardPage() {
   const [copied, setCopied] = useState(false);
 
   async function fetchClients(p_offset: number) {
-    const { data: clientsRaw, error: clientsErr } = await supabase.rpc("get_partner_clients", {
+    const { data: clientsRaw, error: clientsErr } = await supabase.rpc("get_partner_referred_clients", {
       p_limit: CLIENTS_PAGE_SIZE,
       p_offset,
     });
@@ -1076,7 +1095,7 @@ function PartnerDashboardPage() {
 
     Promise.all([
       supabase.rpc("get_partner_dashboard_data"),
-      supabase.rpc("get_partner_clients", { p_limit: CLIENTS_PAGE_SIZE, p_offset: 0 }),
+      supabase.rpc("get_partner_referred_clients", { p_limit: CLIENTS_PAGE_SIZE, p_offset: 0 }),
     ]).then(([{ data: raw, error }, { data: clientsRaw, error: clientsErr }]) => {
       if (error) { setLoadError(error.message); return; }
       if (!raw) { navigate({ to: "/dashboard" }); return; }
