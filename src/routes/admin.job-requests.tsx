@@ -14,6 +14,8 @@ interface JobTitleRequest {
   last_requested_at: string;
   status: "pending" | "approved" | "rejected";
   translations: Record<string, string> | null;
+  source_language: string | null;
+  canonical_title: string | null;
 }
 
 const ALL_LANGUAGES = [
@@ -37,6 +39,7 @@ function ApprovedRow({
   onUnpublish: (id: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [canonicalEdit, setCanonicalEdit] = useState(row.canonical_title ?? row.title);
   const [edited, setEdited] = useState<Record<string, string>>(row.translations ?? {});
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -51,7 +54,7 @@ function ApprovedRow({
     try {
       const { error } = await supabase
         .from("job_title_requests")
-        .update({ translations: edited })
+        .update({ translations: edited, canonical_title: canonicalEdit.trim() || null })
         .eq("id", row.id);
       if (error) throw new Error(error.message);
       setSaveOk(true);
@@ -83,6 +86,11 @@ function ApprovedRow({
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="font-semibold text-gray-900 text-base truncate">"{row.title}"</p>
+          {row.canonical_title && row.canonical_title !== row.title && (
+            <p className="text-xs text-emerald-700 mt-0.5">
+              Canonical: <span className="font-medium">{row.canonical_title}</span>
+            </p>
+          )}
           <p className="text-xs text-gray-400 mt-0.5">
             normalized: <span className="font-mono">{row.normalized_title}</span>
           </p>
@@ -93,6 +101,9 @@ function ApprovedRow({
             </span>
             <span>First: {fmtDate(row.first_requested_at)}</span>
             <span>Last: {fmtDate(row.last_requested_at)}</span>
+            {row.source_language && (
+              <span className="rounded bg-gray-100 px-1.5 py-0.5 font-mono">{row.source_language}</span>
+            )}
           </div>
         </div>
         <div className="flex shrink-0 flex-col gap-2 items-end">
@@ -120,18 +131,33 @@ function ApprovedRow({
 
       {expanded && (
         <div className="mt-4 border-t border-gray-100 pt-4 space-y-3">
-          {ALL_LANGUAGES.map((lang) => (
-            <div key={lang} className="flex items-center gap-3">
-              <label className="w-28 shrink-0 text-xs font-medium text-gray-600">{lang}</label>
-              <input
-                type="text"
-                value={edited[lang] ?? ""}
-                onChange={(e) => setEdited((prev) => ({ ...prev, [lang]: e.target.value }))}
-                className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-900 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                placeholder={`${lang} translation…`}
-              />
-            </div>
-          ))}
+          {/* English canonical title — editable */}
+          <div className="flex items-center gap-3">
+            <label className="w-28 shrink-0 text-xs font-semibold text-emerald-700">
+              English (canonical)
+            </label>
+            <input
+              type="text"
+              value={canonicalEdit}
+              onChange={(e) => setCanonicalEdit(e.target.value)}
+              className="flex-1 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-sm text-gray-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+              placeholder="English canonical title…"
+            />
+          </div>
+          <div className="border-t border-gray-100 pt-3 space-y-3">
+            {ALL_LANGUAGES.map((lang) => (
+              <div key={lang} className="flex items-center gap-3">
+                <label className="w-28 shrink-0 text-xs font-medium text-gray-600">{lang}</label>
+                <input
+                  type="text"
+                  value={edited[lang] ?? ""}
+                  onChange={(e) => setEdited((prev) => ({ ...prev, [lang]: e.target.value }))}
+                  className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-900 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  placeholder={`${lang} translation…`}
+                />
+              </div>
+            ))}
+          </div>
           <div className="flex items-center gap-3 pt-1">
             <button
               type="button"
@@ -139,7 +165,7 @@ function ApprovedRow({
               onClick={() => void handleSave()}
               className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 disabled:opacity-50 transition-colors"
             >
-              {saving ? "Saving…" : "Save translations"}
+              {saving ? "Saving…" : "Save"}
             </button>
             {saveOk && <span className="text-xs text-emerald-600">Saved!</span>}
             {saveError && <span className="text-xs text-red-600">{saveError}</span>}
@@ -185,7 +211,7 @@ function JobRequestsPage() {
       .from("job_title_requests")
       .select("*")
       .in("status", ["pending", "approved"])
-      .order("status", { ascending: true })   // "approved" < "pending" alphabetically
+      .order("status", { ascending: true })
       .order("request_count", { ascending: false })
       .then(({ data, error }) => {
         if (error) { setLoadError(error.message); return; }
@@ -199,14 +225,30 @@ function JobRequestsPage() {
     setBusy((b) => ({ ...b, [row.id]: "approving" }));
     setActionError((e) => ({ ...e, [row.id]: "" }));
     try {
-      const translations = await generateJobTranslationsServer({ data: { title: row.title } });
+      const session = await supabase.auth.getSession();
+      const accessToken = session.data.session?.access_token;
+      if (!accessToken) throw new Error("No session — please reload and try again");
+
+      const { canonicalTitle, translations } = await generateJobTranslationsServer({
+        data: {
+          title: row.title,
+          sourceLanguage: row.source_language ?? undefined,
+          accessToken,
+        },
+      });
+
       const { error } = await supabase
         .from("job_title_requests")
-        .update({ status: "approved", translations })
+        .update({ status: "approved", translations, canonical_title: canonicalTitle })
         .eq("id", row.id);
       if (error) throw new Error(error.message);
-      // Move from pending to approved in local state
-      const approvedRow: JobTitleRequest = { ...row, status: "approved", translations };
+
+      const approvedRow: JobTitleRequest = {
+        ...row,
+        status: "approved",
+        translations,
+        canonical_title: canonicalTitle,
+      };
       setPendingRows((r) => r.filter((x) => x.id !== row.id));
       setApprovedRows((r) => [approvedRow, ...r]);
     } catch (e) {
@@ -264,7 +306,7 @@ function JobRequestsPage() {
         {/* Intent banner */}
         <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-900">
           <p className="font-semibold mb-1">Approved titles appear in the job type selector immediately</p>
-          <p>Users will see them on their next page load.</p>
+          <p>Approving calls Claude to produce an English canonical title and all 21 translations.</p>
         </div>
 
         {loadError && (
@@ -298,6 +340,11 @@ function JobRequestsPage() {
                       </span>
                       <span>First: {fmtDate(row.first_requested_at)}</span>
                       <span>Last: {fmtDate(row.last_requested_at)}</span>
+                      {row.source_language && (
+                        <span className="rounded bg-blue-50 border border-blue-200 px-1.5 py-0.5 text-blue-700 font-medium">
+                          typed in: {row.source_language}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="flex shrink-0 gap-2">

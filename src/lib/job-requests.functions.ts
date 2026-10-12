@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { createClient } from "@supabase/supabase-js";
 
 // All 21 supported languages — must match the build flow language list.
 const SUPPORTED_LANGUAGES = [
@@ -24,21 +25,67 @@ const SUPPORTED_LANGUAGES = [
   { code: "ti", name: "Tigrinya" },
 ];
 
+export interface TranslationResult {
+  canonicalTitle: string;
+  translations: Record<string, string>;
+}
+
 export const generateJobTranslationsServer = createServerFn({ method: "POST" })
-  .inputValidator((data: { title: string }) => data)
-  .handler(async ({ data }): Promise<Record<string, string>> => {
+  .inputValidator((data: { title: string; sourceLanguage?: string; accessToken: string }) => data)
+  .handler(async ({ data }): Promise<TranslationResult> => {
+    // Verify caller is admin before touching the API key
+    const supabaseUrl = process.env["VITE_SUPABASE_URL"];
+    const supabaseAnonKey = process.env["VITE_SUPABASE_ANON_KEY"];
+    if (!supabaseUrl || !supabaseAnonKey) throw new Error("Supabase env vars missing");
+
+    const sb = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${data.accessToken}` } },
+    });
+    const { data: adminCheck, error: adminErr } = await sb.rpc("is_admin");
+    if (adminErr || !adminCheck) throw new Error("Forbidden: admin only");
+
     const apiKey = process.env["ANTHROPIC_API_KEY"] ?? process.env["ANTHROPIC_KEY"];
     if (!apiKey) throw new Error("ANTHROPIC_API_KEY environment variable is not set");
 
     const langList = SUPPORTED_LANGUAGES.map((l) => `${l.code} (${l.name})`).join(", ");
+    const sourceLangNote = data.sourceLanguage
+      ? ` The user typed this in ${data.sourceLanguage}, so it may not be in English.`
+      : "";
 
-    const prompt = `Translate the UK job category label "${data.title}" into each of the following languages. These are short job type labels used in a CV-building app (2–6 words maximum each).
+    const prompt = `You are helping manage a multilingual UK CV-building app.
 
-Languages: ${langList}
+The admin wants to approve a user-submitted job category label: "${data.title}".${sourceLangNote}
 
-Return ONLY a valid JSON object with language codes as keys and translated labels as values. No explanation, no code fences, no other text.
+Your tasks:
+1. Determine the English canonical version of this job category (short, professional, title-case, 2–6 words).
+2. Translate that English canonical version into each of the following languages: ${langList}
 
-Example format: {"pl": "...", "ro": "...", "pa": "...", ...}`;
+Return ONLY a valid JSON object with this exact structure, no explanation, no code fences:
+{
+  "canonical_english": "...",
+  "translations": {
+    "pl": "...",
+    "ro": "...",
+    "pa": "...",
+    "ur": "...",
+    "pt": "...",
+    "es": "...",
+    "ar": "...",
+    "bn": "...",
+    "gu": "...",
+    "fr": "...",
+    "tr": "...",
+    "hi": "...",
+    "so": "...",
+    "zh": "...",
+    "fa": "...",
+    "uk": "...",
+    "ku": "...",
+    "ta": "...",
+    "am": "...",
+    "ti": "..."
+  }
+}`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -49,25 +96,36 @@ Example format: {"pl": "...", "ro": "...", "pa": "...", ...}`;
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 800,
+        max_tokens: 1000,
         messages: [{ role: "user", content: prompt }],
       }),
     });
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(`Anthropic API error ${response.status}: ${text}`);
+      throw new Error(`Anthropic API error ${response.status}: ${text.slice(0, 300)}`);
     }
 
     const result = await response.json() as { content: { type: string; text: string }[] };
     const raw: string = result?.content?.[0]?.text ?? "{}";
-
-    // Strip accidental code fences
     const cleaned = raw.replace(/^```(?:json)?\s*/m, "").replace(/\s*```\s*$/m, "").trim();
 
+    let parsed: { canonical_english?: string; translations?: Record<string, string> };
     try {
-      return JSON.parse(cleaned) as Record<string, string>;
+      parsed = JSON.parse(cleaned) as typeof parsed;
     } catch {
       throw new Error(`Failed to parse translation response: ${raw.slice(0, 200)}`);
     }
+
+    const canonicalTitle = (parsed.canonical_english ?? data.title).trim();
+    const translations = parsed.translations ?? {};
+
+    // Validate translations — must be an object with string values
+    for (const [k, v] of Object.entries(translations)) {
+      if (typeof k !== "string" || typeof v !== "string") {
+        throw new Error("Translation response contained non-string values");
+      }
+    }
+
+    return { canonicalTitle, translations };
   });
