@@ -426,6 +426,19 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [partnerName, setPartnerName] = useState<string | null>(null);
+  const [shareWithPartner, setShareWithPartner] = useState(false);
+
+  // Load partner display name for referral notice
+  useEffect(() => {
+    if (loginMode) return;
+    let code: string | null = null;
+    try { code = sessionStorage.getItem("cvlingo:referralCode"); } catch { /* ignore */ }
+    if (!code) return;
+    supabase.rpc("get_partner_display_name", { p_code: code }).then(({ data }) => {
+      if (data) setPartnerName(data as string);
+    });
+  }, [loginMode]);
 
   // Countdown timer for resend cooldown
   useEffect(() => {
@@ -458,7 +471,10 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
     const { error: err } = await verifyOtp(email.trim(), token);
     if (err) { setSubmitting(false); setError(friendlyAuthError(err, lang)); return; }
     const { data: { user: authedUser } } = await supabase.auth.getUser();
-    if (authedUser) await maybeAttributeReferral(authedUser.id);
+    if (authedUser) {
+      await maybeAttributeReferral(authedUser.id);
+      if (shareWithPartner) supabase.rpc("set_partner_sharing", { p_share: true }).then(() => {/* fire-and-forget */});
+    }
     // Check for partner account — handles both first-login claim and returning partners.
     // claim_partner_account() sets user_id + role='partner' on first login, then returns
     // the referral_code for any subsequent login too.
@@ -517,7 +533,10 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
     const { error: signUpErr } = await signUp(email.trim(), password, fullName.trim());
     if (!signUpErr) {
       const { data: { user: newUser } } = await supabase.auth.getUser();
-      if (newUser) await maybeAttributeReferral(newUser.id);
+      if (newUser) {
+        await maybeAttributeReferral(newUser.id);
+        if (shareWithPartner) supabase.rpc("set_partner_sharing", { p_share: true }).then(() => {/* fire-and-forget */});
+      }
       setSubmitting(false);
       onSuccess();
       return;
@@ -655,6 +674,26 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
               <p className="mb-4 text-xs text-muted-foreground">
                 {t(lang, "authNoPassword")}
               </p>
+
+              {/* Partner referral notice + optional sharing checkbox */}
+              {!loginMode && partnerName && (
+                <div className="mb-4 rounded-xl border border-border bg-muted/40 p-4 text-sm">
+                  <p className="text-foreground">
+                    {t(lang, "partnerReferralNotice", { partner: partnerName })}
+                  </p>
+                  <label className="mt-3 flex cursor-pointer items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={shareWithPartner}
+                      onChange={(e) => setShareWithPartner(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-border accent-primary"
+                    />
+                    <span className="text-xs text-muted-foreground leading-relaxed">
+                      {t(lang, "partnerShareCheckbox", { partner: partnerName })}
+                    </span>
+                  </label>
+                </div>
+              )}
 
               {screen === "password" && (
                 <div className="mb-4">
