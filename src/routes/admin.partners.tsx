@@ -16,6 +16,7 @@ interface Partner {
   email: string;
   referral_code: string;
   logo_url: string | null;
+  allowed_email_domains: string | null;
   is_active: boolean;
   created_at: string;
   referral_count?: number;
@@ -100,6 +101,11 @@ function AdminPartnersPage() {
   // Per-row logo editing
   const [editingLogo, setEditingLogo] = useState<Record<string, string>>({});
   const [savingLogo, setSavingLogo] = useState<Record<string, boolean>>({});
+
+  // Per-row domain editing
+  const [editingDomains, setEditingDomains] = useState<Record<string, string>>({});
+  const [savingDomains, setSavingDomains] = useState<Record<string, boolean>>({});
+  const [domainErrors, setDomainErrors] = useState<Record<string, string | null>>({});
 
   // ── Auth guard ───────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -224,6 +230,40 @@ function AdminPartnersPage() {
     setSavingLogo((s) => { const n = { ...s }; delete n[p.id]; return n; });
   }
 
+  // ── Save allowed email domains ─────────────────────────────────────────────────
+  function validateDomains(raw: string): { valid: boolean; domains: string[] | null } {
+    const trimmed = raw.trim();
+    if (!trimmed) return { valid: true, domains: null };
+    const parts = trimmed.split(/[\s,]+/).filter(Boolean);
+    const domainRe = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+$/;
+    const invalid = parts.filter((d) => !domainRe.test(d));
+    if (invalid.length > 0) return { valid: false, domains: null };
+    return { valid: true, domains: parts };
+  }
+
+  async function handleSaveDomains(p: Partner) {
+    const raw = editingDomains[p.id] ?? (p.allowed_email_domains ?? "");
+    const { valid, domains } = validateDomains(raw);
+    if (!valid) {
+      setDomainErrors((s) => ({ ...s, [p.id]: "Invalid domain format. Use e.g. example.org" }));
+      return;
+    }
+    setDomainErrors((s) => ({ ...s, [p.id]: null }));
+    setSavingDomains((s) => ({ ...s, [p.id]: true }));
+    const domainsStr = domains ? domains.join(",") : null;
+    const { error } = await supabase.rpc("set_partner_allowed_domains", {
+      p_partner_id: p.id,
+      p_domains: domainsStr,
+    });
+    setSavingDomains((s) => { const n = { ...s }; delete n[p.id]; return n; });
+    if (error) {
+      setDomainErrors((s) => ({ ...s, [p.id]: error.message }));
+      return;
+    }
+    setPartners((prev) => prev.map((r) => (r.id === p.id ? { ...r, allowed_email_domains: domainsStr } : r)));
+    setEditingDomains((s) => { const n = { ...s }; delete n[p.id]; return n; });
+  }
+
   // ── Loading / auth states ────────────────────────────────────────────────────
   if (authLoading || isAdmin === null) {
     return (
@@ -328,6 +368,7 @@ function AdminPartnersPage() {
                   <th className="px-4 py-3">Email</th>
                   <th className="px-4 py-3">Referral code</th>
                   <th className="px-4 py-3">Logo URL</th>
+                  <th className="px-4 py-3">Allowed domains</th>
                   <th className="px-4 py-3">Referred</th>
                   <th className="px-4 py-3">Claimed</th>
                   <th className="px-4 py-3">Created</th>
@@ -370,6 +411,36 @@ function AdminPartnersPage() {
                         {p.logo_url && editingLogo[p.id] === undefined && (
                           <img src={p.logo_url} alt="" className="h-6 w-auto rounded object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                         )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 min-w-[240px]">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="text"
+                            className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-700 outline-none focus:border-primary"
+                            placeholder="example.org, charity.uk"
+                            value={editingDomains[p.id] ?? (p.allowed_email_domains ?? "")}
+                            onChange={(e) => {
+                              setEditingDomains((s) => ({ ...s, [p.id]: e.target.value }));
+                              setDomainErrors((s) => ({ ...s, [p.id]: null }));
+                            }}
+                          />
+                          {editingDomains[p.id] !== undefined && (
+                            <button
+                              type="button"
+                              disabled={!!savingDomains[p.id]}
+                              onClick={() => void handleSaveDomains(p)}
+                              className="shrink-0 rounded-lg bg-primary px-2 py-1 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-opacity"
+                            >
+                              {savingDomains[p.id] ? "…" : "Save"}
+                            </button>
+                          )}
+                        </div>
+                        {domainErrors[p.id] && <p className="text-xs text-red-600">{domainErrors[p.id]}</p>}
+                        <p className="text-xs text-gray-400">
+                          If set, only people with these email domains can join this partner's team (the original owner email is always allowed).
+                        </p>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-center font-semibold text-gray-900">
