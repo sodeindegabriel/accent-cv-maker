@@ -1819,11 +1819,6 @@ function TeamTab({ partnerId, partnerName }: { partnerId: string; partnerName: s
     const { error } = await supabase.rpc("cancel_partner_invite", { p_member_id: memberId });
     setCancellingInvite((s) => ({ ...s, [memberId]: false }));
     if (!error) void fetchMembers(page);
-    else {
-      // cancel_partner_invite may not be in DB yet — surface gracefully
-      console.warn("[cancel_partner_invite]", error.message);
-      void fetchMembers(page);
-    }
   }
 
   async function handleSendEmail(member: TeamMember) {
