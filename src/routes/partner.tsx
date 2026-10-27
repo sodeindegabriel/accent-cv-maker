@@ -12,13 +12,10 @@ export const Route = createFileRoute("/partner")({
   component: PartnerLayout,
 });
 
-// ── Nav items ──────────────────────────────────────────────────────────────────
 interface NavItem {
   label: string;
   to: "/partner/dashboard" | "/partner/clients" | "/partner/team" | "/partner/activity";
   badge?: number;
-  managerOnly?: boolean;
-  mentorFirst?: boolean;
 }
 
 function PartnerLayout() {
@@ -35,7 +32,6 @@ function PartnerLayoutInner() {
   const navigate = useNavigate();
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
-  const overlayRef = useRef<HTMLDivElement>(null);
 
   // Close sidebar on route change (mobile)
   useEffect(() => { setSidebarOpen(false); }, [currentPath]);
@@ -46,11 +42,6 @@ function PartnerLayoutInner() {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, []);
-
-  async function handleSignOut() {
-    await supabase.auth.signOut();
-    void navigate({ to: "/" });
-  }
 
   if (loading) {
     return (
@@ -74,7 +65,6 @@ function PartnerLayoutInner() {
   const isManager = roleInfo.is_manager;
   const partnerName = dashData.partner_name;
   const logoUrl = "partner_logo_url" in dashData ? (dashData.partner_logo_url ?? null) : null;
-  const userEmail = roleInfo ? undefined : undefined;
 
   const navItems: NavItem[] = isManager
     ? [
@@ -93,7 +83,6 @@ function PartnerLayoutInner() {
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          ref={overlayRef}
           className="fixed inset-0 z-30 bg-black/50 lg:hidden"
           onClick={() => setSidebarOpen(false)}
           aria-hidden="true"
@@ -133,9 +122,7 @@ function PartnerLayoutInner() {
                     aria-current={active ? "page" : undefined}
                     className={[
                       "flex min-h-[44px] items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
-                      active
-                        ? "bg-primary/10 text-primary"
-                        : "text-foreground hover:bg-muted",
+                      active ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted",
                     ].join(" ")}
                   >
                     <span>{item.label}</span>
@@ -151,9 +138,14 @@ function PartnerLayoutInner() {
           </ul>
         </nav>
 
-        {/* Bottom: email + sign out */}
-        <div className="border-t border-border px-4 py-4">
-          <UserEmailRow onSignOut={() => void handleSignOut()} />
+        {/* Account menu footer */}
+        <div className="border-t border-border px-3 py-3">
+          <AccountMenu
+            roleInfo={roleInfo}
+            partnerName={isManager ? partnerName : undefined}
+            referralCode={isManager ? dashData.referral_code : undefined}
+            onNavigateAway={() => void navigate({ to: "/" })}
+          />
         </div>
       </aside>
 
@@ -182,23 +174,220 @@ function PartnerLayoutInner() {
   );
 }
 
-function UserEmailRow({ onSignOut }: { onSignOut: () => void }) {
-  const [email, setEmail] = useState<string | null>(null);
+// ── AccountMenu ────────────────────────────────────────────────────────────────
+interface AccountMenuProps {
+  roleInfo: { role: string; is_manager: boolean };
+  partnerName?: string;
+  referralCode?: string;
+  onNavigateAway: () => void;
+}
+
+function AccountMenu({ roleInfo, partnerName, referralCode, onNavigateAway }: AccountMenuProps) {
+  const [open, setOpen] = useState(false);
+  const [displayName, setDisplayName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState("");
+  const [savingName, setSavingName] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [passwordMsg, setPasswordMsg] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [confirmSignOutAll, setConfirmSignOutAll] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    void supabase.auth.getUser().then(({ data }) => { setEmail(data.user?.email ?? null); });
+    void supabase.auth.getUser().then(({ data }) => {
+      setEmail(data.user?.email ?? "");
+      const meta = data.user?.user_metadata as Record<string, string> | undefined;
+      setDisplayName(meta?.full_name ?? "");
+    });
   }, []);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    function handler(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  async function saveName() {
+    const trimmed = nameValue.trim();
+    if (!trimmed) { setNameError("Name cannot be empty."); return; }
+    setSavingName(true); setNameError(null);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { error } = await supabase.from("profiles").update({ full_name: trimmed }).eq("id", user.id);
+      if (error) { setNameError(error.message); setSavingName(false); return; }
+    }
+    setDisplayName(trimmed);
+    setEditingName(false); setSavingName(false);
+  }
+
+  async function savePassword() {
+    if (password.length < 6) { setPasswordError("Password must be at least 6 characters."); return; }
+    if (password !== passwordConfirm) { setPasswordError("Passwords do not match."); return; }
+    setSavingPassword(true); setPasswordError(null); setPasswordMsg(null);
+    const { error } = await supabase.auth.updateUser({ password });
+    setSavingPassword(false);
+    if (error) { setPasswordError(error.message); return; }
+    setPasswordMsg("Password updated. You can now use it to sign in.");
+    setPassword(""); setPasswordConfirm(""); setShowPassword(false);
+  }
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    onNavigateAway();
+  }
+
+  async function handleSignOutAll() {
+    await supabase.auth.signOut({ scope: "global" });
+    onNavigateAway();
+  }
+
+  const roleDisplay = roleInfo.role === "owner" ? "Manager" : roleInfo.is_manager ? "Manager" : "Mentor";
+
   return (
-    <div className="flex items-center gap-2">
-      <div className="min-w-0 flex-1">
-        {email && <p className="truncate text-xs text-muted-foreground">{email}</p>}
-      </div>
+    <div className="relative" ref={menuRef}>
+      {/* Trigger button */}
       <button
         type="button"
-        onClick={onSignOut}
-        className="shrink-0 rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors min-h-[44px]"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full min-h-[44px] items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm hover:bg-muted transition-colors"
+        aria-expanded={open}
+        aria-haspopup="dialog"
       >
-        Sign out
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-foreground">
+          {(displayName || email).charAt(0).toUpperCase()}
+        </div>
+        <div className="min-w-0 flex-1">
+          {displayName && <p className="truncate text-xs font-medium text-foreground">{displayName}</p>}
+          <p className="truncate text-xs text-muted-foreground">{email}</p>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}><polyline points="6 9 12 15 18 9"/></svg>
       </button>
+
+      {/* Dropdown panel — renders above the button */}
+      {open && (
+        <div
+          role="dialog"
+          aria-label="Account menu"
+          className="absolute bottom-full left-0 right-0 z-50 mb-1 rounded-2xl border border-border bg-card shadow-xl"
+        >
+          <div className="p-4 space-y-4">
+            {/* Name */}
+            <div>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your name</p>
+              {editingName ? (
+                <div className="flex flex-col gap-2">
+                  <input
+                    type="text"
+                    value={nameValue}
+                    onChange={(e) => setNameValue(e.target.value)}
+                    autoFocus
+                    className="rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                    placeholder="Your name"
+                  />
+                  {nameError && <p className="text-xs text-destructive">{nameError}</p>}
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => void saveName()} disabled={savingName}
+                      className="flex-1 rounded-xl bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 min-h-[44px]">
+                      {savingName ? "Saving…" : "Save"}
+                    </button>
+                    <button type="button" onClick={() => { setEditingName(false); setNameError(null); }}
+                      className="rounded-xl border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted min-h-[44px]">Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className="flex-1 text-sm text-foreground">{displayName || <span className="italic text-muted-foreground">Not set</span>}</span>
+                  <button type="button" onClick={() => { setNameValue(displayName); setEditingName(true); setNameError(null); }}
+                    className="text-xs text-primary hover:underline min-h-[44px]">Edit</button>
+                </div>
+              )}
+            </div>
+
+            {/* Email (read-only) */}
+            <div>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Email</p>
+              <p className="text-sm text-foreground break-all">{email}</p>
+            </div>
+
+            {/* Role */}
+            <div>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Role</p>
+              <p className="text-sm text-foreground">{roleDisplay}</p>
+            </div>
+
+            {/* Manager-only: partner name + referral code */}
+            {partnerName && (
+              <div>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Organisation</p>
+                <p className="text-sm text-foreground">{partnerName}</p>
+                {referralCode && (
+                  <p className="mt-0.5 font-mono text-xs text-muted-foreground">Referral code: {referralCode}</p>
+                )}
+              </div>
+            )}
+
+            {/* Password */}
+            <div>
+              <button type="button" onClick={() => { setShowPassword((s) => !s); setPasswordMsg(null); setPasswordError(null); }}
+                className="text-xs font-medium text-primary hover:underline min-h-[44px]">
+                {showPassword ? "Hide password options" : "Set or change password"}
+              </button>
+              {showPassword && (
+                <div className="mt-2 flex flex-col gap-2">
+                  <p className="text-xs text-muted-foreground">A password is optional — you can always sign in with an emailed one-time code instead.</p>
+                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="New password (min 6 chars)"
+                    className="rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary" />
+                  <input type="password" value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)} placeholder="Confirm password"
+                    className="rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary" />
+                  {passwordError && <p className="text-xs text-destructive">{passwordError}</p>}
+                  {passwordMsg && <p className="text-xs text-emerald-600">{passwordMsg}</p>}
+                  <button type="button" onClick={() => void savePassword()} disabled={savingPassword || !password}
+                    className="rounded-xl bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 min-h-[44px]">
+                    {savingPassword ? "Saving…" : "Save password"}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Divider */}
+            <div className="border-t border-border" />
+
+            {/* Sign out */}
+            <div className="flex flex-col gap-1">
+              <button type="button" onClick={() => void handleSignOut()}
+                className="w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]">
+                Sign out
+              </button>
+              {confirmSignOutAll ? (
+                <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-3">
+                  <p className="mb-2 text-xs text-foreground">Sign out of all devices? You will need to log in again everywhere.</p>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => void handleSignOutAll()}
+                      className="flex-1 rounded-xl bg-destructive px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 min-h-[44px]">Confirm</button>
+                    <button type="button" onClick={() => setConfirmSignOutAll(false)}
+                      className="rounded-xl border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted min-h-[44px]">Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <button type="button" onClick={() => setConfirmSignOutAll(true)}
+                  className="w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-muted-foreground hover:bg-muted transition-colors min-h-[44px]">
+                  Sign out of all devices
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
