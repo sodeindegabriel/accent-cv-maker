@@ -2121,7 +2121,7 @@ function ActivityTab({ partnerId }: { partnerId: string }) {
   );
 }
 
-// ── Manager view ───────────────────────────────────────────────────────────────
+// ── Manager view ──────────────────────────────────────────────────────────────
 function ManagerView({
   roleInfo,
   dashData,
