@@ -2074,16 +2074,66 @@ function TeamTab({ partnerId, partnerName }: { partnerId: string; partnerName: s
   );
 }
 
-// ── Manager view (items 1+2 stub — clients/team/activity tabs added in later commits) ─
+// ── Activity tab ───────────────────────────────────────────────────────────────
+function ActivityTab({ partnerId }: { partnerId: string }) {
+  const [rows, setRows] = useState<PartnerNotification[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    void (async () => {
+      setLoading(true);
+      const { data } = await supabase.rpc("get_partner_notifications");
+      if (data) {
+        const r = data as { rows: PartnerNotification[]; unread_count: number };
+        setRows(r.rows ?? []);
+      }
+      await supabase.rpc("mark_partner_notifications_seen");
+      setLoading(false);
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [partnerId]);
+
+  return (
+    <div className="rounded-2xl border border-border bg-card">
+      <div className="border-b border-border px-6 py-4">
+        <h3 className="font-semibold text-foreground">Activity</h3>
+      </div>
+      {loading ? (
+        <div className="flex justify-center py-8">
+          <div className="h-7 w-7 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      ) : rows.length === 0 ? (
+        <p className="px-6 py-10 text-center text-sm text-muted-foreground">No activity yet.</p>
+      ) : (
+        <div>
+          {rows.map((n) => (
+            <div key={n.id} className="flex gap-4 border-b border-border px-6 py-4 last:border-0">
+              <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-primary/40 mt-2" />
+              <div className="flex-1">
+                <p className="text-sm text-foreground">{n.message}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{fmtDate(n.created_at)}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Manager view ───────────────────────────────────────────────────────────────
 function ManagerView({
   roleInfo,
   dashData,
+  activeTab,
+  setActiveTab,
 }: {
   roleInfo: MyPartnerRole;
   dashData: ManagerDashData;
+  activeTab: "clients" | "team" | "activity";
+  setActiveTab: React.Dispatch<React.SetStateAction<"clients" | "team" | "activity">>;
 }) {
   const referralUrl = `https://www.cvlingo.com/?ref=${roleInfo.referral_code}`;
-  const [activeTab, setActiveTab] = useState<"clients" | "team" | "activity">("clients");
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-10">
@@ -2154,9 +2204,7 @@ function ManagerView({
       )}
 
       {activeTab === "activity" && (
-        <div className="rounded-2xl border border-border bg-card px-6 py-10 text-center">
-          <p className="text-sm text-muted-foreground">Activity feed coming soon in the next update.</p>
-        </div>
+        <ActivityTab partnerId={dashData.partner_id} />
       )}
     </main>
   );
@@ -2171,6 +2219,7 @@ function PartnerDashboardPage() {
   const [dashData, setDashData] = useState<ManagerDashData | MentorDashData | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showNameDialog, setShowNameDialog] = useState(false);
+  const [managerActiveTab, setManagerActiveTab] = useState<"clients" | "team" | "activity">("clients");
 
   useEffect(() => {
     if (authLoading) return;
@@ -2234,9 +2283,7 @@ function PartnerDashboardPage() {
           isManager && partnerId ? (
             <NotificationBell
               partnerId={partnerId}
-              onOpenActivity={() => {
-                // Will wire to activity tab in a later commit
-              }}
+              onOpenActivity={() => setManagerActiveTab("activity")}
             />
           ) : undefined
         }
@@ -2246,6 +2293,8 @@ function PartnerDashboardPage() {
         <ManagerView
           roleInfo={roleInfo!}
           dashData={dashData as ManagerDashData}
+          activeTab={managerActiveTab}
+          setActiveTab={setManagerActiveTab}
         />
       ) : dashData ? (
         <MentorView
