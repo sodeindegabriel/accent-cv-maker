@@ -72,7 +72,7 @@ function BlogListPage() {
       ) : (
         <section className="mx-auto max-w-5xl px-4 pb-24 sm:px-6">
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {posts.map((post) => (
+            {posts.map((post: BlogPost) => (
               <Link
                 key={post.id}
                 to="/blog/$slug"

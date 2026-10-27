@@ -213,7 +213,7 @@ function BlogPostPage() {
         <div className="mx-auto max-w-4xl px-4 sm:px-6 py-10 border-t border-border">
           <h2 className="text-xl font-semibold mb-6">Keep reading</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {relatedPosts.map((rp) => (
+            {relatedPosts.map((rp: RelatedPost) => (
               <Link
                 key={rp.slug}
                 to="/blog/$slug"
