@@ -1283,6 +1283,421 @@ function MentorView({
   );
 }
 
+// ── Mentor picker (searchable inline dropdown) ────────────────────────────────
+function MentorPicker({
+  members,
+  value,
+  onChange,
+  placeholder,
+  disabled,
+}: {
+  members: TeamMember[];
+  value: string;
+  onChange: (userId: string, name: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
+}) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const selected = members.find((m) => m.member_user_id === value);
+  const filtered = members.filter((m) => {
+    const q = query.toLowerCase();
+    return (
+      m.status === "active" &&
+      m.member_user_id &&
+      (m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q))
+    );
+  });
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => { setOpen((o) => !o); setQuery(""); }}
+        className="flex min-w-[140px] items-center justify-between gap-1 rounded-lg border border-border bg-background px-2.5 py-1 text-xs text-foreground hover:bg-muted transition-colors disabled:opacity-50"
+      >
+        <span className="truncate">{selected ? selected.name : (placeholder ?? "Assign to…")}</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full z-50 mt-1 w-60 rounded-xl border border-border bg-background shadow-xl">
+          <div className="p-2 border-b border-border">
+            <input
+              type="text"
+              autoFocus
+              placeholder="Search mentor…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full rounded-lg border border-border bg-muted px-2.5 py-1.5 text-xs outline-none focus:border-primary"
+            />
+          </div>
+          <div className="max-h-48 overflow-y-auto">
+            {filtered.length === 0 && (
+              <p className="px-3 py-3 text-center text-xs text-muted-foreground">No mentors found</p>
+            )}
+            {filtered.map((m) => (
+              <button
+                key={m.member_id}
+                type="button"
+                onClick={() => { onChange(m.member_user_id!, m.name); setOpen(false); setQuery(""); }}
+                className="w-full px-3 py-2 text-left text-xs hover:bg-muted transition-colors"
+              >
+                <p className="font-medium text-foreground">{m.name}</p>
+                <p className="text-muted-foreground truncate">{m.email}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Manager client tab ─────────────────────────────────────────────────────────
+type ClientFilter = "all" | "unassigned" | "assigned" | "active" | "closed";
+
+function ManagerClientTab({ partnerId }: { partnerId: string }) {
+  const [filter, setFilter] = useState<ClientFilter>("all");
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [mentorFilter, setMentorFilter] = useState<string>(""); // member_user_id
+  const [mentorFilterQuery, setMentorFilterQuery] = useState("");
+  const [mentorFilterOpen, setMentorFilterOpen] = useState(false);
+  const mentorFilterRef = useRef<HTMLDivElement>(null);
+
+  const [clients, setClients] = useState<PartnerPageClient[]>([]);
+  const [clientsTotal, setClientsTotal] = useState(0);
+  const [unassignedCount, setUnassignedCount] = useState(0);
+  const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  const [mentors, setMentors] = useState<TeamMember[]>([]);
+
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkMentorId, setBulkMentorId] = useState("");
+  const [bulkMentorName, setBulkMentorName] = useState("");
+  const [bulkAssigning, setBulkAssigning] = useState(false);
+  const [bulkError, setBulkError] = useState<string | null>(null);
+
+  const [assigningRow, setAssigningRow] = useState<Record<string, boolean>>({});
+
+  // Debounce search
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(0); }, 350);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  // Load mentors once
+  useEffect(() => {
+    void supabase.rpc("list_partner_team", { p_limit: 200, p_offset: 0 }).then(({ data }) => {
+      if (data) {
+        const r = data as { rows: TeamMember[]; total: number };
+        setMentors((r.rows ?? []).filter((m) => m.status === "active" && m.member_user_id));
+      }
+    });
+  }, [partnerId]);
+
+  // Close mentor filter dropdown on outside click
+  useEffect(() => {
+    function h(e: MouseEvent) {
+      if (mentorFilterRef.current && !mentorFilterRef.current.contains(e.target as Node)) setMentorFilterOpen(false);
+    }
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+
+  useEffect(() => { void fetchClients(0); }, [filter, debouncedSearch, mentorFilter]);
+
+  async function fetchClients(p: number) {
+    setLoading(true);
+    const { data } = await supabase.rpc("get_partner_clients_page", {
+      p_limit: PAGE_SIZE,
+      p_offset: p * PAGE_SIZE,
+      p_filter: filter,
+      p_mentor_user_id: mentorFilter || null,
+      p_search: debouncedSearch.trim() || null,
+    });
+    if (data) {
+      const r = data as { rows: PartnerPageClient[]; total: number; unassigned_count: number | null };
+      setClients(r.rows ?? []);
+      setClientsTotal(r.total ?? 0);
+      setUnassignedCount(r.unassigned_count ?? 0);
+    }
+    setLoading(false);
+  }
+
+  function handlePageChange(p: number) { setPage(p); void fetchClients(p); }
+  function handleFilterChange(f: ClientFilter) { setFilter(f); setPage(0); setSelected(new Set()); }
+
+  // Select-all for current page
+  const allSelected = clients.length > 0 && clients.every((c) => selected.has(c.client_ref));
+  function toggleAll() {
+    setSelected((s) => {
+      const n = new Set(s);
+      if (allSelected) { clients.forEach((c) => n.delete(c.client_ref)); }
+      else { clients.forEach((c) => n.add(c.client_ref)); }
+      return n;
+    });
+  }
+  function toggleOne(ref: string) {
+    setSelected((s) => { const n = new Set(s); if (n.has(ref)) n.delete(ref); else n.add(ref); return n; });
+  }
+
+  async function handleBulkAssign() {
+    if (!bulkMentorId || selected.size === 0) return;
+    setBulkAssigning(true);
+    setBulkError(null);
+    const { error } = await supabase.rpc("assign_partner_clients", {
+      p_client_refs: Array.from(selected),
+      p_mentor_user_id: bulkMentorId,
+    });
+    setBulkAssigning(false);
+    if (error) { setBulkError(error.message); return; }
+    setSelected(new Set());
+    setBulkMentorId("");
+    setBulkMentorName("");
+    void fetchClients(page);
+  }
+
+  async function handleRowAssign(clientRef: string, mentorUserId: string) {
+    setAssigningRow((s) => ({ ...s, [clientRef]: true }));
+    const { error } = await supabase.rpc("assign_partner_clients", {
+      p_client_refs: [clientRef],
+      p_mentor_user_id: mentorUserId,
+    });
+    setAssigningRow((s) => ({ ...s, [clientRef]: false }));
+    if (!error) void fetchClients(page);
+  }
+
+  const mentorFilterLabel = mentors.find((m) => m.member_user_id === mentorFilter)?.name ?? "All mentors";
+  const filteredMentorSearch = mentors.filter((m) => {
+    const q = mentorFilterQuery.toLowerCase();
+    return m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q);
+  });
+
+  const filterButtons: [ClientFilter, string][] = [
+    ["all", "All"],
+    ["unassigned", "Unassigned"],
+    ["assigned", "Assigned"],
+    ["active", "Active"],
+    ["closed", "Case closed"],
+  ];
+
+  return (
+    <div>
+      {/* Unassigned banner */}
+      {unassignedCount > 0 && filter !== "unassigned" && (
+        <button
+          type="button"
+          onClick={() => handleFilterChange("unassigned")}
+          className="mb-4 flex w-full items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left text-sm text-amber-800 hover:bg-amber-100 transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>{unassignedCount} client{unassignedCount !== 1 ? "s" : ""} waiting to be assigned — click to view</span>
+        </button>
+      )}
+
+      {/* Filter bar */}
+      <div className="mb-4 flex flex-wrap gap-2">
+        {filterButtons.map(([f, label]) => (
+          <button key={f} type="button" onClick={() => handleFilterChange(f)}
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+              filter === f ? "bg-primary text-primary-foreground" : "border border-border text-muted-foreground hover:bg-muted"
+            }`}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Search + mentor filter */}
+      <div className="mb-4 flex flex-wrap gap-3">
+        <input
+          type="text"
+          placeholder="Search clients…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="flex-1 min-w-[180px] rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+        />
+        {/* Mentor filter dropdown */}
+        <div className="relative" ref={mentorFilterRef}>
+          <button type="button" onClick={() => { setMentorFilterOpen((o) => !o); setMentorFilterQuery(""); }}
+            className="flex items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors">
+            <span className="truncate max-w-[140px]">{mentorFilterLabel}</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          {mentorFilterOpen && (
+            <div className="absolute left-0 top-full z-50 mt-1 w-60 rounded-xl border border-border bg-background shadow-xl">
+              <div className="p-2 border-b border-border">
+                <input type="text" autoFocus placeholder="Search mentor…" value={mentorFilterQuery}
+                  onChange={(e) => setMentorFilterQuery(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-muted px-2.5 py-1.5 text-xs outline-none focus:border-primary" />
+              </div>
+              <div className="max-h-48 overflow-y-auto">
+                <button type="button" onClick={() => { setMentorFilter(""); setMentorFilterOpen(false); setPage(0); }}
+                  className="w-full px-3 py-2 text-left text-xs font-medium text-foreground hover:bg-muted transition-colors">
+                  All mentors
+                </button>
+                {filteredMentorSearch.map((m) => (
+                  <button key={m.member_id} type="button"
+                    onClick={() => { setMentorFilter(m.member_user_id!); setMentorFilterOpen(false); setPage(0); }}
+                    className="w-full px-3 py-2 text-left text-xs hover:bg-muted transition-colors">
+                    <p className="font-medium text-foreground">{m.name}</p>
+                    <p className="text-muted-foreground truncate">{m.email}</p>
+                  </button>
+                ))}
+                {filteredMentorSearch.length === 0 && (
+                  <p className="px-3 py-3 text-center text-xs text-muted-foreground">No mentors found</p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Bulk action bar */}
+      {selected.size > 0 && (
+        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3">
+          <span className="text-sm font-medium text-foreground">{selected.size} selected</span>
+          <MentorPicker
+            members={mentors}
+            value={bulkMentorId}
+            onChange={(id, name) => { setBulkMentorId(id); setBulkMentorName(name); }}
+            placeholder="Assign to…"
+          />
+          <button type="button" disabled={!bulkMentorId || bulkAssigning} onClick={() => void handleBulkAssign()}
+            className="rounded-lg bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-opacity">
+            {bulkAssigning ? "Assigning…" : `Assign to ${bulkMentorName || "…"}`}
+          </button>
+          <button type="button" onClick={() => setSelected(new Set())}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+            Clear
+          </button>
+          {bulkError && <p className="text-xs text-destructive">{bulkError}</p>}
+        </div>
+      )}
+
+      {/* Table */}
+      {loading ? (
+        <div className="flex justify-center py-8">
+          <div className="h-7 w-7 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      ) : clientsTotal === 0 ? (
+        <div className="rounded-2xl border border-border bg-card px-6 py-10 text-center">
+          <p className="text-sm text-muted-foreground">No clients match this filter.</p>
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-border bg-card">
+          <div className="border-b border-border px-6 py-4">
+            <h2 className="font-semibold text-foreground">Clients ({clientsTotal})</h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">Names show first name and last initial only.</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-muted text-xs uppercase tracking-wide text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-2">
+                    <input type="checkbox" checked={allSelected} onChange={toggleAll}
+                      className="h-3.5 w-3.5 rounded border-border cursor-pointer" />
+                  </th>
+                  <th className="px-4 py-2">Name</th>
+                  <th className="px-4 py-2">Language</th>
+                  <th className="px-4 py-2">Assigned to</th>
+                  <th className="px-4 py-2">Status</th>
+                  <th className="px-4 py-2">Date joined</th>
+                  <th className="px-4 py-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {clients.map((c) => (
+                  <tr key={c.client_ref} className={`border-t border-border ${c.case_status === "closed" ? "opacity-70" : ""}`}>
+                    <td className="px-4 py-2">
+                      <input type="checkbox" checked={selected.has(c.client_ref)} onChange={() => toggleOne(c.client_ref)}
+                        className="h-3.5 w-3.5 rounded border-border cursor-pointer" />
+                    </td>
+                    <td className="px-4 py-2 font-medium">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span>{c.display_name}</span>
+                        {c.shared ? (
+                          <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">Shared</span>
+                        ) : (
+                          <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">Not shared</span>
+                        )}
+                        {c.case_status === "closed" && (
+                          <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">Case closed</span>
+                        )}
+                      </div>
+                      {c.case_status === "closed" && c.outcome && (
+                        <p className="mt-0.5 text-xs text-muted-foreground">{outcomeLabel(c.outcome)}</p>
+                      )}
+                    </td>
+                    <td className="px-4 py-2 text-muted-foreground">{c.language}</td>
+                    <td className="px-4 py-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">
+                          {c.mentor_name ?? <span className="text-muted-foreground/60 italic">Unassigned</span>}
+                        </span>
+                        <MentorPicker
+                          members={mentors}
+                          value={c.mentor_user_id ?? ""}
+                          onChange={(id) => !assigningRow[c.client_ref] && void handleRowAssign(c.client_ref, id)}
+                          placeholder="Assign"
+                          disabled={assigningRow[c.client_ref]}
+                        />
+                        {assigningRow[c.client_ref] && (
+                          <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-2">
+                      {c.has_cv ? (
+                        <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">CV built</span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">No CV</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2 whitespace-nowrap text-muted-foreground">{fmtDate(c.joined_at)}</td>
+                    <td className="px-4 py-2">
+                      <ClientRowActions client={c} onCaseChanged={() => void fetchClients(page)} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {Math.ceil(clientsTotal / PAGE_SIZE) > 1 && (
+            <div className="flex items-center justify-between gap-3 border-t border-border px-6 py-4">
+              <p className="text-sm text-muted-foreground">
+                Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, clientsTotal)} of {clientsTotal}
+              </p>
+              <div className="flex items-center gap-1">
+                <button type="button" onClick={() => handlePageChange(Math.max(0, page - 1))} disabled={page === 0}
+                  className="min-h-[44px] rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-40 transition-colors">
+                  Previous
+                </button>
+                <button type="button" onClick={() => handlePageChange(Math.min(Math.ceil(clientsTotal / PAGE_SIZE) - 1, page + 1))} disabled={page >= Math.ceil(clientsTotal / PAGE_SIZE) - 1}
+                  className="min-h-[44px] rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-40 transition-colors">
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Manager view (items 1+2 stub — clients/team/activity tabs added in later commits) ─
 function ManagerView({
   roleInfo,
@@ -1293,34 +1708,6 @@ function ManagerView({
 }) {
   const referralUrl = `https://www.cvlingo.com/?ref=${roleInfo.referral_code}`;
   const [activeTab, setActiveTab] = useState<"clients" | "team" | "activity">("clients");
-  const [clients, setClients] = useState<PartnerPageClient[]>([]);
-  const [clientsTotal, setClientsTotal] = useState(0);
-  const [clientsPage, setClientsPage] = useState(0);
-  const [loadingClients, setLoadingClients] = useState(true);
-
-  useEffect(() => { void fetchClients(0); }, []);
-
-  async function fetchClients(p: number) {
-    setLoadingClients(true);
-    const { data } = await supabase.rpc("get_partner_clients_page", {
-      p_limit: PAGE_SIZE,
-      p_offset: p * PAGE_SIZE,
-      p_filter: "all",
-      p_mentor_user_id: null,
-      p_search: null,
-    });
-    if (data) {
-      const r = data as { rows: PartnerPageClient[]; total: number; unassigned_count: number | null };
-      setClients(r.rows ?? []);
-      setClientsTotal(r.total ?? 0);
-    }
-    setLoadingClients(false);
-  }
-
-  function handlePageChange(p: number) {
-    setClientsPage(p);
-    void fetchClients(p);
-  }
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-10">
@@ -1383,22 +1770,7 @@ function ManagerView({
 
       {/* Tab content */}
       {activeTab === "clients" && (
-        loadingClients ? (
-          <div className="flex justify-center py-8">
-            <div className="h-7 w-7 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          </div>
-        ) : (
-          <ClientsTable
-            clients={clients}
-            total={clientsTotal}
-            page={clientsPage}
-            onPageChange={handlePageChange}
-            onCaseChanged={() => void fetchClients(clientsPage)}
-            showMentorCol
-            title="Clients"
-            emptyMessage="No clients yet. Share your referral link to start tracking."
-          />
-        )
+        <ManagerClientTab partnerId={dashData.partner_id} />
       )}
 
       {activeTab === "team" && (
