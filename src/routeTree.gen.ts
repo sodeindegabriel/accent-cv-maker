@@ -19,6 +19,7 @@ import { Route as CoverLetterRouteImport } from './routes/cover-letter'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as EmployerRouteImport } from './routes/employer'
 import { Route as EmployersRouteImport } from './routes/employers'
+import { Route as PartnerRouteImport } from './routes/partner'
 import { Route as PartnersRouteImport } from './routes/partners'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResultRouteImport } from './routes/result'
@@ -33,7 +34,10 @@ import { Route as AdminTeamRouteImport } from './routes/admin.team'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as PartnerActivityRouteImport } from './routes/partner.activity'
+import { Route as PartnerClientsRouteImport } from './routes/partner.clients'
 import { Route as PartnerDashboardRouteImport } from './routes/partner.dashboard'
+import { Route as PartnerTeamRouteImport } from './routes/partner.team'
 import { Route as RefCodeRouteImport } from './routes/ref.$code'
 
 const IndexRoute = IndexRouteImport.update({
@@ -84,6 +88,11 @@ const EmployerRoute = EmployerRouteImport.update({
 const EmployersRoute = EmployersRouteImport.update({
   id: '/employers',
   path: '/employers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartnerRoute = PartnerRouteImport.update({
+  id: '/partner',
+  path: '/partner',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PartnersRoute = PartnersRouteImport.update({
@@ -156,10 +165,25 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => BlogRoute,
 } as any)
+const PartnerActivityRoute = PartnerActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => PartnerRoute,
+} as any)
+const PartnerClientsRoute = PartnerClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
+  getParentRoute: () => PartnerRoute,
+} as any)
 const PartnerDashboardRoute = PartnerDashboardRouteImport.update({
-  id: '/partner/dashboard',
-  path: '/partner/dashboard',
-  getParentRoute: () => rootRouteImport,
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => PartnerRoute,
+} as any)
+const PartnerTeamRoute = PartnerTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => PartnerRoute,
 } as any)
 const RefCodeRoute = RefCodeRouteImport.update({
   id: '/ref/$code',
@@ -178,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/employer': typeof EmployerRoute
   '/employers': typeof EmployersRoute
+  '/partner': typeof PartnerRouteWithChildren
   '/partners': typeof PartnersRoute
   '/privacy': typeof PrivacyRoute
   '/result': typeof ResultRoute
@@ -190,7 +215,10 @@ export interface FileRoutesByFullPath {
   '/admin/team': typeof AdminTeamRoute
   '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/partner/activity': typeof PartnerActivityRoute
+  '/partner/clients': typeof PartnerClientsRoute
   '/partner/dashboard': typeof PartnerDashboardRoute
+  '/partner/team': typeof PartnerTeamRoute
   '/ref/$code': typeof RefCodeRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -204,6 +232,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/employer': typeof EmployerRoute
   '/employers': typeof EmployersRoute
+  '/partner': typeof PartnerRouteWithChildren
   '/partners': typeof PartnersRoute
   '/privacy': typeof PrivacyRoute
   '/result': typeof ResultRoute
@@ -216,7 +245,10 @@ export interface FileRoutesByTo {
   '/admin/team': typeof AdminTeamRoute
   '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/partner/activity': typeof PartnerActivityRoute
+  '/partner/clients': typeof PartnerClientsRoute
   '/partner/dashboard': typeof PartnerDashboardRoute
+  '/partner/team': typeof PartnerTeamRoute
   '/ref/$code': typeof RefCodeRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
@@ -233,6 +265,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/employer': typeof EmployerRoute
   '/employers': typeof EmployersRoute
+  '/partner': typeof PartnerRouteWithChildren
   '/partners': typeof PartnersRoute
   '/privacy': typeof PrivacyRoute
   '/result': typeof ResultRoute
@@ -245,7 +278,10 @@ export interface FileRoutesById {
   '/admin/team': typeof AdminTeamRoute
   '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/partner/activity': typeof PartnerActivityRoute
+  '/partner/clients': typeof PartnerClientsRoute
   '/partner/dashboard': typeof PartnerDashboardRoute
+  '/partner/team': typeof PartnerTeamRoute
   '/ref/$code': typeof RefCodeRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -263,6 +299,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/employer'
     | '/employers'
+    | '/partner'
     | '/partners'
     | '/privacy'
     | '/result'
@@ -275,7 +312,10 @@ export interface FileRouteTypes {
     | '/admin/team'
     | '/admin/users'
     | '/blog/$slug'
+    | '/partner/activity'
+    | '/partner/clients'
     | '/partner/dashboard'
+    | '/partner/team'
     | '/ref/$code'
     | '/admin/'
     | '/blog/'
@@ -289,6 +329,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/employer'
     | '/employers'
+    | '/partner'
     | '/partners'
     | '/privacy'
     | '/result'
@@ -301,7 +342,10 @@ export interface FileRouteTypes {
     | '/admin/team'
     | '/admin/users'
     | '/blog/$slug'
+    | '/partner/activity'
+    | '/partner/clients'
     | '/partner/dashboard'
+    | '/partner/team'
     | '/ref/$code'
     | '/admin'
     | '/blog'
@@ -317,6 +361,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/employer'
     | '/employers'
+    | '/partner'
     | '/partners'
     | '/privacy'
     | '/result'
@@ -329,7 +374,10 @@ export interface FileRouteTypes {
     | '/admin/team'
     | '/admin/users'
     | '/blog/$slug'
+    | '/partner/activity'
+    | '/partner/clients'
     | '/partner/dashboard'
+    | '/partner/team'
     | '/ref/$code'
     | '/admin/'
     | '/blog/'
@@ -346,11 +394,11 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   EmployerRoute: typeof EmployerRoute
   EmployersRoute: typeof EmployersRoute
+  PartnerRoute: typeof PartnerRouteWithChildren
   PartnersRoute: typeof PartnersRoute
   PrivacyRoute: typeof PrivacyRoute
   ResultRoute: typeof ResultRoute
   TermsRoute: typeof TermsRoute
-  PartnerDashboardRoute: typeof PartnerDashboardRoute
   RefCodeRoute: typeof RefCodeRoute
 }
 
@@ -424,6 +472,13 @@ declare module '@tanstack/react-router' {
       path: '/employers'
       fullPath: '/employers'
       preLoaderRoute: typeof EmployersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partner': {
+      id: '/partner'
+      path: '/partner'
+      fullPath: '/partner'
+      preLoaderRoute: typeof PartnerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/partners': {
@@ -524,12 +579,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof BlogRoute
     }
+    '/partner/activity': {
+      id: '/partner/activity'
+      path: '/activity'
+      fullPath: '/partner/activity'
+      preLoaderRoute: typeof PartnerActivityRouteImport
+      parentRoute: typeof PartnerRoute
+    }
+    '/partner/clients': {
+      id: '/partner/clients'
+      path: '/clients'
+      fullPath: '/partner/clients'
+      preLoaderRoute: typeof PartnerClientsRouteImport
+      parentRoute: typeof PartnerRoute
+    }
     '/partner/dashboard': {
       id: '/partner/dashboard'
-      path: '/partner/dashboard'
+      path: '/dashboard'
       fullPath: '/partner/dashboard'
       preLoaderRoute: typeof PartnerDashboardRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof PartnerRoute
+    }
+    '/partner/team': {
+      id: '/partner/team'
+      path: '/team'
+      fullPath: '/partner/team'
+      preLoaderRoute: typeof PartnerTeamRouteImport
+      parentRoute: typeof PartnerRoute
     }
     '/ref/$code': {
       id: '/ref/$code'
@@ -577,6 +653,23 @@ const BlogRouteChildren: BlogRouteChildren = {
 
 const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
 
+interface PartnerRouteChildren {
+  PartnerActivityRoute: typeof PartnerActivityRoute
+  PartnerClientsRoute: typeof PartnerClientsRoute
+  PartnerDashboardRoute: typeof PartnerDashboardRoute
+  PartnerTeamRoute: typeof PartnerTeamRoute
+}
+
+const PartnerRouteChildren: PartnerRouteChildren = {
+  PartnerActivityRoute: PartnerActivityRoute,
+  PartnerClientsRoute: PartnerClientsRoute,
+  PartnerDashboardRoute: PartnerDashboardRoute,
+  PartnerTeamRoute: PartnerTeamRoute,
+}
+
+const PartnerRouteWithChildren =
+  PartnerRoute._addFileChildren(PartnerRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -588,22 +681,13 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   EmployerRoute: EmployerRoute,
   EmployersRoute: EmployersRoute,
+  PartnerRoute: PartnerRouteWithChildren,
   PartnersRoute: PartnersRoute,
   PrivacyRoute: PrivacyRoute,
   ResultRoute: ResultRoute,
   TermsRoute: TermsRoute,
-  PartnerDashboardRoute: PartnerDashboardRoute,
   RefCodeRoute: RefCodeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
