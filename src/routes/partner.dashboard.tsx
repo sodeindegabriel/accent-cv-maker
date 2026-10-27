@@ -1698,6 +1698,382 @@ function ManagerClientTab({ partnerId }: { partnerId: string }) {
   );
 }
 
+// ── Team tab ───────────────────────────────────────────────────────────────────
+function TeamTab({ partnerId, partnerName }: { partnerId: string; partnerName: string }) {
+  const [members, setMembers] = useState<TeamMember[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+
+  // Invite form
+  const [emailsText, setEmailsText] = useState("");
+  const [inviteRole, setInviteRole] = useState<"mentor" | "manager">("mentor");
+  const [inviting, setInviting] = useState(false);
+  const [inviteResult, setInviteResult] = useState<{
+    added: string[]; skipped: string[]; invalid: string[]; wrong_domain: string[];
+  } | null>(null);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+
+  // Role change
+  const [changingRole, setChangingRole] = useState<Record<string, boolean>>({});
+  const [roleChangeError, setRoleChangeError] = useState<Record<string, string | null>>({});
+
+  // Remove member dialog
+  const [removeTarget, setRemoveTarget] = useState<TeamMember | null>(null);
+  const [removeReassignTo, setRemoveReassignTo] = useState("");
+  const [removeLeaveUnassigned, setRemoveLeaveUnassigned] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const [removeError, setRemoveError] = useState<string | null>(null);
+
+  // Cancel invite
+  const [cancellingInvite, setCancellingInvite] = useState<Record<string, boolean>>({});
+
+  // Solo manager banner dismissed
+  const [soloManagerDismissed, setSoloManagerDismissed] = useState(false);
+
+  // Login instructions (shown after invite)
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [invitedEmails, setInvitedEmails] = useState<string[]>([]);
+
+  // Per-invite email send
+  const [sendingEmail, setSendingEmail] = useState<Record<string, boolean>>({});
+
+  useEffect(() => { void fetchMembers(0); }, [partnerId]);
+
+  async function fetchMembers(p: number) {
+    setLoading(true);
+    const { data } = await supabase.rpc("list_partner_team", { p_limit: 20, p_offset: p * 20 });
+    if (data) {
+      const r = data as { rows: TeamMember[]; total: number };
+      setMembers(r.rows ?? []);
+      setTotal(r.total ?? 0);
+    }
+    setLoading(false);
+  }
+
+  const managerCount = members.filter((m) => (m.role === "owner" || m.role === "manager") && m.status === "active").length;
+  const isLastManager = managerCount <= 1;
+
+  async function handleInvite(e: React.FormEvent) {
+    e.preventDefault();
+    const raw = emailsText.replace(/[\s,;]+/g, " ").trim().split(" ").filter(Boolean);
+    if (raw.length === 0) return;
+    setInviting(true);
+    setInviteError(null);
+    setInviteResult(null);
+    const { data, error } = await supabase.rpc("invite_partner_members", {
+      p_emails: raw,
+      p_role: inviteRole,
+    });
+    setInviting(false);
+    if (error) { setInviteError(error.message); return; }
+    const result = data as { added: string[]; skipped: string[]; invalid: string[]; wrong_domain: string[] };
+    setInviteResult(result);
+    if (result.added.length > 0) {
+      setInvitedEmails(result.added);
+      setShowInstructions(true);
+      setEmailsText("");
+      void fetchMembers(page);
+    }
+  }
+
+  async function handleRoleChange(member: TeamMember, newRole: "mentor" | "manager") {
+    setChangingRole((s) => ({ ...s, [member.member_id]: true }));
+    setRoleChangeError((s) => ({ ...s, [member.member_id]: null }));
+    const { error } = await supabase.rpc("set_partner_member_role", {
+      p_member_id: member.member_id,
+      p_role: newRole,
+    });
+    setChangingRole((s) => ({ ...s, [member.member_id]: false }));
+    if (error) {
+      setRoleChangeError((s) => ({
+        ...s,
+        [member.member_id]: error.message.includes("last") ? "There must always be at least one manager." : error.message,
+      }));
+    } else {
+      void fetchMembers(page);
+    }
+  }
+
+  async function handleRemove() {
+    if (!removeTarget) return;
+    setRemoving(true);
+    setRemoveError(null);
+    const { error } = await supabase.rpc("remove_partner_member", {
+      p_member_id: removeTarget.member_id,
+      p_reassign_to_user_id: removeLeaveUnassigned ? null : (removeReassignTo || null),
+    });
+    setRemoving(false);
+    if (error) {
+      setRemoveError(error.message.includes("last") ? "There must always be at least one manager." : error.message);
+      return;
+    }
+    setRemoveTarget(null);
+    setRemoveReassignTo("");
+    setRemoveLeaveUnassigned(false);
+    void fetchMembers(page);
+  }
+
+  async function handleCancelInvite(memberId: string) {
+    setCancellingInvite((s) => ({ ...s, [memberId]: true }));
+    const { error } = await supabase.rpc("cancel_partner_invite", { p_member_id: memberId });
+    setCancellingInvite((s) => ({ ...s, [memberId]: false }));
+    if (!error) void fetchMembers(page);
+    else {
+      // cancel_partner_invite may not be in DB yet — surface gracefully
+      console.warn("[cancel_partner_invite]", error.message);
+      void fetchMembers(page);
+    }
+  }
+
+  async function handleSendEmail(member: TeamMember) {
+    setSendingEmail((s) => ({ ...s, [member.member_id]: true }));
+    try {
+      await sendTeamInviteEmail(partnerName, member.email);
+    } catch (err) {
+      console.warn("[send invite email]", err);
+    }
+    setSendingEmail((s) => ({ ...s, [member.member_id]: false }));
+  }
+
+  const loginInstructions = [
+    `You've been added to ${partnerName}'s CVLingo team.`,
+    "",
+    "To access the partner dashboard:",
+    "1. Go to cvlingo.com and click Log in.",
+    "2. Enter your email address to receive a one-time login code.",
+    "3. You can set a password later from your profile.",
+  ].join("\n");
+
+  const totalPages = Math.ceil(total / 20);
+
+  return (
+    <div>
+      {/* Solo manager banner */}
+      {isLastManager && !soloManagerDismissed && (
+        <div className="mb-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0 text-amber-600"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <p className="flex-1 text-sm text-amber-800">Add a second manager so you are never locked out.</p>
+          <button type="button" onClick={() => setSoloManagerDismissed(true)} className="text-amber-600 hover:text-amber-800">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      )}
+
+      {/* Invite form */}
+      <div className="mb-6 rounded-2xl border border-border bg-card px-6 py-5">
+        <h3 className="mb-3 font-semibold text-foreground">Invite team members</h3>
+        <form onSubmit={(e) => void handleInvite(e)} className="flex flex-col gap-3">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">Email addresses (up to 100, comma / space / newline separated)</label>
+            <textarea
+              value={emailsText}
+              onChange={(e) => setEmailsText(e.target.value)}
+              rows={3}
+              placeholder={"alice@example.com, bob@example.com\ncarol@example.com"}
+              className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary resize-y"
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-medium text-muted-foreground">Role:</span>
+              {(["mentor", "manager"] as const).map((r) => (
+                <label key={r} className="flex cursor-pointer items-center gap-1.5">
+                  <input type="radio" name="inviteRole" value={r} checked={inviteRole === r} onChange={() => setInviteRole(r)} />
+                  <span className="text-sm capitalize">{r === "mentor" ? "Mentor" : "Manager"}</span>
+                </label>
+              ))}
+            </div>
+            <button type="submit" disabled={inviting || !emailsText.trim()}
+              className="rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-opacity">
+              {inviting ? "Inviting…" : "Add"}
+            </button>
+          </div>
+          {inviteError && <p className="text-sm text-destructive">{inviteError}</p>}
+        </form>
+
+        {inviteResult && (
+          <div className="mt-4 space-y-1.5 text-sm">
+            {inviteResult.added.length > 0 && (
+              <p className="text-emerald-700">{inviteResult.added.length} added: {inviteResult.added.join(", ")}</p>
+            )}
+            {inviteResult.skipped.length > 0 && (
+              <p className="text-muted-foreground">{inviteResult.skipped.length} already on team: {inviteResult.skipped.join(", ")}</p>
+            )}
+            {inviteResult.wrong_domain.length > 0 && (
+              <p className="text-amber-700">
+                These emails are not on {partnerName}'s allowed domains and were not added: {inviteResult.wrong_domain.join(", ")}
+              </p>
+            )}
+            {inviteResult.invalid.length > 0 && (
+              <p className="text-destructive">Invalid email addresses: {inviteResult.invalid.join(", ")}</p>
+            )}
+          </div>
+        )}
+
+        {showInstructions && (
+          <div className="mt-4 rounded-xl border border-border bg-muted/50 p-4">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-semibold text-foreground">Login instructions for new members</p>
+              <button type="button" onClick={() => setShowInstructions(false)} className="text-xs text-muted-foreground hover:text-foreground">Hide</button>
+            </div>
+            <pre className="whitespace-pre-wrap text-xs text-foreground font-sans">{loginInstructions}</pre>
+            <button type="button" onClick={() => void navigator.clipboard.writeText(loginInstructions)}
+              className="mt-2 rounded-lg border border-border px-3 py-1 text-xs font-medium text-foreground hover:bg-muted transition-colors">
+              Copy
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Members table */}
+      {loading ? (
+        <div className="flex justify-center py-8">
+          <div className="h-7 w-7 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-border bg-card">
+          <div className="border-b border-border px-6 py-4">
+            <h3 className="font-semibold text-foreground">Team members ({total})</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-muted text-xs uppercase tracking-wide text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-2">Name</th>
+                  <th className="px-4 py-2">Email</th>
+                  <th className="px-4 py-2">Role</th>
+                  <th className="px-4 py-2">Status</th>
+                  <th className="px-4 py-2">Active clients</th>
+                  <th className="px-4 py-2">Cases closed</th>
+                  <th className="px-4 py-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {members.map((m) => (
+                  <tr key={m.member_id} className="border-t border-border">
+                    <td className="px-4 py-2 font-medium text-foreground">{m.name}</td>
+                    <td className="px-4 py-2 text-muted-foreground">{m.email}</td>
+                    <td className="px-4 py-2">
+                      <div>
+                        <select
+                          value={m.role === "owner" ? "manager" : m.role}
+                          disabled={changingRole[m.member_id] || m.role === "owner"}
+                          onChange={(e) => void handleRoleChange(m, e.target.value as "mentor" | "manager")}
+                          className="rounded-lg border border-border bg-background px-2 py-1 text-xs text-foreground outline-none focus:border-primary disabled:opacity-50"
+                        >
+                          <option value="mentor">Mentor</option>
+                          <option value="manager">Manager</option>
+                        </select>
+                        {m.role === "owner" && <p className="mt-0.5 text-xs text-muted-foreground">Owner</p>}
+                        {roleChangeError[m.member_id] && (
+                          <p className="mt-0.5 text-xs text-destructive">{roleChangeError[m.member_id]}</p>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-2">
+                      {m.status === "active" ? (
+                        <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">Active</span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">Invited</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2 text-center text-muted-foreground">{m.assigned_count}</td>
+                    <td className="px-4 py-2 text-center text-muted-foreground">{m.closed_count}</td>
+                    <td className="px-4 py-2">
+                      <div className="flex flex-wrap gap-1.5">
+                        {m.status === "invited" && (
+                          <>
+                            <button type="button" onClick={() => void handleSendEmail(m)}
+                              disabled={sendingEmail[m.member_id]}
+                              className="rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted transition-colors disabled:opacity-50">
+                              {sendingEmail[m.member_id] ? "Sending…" : "Send invite email"}
+                            </button>
+                            <button type="button" onClick={() => void handleCancelInvite(m.member_id)}
+                              disabled={cancellingInvite[m.member_id]}
+                              className="rounded-lg border border-destructive/30 px-2.5 py-1 text-xs font-medium text-destructive hover:bg-destructive/5 transition-colors disabled:opacity-50">
+                              {cancellingInvite[m.member_id] ? "Cancelling…" : "Cancel invite"}
+                            </button>
+                          </>
+                        )}
+                        {m.status === "active" && m.role !== "owner" && (
+                          <button type="button" onClick={() => { setRemoveTarget(m); setRemoveError(null); setRemoveReassignTo(""); setRemoveLeaveUnassigned(false); }}
+                            className="rounded-lg border border-destructive/30 px-2.5 py-1 text-xs font-medium text-destructive hover:bg-destructive/5 transition-colors">
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between gap-3 border-t border-border px-6 py-4">
+              <p className="text-sm text-muted-foreground">Showing {page * 20 + 1}–{Math.min((page + 1) * 20, total)} of {total}</p>
+              <div className="flex gap-1">
+                <button type="button" onClick={() => { setPage(p => p - 1); void fetchMembers(page - 1); }} disabled={page === 0}
+                  className="min-h-[44px] rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-40 transition-colors">Previous</button>
+                <button type="button" onClick={() => { setPage(p => p + 1); void fetchMembers(page + 1); }} disabled={page >= totalPages - 1}
+                  className="min-h-[44px] rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-40 transition-colors">Next</button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Remove member dialog */}
+      {removeTarget && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setRemoveTarget(null); }}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <h2 className="font-semibold text-foreground mb-1">Remove {removeTarget.name}?</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              {removeTarget.assigned_count > 0
+                ? `This person has ${removeTarget.assigned_count} active client${removeTarget.assigned_count !== 1 ? "s" : ""}. Choose what to do with their clients.`
+                : "This person has no active clients."}
+            </p>
+            {removeTarget.assigned_count > 0 && (
+              <div className="mb-4 space-y-3">
+                <label className="flex cursor-pointer items-center gap-2 text-sm">
+                  <input type="radio" checked={!removeLeaveUnassigned} onChange={() => setRemoveLeaveUnassigned(false)} />
+                  <span>Move clients to another mentor</span>
+                </label>
+                {!removeLeaveUnassigned && (
+                  <div className="pl-6">
+                    <MentorPicker
+                      members={members.filter((m) => m.member_id !== removeTarget.member_id && m.status === "active" && m.member_user_id)}
+                      value={removeReassignTo}
+                      onChange={(id) => setRemoveReassignTo(id)}
+                      placeholder="Select mentor…"
+                    />
+                  </div>
+                )}
+                <label className="flex cursor-pointer items-center gap-2 text-sm">
+                  <input type="radio" checked={removeLeaveUnassigned} onChange={() => { setRemoveLeaveUnassigned(true); setRemoveReassignTo(""); }} />
+                  <span>Leave clients unassigned</span>
+                </label>
+              </div>
+            )}
+            {removeError && <p className="mb-3 text-sm text-destructive">{removeError}</p>}
+            <div className="flex gap-3">
+              <button type="button" onClick={() => void handleRemove()} disabled={removing || (!removeLeaveUnassigned && removeTarget.assigned_count > 0 && !removeReassignTo)}
+                className="flex-1 rounded-xl bg-destructive px-5 py-2.5 text-sm font-semibold text-destructive-foreground hover:opacity-90 disabled:opacity-50 transition-opacity">
+                {removing ? "Removing…" : "Remove"}
+              </button>
+              <button type="button" onClick={() => setRemoveTarget(null)} disabled={removing}
+                className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted transition-colors disabled:opacity-50">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Manager view (items 1+2 stub — clients/team/activity tabs added in later commits) ─
 function ManagerView({
   roleInfo,
@@ -1774,9 +2150,7 @@ function ManagerView({
       )}
 
       {activeTab === "team" && (
-        <div className="rounded-2xl border border-border bg-card px-6 py-10 text-center">
-          <p className="text-sm text-muted-foreground">Team management coming soon in the next update.</p>
-        </div>
+        <TeamTab partnerId={dashData.partner_id} partnerName={dashData.partner_name} />
       )}
 
       {activeTab === "activity" && (
