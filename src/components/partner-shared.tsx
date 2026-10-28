@@ -574,6 +574,11 @@ export function CaseStatusDialog({ client, action, onClose, onDone }: {
           {action === "close" ? `Close case for ${client.display_name}` : `Reopen case for ${client.display_name}`}
         </h2>
         <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
+          {action === "reopen" && (
+            <p className="text-sm text-muted-foreground">
+              This will mark the case as active again. Are you sure?
+            </p>
+          )}
           {action === "close" && (
             <>
               <div>
@@ -625,6 +630,8 @@ export function ClientRowActions({ client, onCaseChanged, isManager, currentUser
 
   const canAct = client.shared;
   const canCoverLetters = client.shared && client.scope !== "view_download";
+  const isAssignedToMe = !!currentUserId && client.mentor_user_id === currentUserId;
+  const canReopen = isManager || isAssignedToMe;
 
   async function fetchCvHtml(): Promise<string | null> {
     const { data, error } = await supabase.rpc("get_partner_referred_cv", { p_client_ref: client.client_ref });
@@ -669,10 +676,10 @@ export function ClientRowActions({ client, onCaseChanged, isManager, currentUser
         {client.case_status === "active" ? (
           <button type="button" onClick={() => setCaseDialog("close")}
             className="rounded-lg border border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted min-h-[44px]">Close case</button>
-        ) : (
+        ) : canReopen ? (
           <button type="button" onClick={() => setCaseDialog("reopen")}
-            className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100 min-h-[44px]">Reopen</button>
-        )}
+            className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100 min-h-[44px]">Reopen case</button>
+        ) : null}
       </div>
     </>
   );

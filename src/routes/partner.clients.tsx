@@ -524,9 +524,11 @@ function ClientRow({ client, isManager, members, selected, onToggleSelect, onCha
         )}
         <td className="px-4 py-3">
           {client.case_status === "closed" ? (
-            <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-              Closed{client.outcome ? ` · ${outcomeLabel(client.outcome)}` : ""}
-            </span>
+            <div className="space-y-0.5">
+              <span className="inline-block rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">Case closed</span>
+              {client.outcome && <p className="text-xs text-muted-foreground">{outcomeLabel(client.outcome)}</p>}
+              {client.closed_at && <p className="text-xs text-muted-foreground">{fmtDate(client.closed_at)}</p>}
+            </div>
           ) : (
             <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">Active</span>
           )}
@@ -594,7 +596,7 @@ function MobileClientCard({ client, isManager, members, onChanged, currentUserId
       <div className="flex items-start justify-between gap-2">
         <span className="font-medium text-foreground">{client.display_name}</span>
         {client.case_status === "closed" ? (
-          <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground shrink-0">Closed</span>
+          <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground shrink-0">Case closed</span>
         ) : (
           <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700 shrink-0">Active</span>
         )}
