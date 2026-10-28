@@ -8,6 +8,7 @@ export interface MyPartnerRole {
   referral_code: string;
   role: "owner" | "manager" | "mentor";
   is_manager: boolean;
+  is_owner: boolean;
 }
 
 export interface ManagerDashData {
@@ -44,6 +45,7 @@ interface PartnerContextValue {
   loading: boolean;
   error: string | null;
   refreshBadges: () => void;
+  refreshRole: () => Promise<void>;
 }
 
 const PartnerContext = createContext<PartnerContextValue>({
@@ -54,6 +56,7 @@ const PartnerContext = createContext<PartnerContextValue>({
   loading: true,
   error: null,
   refreshBadges: () => {},
+  refreshRole: async () => {},
 });
 
 export function usePartner() {
@@ -98,6 +101,15 @@ export function PartnerProvider({ children }: { children: React.ReactNode }) {
     void fetchBadges();
   }, [fetchBadges]);
 
+  const refreshRole = useCallback(async () => {
+    const { data } = await supabase.rpc("get_my_partner_role");
+    if (data) {
+      const r = data as MyPartnerRole;
+      setRoleInfo(r);
+      roleRef.current = r;
+    }
+  }, []);
+
   useEffect(() => {
     void (async () => {
       setLoading(true);
@@ -133,7 +145,7 @@ export function PartnerProvider({ children }: { children: React.ReactNode }) {
   }, [fetchBadges]);
 
   return (
-    <PartnerContext.Provider value={{ roleInfo, dashData, unassignedCount, unreadCount, loading, error, refreshBadges }}>
+    <PartnerContext.Provider value={{ roleInfo, dashData, unassignedCount, unreadCount, loading, error, refreshBadges, refreshRole }}>
       {children}
     </PartnerContext.Provider>
   );

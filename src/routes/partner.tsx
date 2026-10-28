@@ -251,7 +251,7 @@ function AccountMenu({ roleInfo, partnerName, referralCode, onNavigateAway }: Ac
     onNavigateAway();
   }
 
-  const roleDisplay = roleInfo.role === "owner" ? "Manager" : roleInfo.is_manager ? "Manager" : "Mentor";
+  const roleDisplay = roleInfo.role === "owner" ? "Owner" : roleInfo.is_manager ? "Manager" : "Mentor";
 
   return (
     <div className="relative" ref={menuRef}>
