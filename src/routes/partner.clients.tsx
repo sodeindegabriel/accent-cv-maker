@@ -51,6 +51,7 @@ function ClientsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [members, setMembers] = useState<TeamMember[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   // Debounced search
   const [debouncedQ, setDebouncedQ] = useState(search.q);
@@ -74,6 +75,7 @@ function ClientsScreen() {
   const [allMatchingRefs, setAllMatchingRefs] = useState<string[]>([]);
 
   useEffect(() => {
+    void supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id ?? null));
     if (isManager) {
       void supabase.rpc("list_partner_team", { p_limit: 200, p_offset: 0, p_search: null }).then(({ data }) => {
         const d = data as { rows: TeamMember[]; total: number } | null;
@@ -367,6 +369,7 @@ function ClientsScreen() {
                       members={members}
                       selected={selectedRefs.has(c.client_ref)}
                       onToggleSelect={() => toggleSelect(c.client_ref)}
+                      currentUserId={currentUserId}
                       onChanged={() => {
                         void supabase.rpc("get_partner_clients_page", {
                           p_limit: search.pageSize, p_offset: (search.page - 1) * search.pageSize,
@@ -400,6 +403,7 @@ function ClientsScreen() {
                     client={c}
                     isManager={isManager}
                     members={members}
+                    currentUserId={currentUserId}
                     onChanged={() => {
                       void supabase.rpc("get_partner_clients_page", {
                         p_limit: search.pageSize, p_offset: (search.page - 1) * search.pageSize,
@@ -440,18 +444,21 @@ function ClientsScreen() {
   );
 }
 
-function ClientRow({ client, isManager, members, selected, onToggleSelect, onChanged }: {
+function ClientRow({ client, isManager, members, selected, onToggleSelect, onChanged, currentUserId }: {
   client: PartnerPageClient;
   isManager: boolean;
   members: TeamMember[];
   selected: boolean;
   onToggleSelect: () => void;
   onChanged: () => void;
+  currentUserId: string | null;
 }) {
   const [assigning, setAssigning] = useState(false);
+  const [pendingAssign, setPendingAssign] = useState<{ userId: string; name: string } | null>(null);
 
-  async function handleAssign(userId: string) {
+  async function doAssign(userId: string) {
     setAssigning(true);
+    setPendingAssign(null);
     await supabase.rpc("assign_partner_clients", {
       p_client_refs: [client.client_ref],
       p_mentor_user_id: userId || null,
@@ -460,54 +467,92 @@ function ClientRow({ client, isManager, members, selected, onToggleSelect, onCha
     onChanged();
   }
 
+  function handlePickerChange(userId: string, name: string) {
+    // Reassigning from one person to another needs a confirm
+    if (client.mentor_user_id && userId && userId !== client.mentor_user_id) {
+      setPendingAssign({ userId, name });
+    } else {
+      void doAssign(userId);
+    }
+  }
+
+  const currentName = members.find((m) => m.member_user_id === client.mentor_user_id)?.name ?? client.mentor_name ?? "current person";
+
   return (
-    <tr className="border-t border-border hover:bg-muted/30 transition-colors">
-      {isManager && (
-        <td className="px-4 py-3 w-10">
-          <input type="checkbox" checked={selected} onChange={onToggleSelect}
-            className="rounded border-border" aria-label={`Select ${client.display_name}`} />
-        </td>
+    <>
+      {/* Reassign confirm */}
+      {pendingAssign && (
+        <tr><td colSpan={isManager ? 7 : 5} className="p-0">
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+              <h2 className="font-semibold text-foreground mb-3">Move client?</h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Move <strong>{client.display_name}</strong> from <strong>{currentName}</strong> to <strong>{pendingAssign.name}</strong>?
+              </p>
+              <div className="flex gap-3">
+                <button type="button" onClick={() => void doAssign(pendingAssign.userId)} disabled={assigning}
+                  className="flex-1 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 min-h-[44px]">
+                  {assigning ? "Moving…" : "Move"}
+                </button>
+                <button type="button" onClick={() => setPendingAssign(null)} disabled={assigning}
+                  className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted min-h-[44px]">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </td></tr>
       )}
-      <td className="px-4 py-3 font-medium text-foreground">{client.display_name}</td>
-      <td className="px-4 py-3 text-muted-foreground">{client.language}</td>
-      {isManager && (
-        <td className="px-4 py-3">
-          <MentorPicker
-            members={members}
-            value={client.mentor_user_id ?? ""}
-            onChange={(id) => void handleAssign(id)}
-            placeholder="Unassigned"
-            disabled={assigning}
-          />
-        </td>
-      )}
-      <td className="px-4 py-3">
-        {client.case_status === "closed" ? (
-          <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-            Closed{client.outcome ? ` · ${outcomeLabel(client.outcome)}` : ""}
-          </span>
-        ) : (
-          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">Active</span>
+      <tr className="border-t border-border hover:bg-muted/30 transition-colors">
+        {isManager && (
+          <td className="px-4 py-3 w-10">
+            <input type="checkbox" checked={selected} onChange={onToggleSelect}
+              className="rounded border-border" aria-label={`Select ${client.display_name}`} />
+          </td>
         )}
-      </td>
-      <td className="px-4 py-3 text-muted-foreground">{fmtDate(client.joined_at)}</td>
-      <td className="px-4 py-3">
-        <ClientRowActions client={client} onCaseChanged={onChanged} />
-      </td>
-    </tr>
+        <td className="px-4 py-3 font-medium text-foreground">{client.display_name}</td>
+        <td className="px-4 py-3 text-muted-foreground">{client.language}</td>
+        {isManager && (
+          <td className="px-4 py-3">
+            <MentorPicker
+              members={members}
+              value={client.mentor_user_id ?? ""}
+              onChange={handlePickerChange}
+              placeholder="Unassigned"
+              disabled={assigning}
+              showUnassign
+            />
+          </td>
+        )}
+        <td className="px-4 py-3">
+          {client.case_status === "closed" ? (
+            <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+              Closed{client.outcome ? ` · ${outcomeLabel(client.outcome)}` : ""}
+            </span>
+          ) : (
+            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">Active</span>
+          )}
+        </td>
+        <td className="px-4 py-3 text-muted-foreground">{fmtDate(client.joined_at)}</td>
+        <td className="px-4 py-3">
+          <ClientRowActions client={client} isManager={isManager} currentUserId={currentUserId} onCaseChanged={onChanged} />
+        </td>
+      </tr>
+    </>
   );
 }
 
-function MobileClientCard({ client, isManager, members, onChanged }: {
+function MobileClientCard({ client, isManager, members, onChanged, currentUserId }: {
   client: PartnerPageClient;
   isManager: boolean;
   members: TeamMember[];
   onChanged: () => void;
+  currentUserId: string | null;
 }) {
   const [assigning, setAssigning] = useState(false);
+  const [pendingAssign, setPendingAssign] = useState<{ userId: string; name: string } | null>(null);
 
-  async function handleAssign(userId: string) {
+  async function doAssign(userId: string) {
     setAssigning(true);
+    setPendingAssign(null);
     await supabase.rpc("assign_partner_clients", {
       p_client_refs: [client.client_ref],
       p_mentor_user_id: userId || null,
@@ -516,8 +561,36 @@ function MobileClientCard({ client, isManager, members, onChanged }: {
     onChanged();
   }
 
+  function handlePickerChange(userId: string, name: string) {
+    if (client.mentor_user_id && userId && userId !== client.mentor_user_id) {
+      setPendingAssign({ userId, name });
+    } else {
+      void doAssign(userId);
+    }
+  }
+
+  const currentName = members.find((m) => m.member_user_id === client.mentor_user_id)?.name ?? client.mentor_name ?? "current person";
+
   return (
     <div className="rounded-xl border border-border bg-card p-4 space-y-2">
+      {pendingAssign && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <h2 className="font-semibold text-foreground mb-3">Move client?</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Move <strong>{client.display_name}</strong> from <strong>{currentName}</strong> to <strong>{pendingAssign.name}</strong>?
+            </p>
+            <div className="flex gap-3">
+              <button type="button" onClick={() => void doAssign(pendingAssign.userId)} disabled={assigning}
+                className="flex-1 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 min-h-[44px]">
+                {assigning ? "Moving…" : "Move"}
+              </button>
+              <button type="button" onClick={() => setPendingAssign(null)} disabled={assigning}
+                className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted min-h-[44px]">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="flex items-start justify-between gap-2">
         <span className="font-medium text-foreground">{client.display_name}</span>
         {client.case_status === "closed" ? (
@@ -531,12 +604,13 @@ function MobileClientCard({ client, isManager, members, onChanged }: {
         <MentorPicker
           members={members}
           value={client.mentor_user_id ?? ""}
-          onChange={(id) => void handleAssign(id)}
+          onChange={handlePickerChange}
           placeholder="Unassigned"
           disabled={assigning}
+          showUnassign
         />
       )}
-      <ClientRowActions client={client} onCaseChanged={onChanged} />
+      <ClientRowActions client={client} isManager={isManager} currentUserId={currentUserId} onCaseChanged={onChanged} />
     </div>
   );
 }

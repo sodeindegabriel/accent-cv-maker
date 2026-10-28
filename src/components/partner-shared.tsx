@@ -609,7 +609,12 @@ export function CaseStatusDialog({ client, action, onClose, onDone }: {
 }
 
 // ── ClientRowActions ───────────────────────────────────────────────────────────
-export function ClientRowActions({ client, onCaseChanged }: { client: PartnerPageClient; onCaseChanged: () => void }) {
+export function ClientRowActions({ client, onCaseChanged, isManager, currentUserId }: {
+  client: PartnerPageClient;
+  onCaseChanged: () => void;
+  isManager?: boolean;
+  currentUserId?: string | null;
+}) {
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [downloadingWord, setDownloadingWord] = useState(false);
   const [clOpen, setClOpen] = useState(false);
@@ -674,26 +679,44 @@ export function ClientRowActions({ client, onCaseChanged }: { client: PartnerPag
 }
 
 // ── MentorPicker ───────────────────────────────────────────────────────────────
-export function MentorPicker({ members, value, onChange, placeholder, disabled }: {
+export function MentorPicker({ members, value, onChange, placeholder, disabled, showUnassign }: {
   members: TeamMember[];
   value: string;
   onChange: (userId: string, name: string) => void;
   placeholder?: string;
   disabled?: boolean;
+  showUnassign?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const selected = members.find((m) => m.member_user_id === value);
-  const filtered = members.filter((m) => {
-    const q = query.toLowerCase();
-    return m.status === "active" && m.member_user_id && (m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q));
-  });
+
+  const activeMembers = members.filter((m) => m.status === "active" && m.member_user_id);
+  const q = query.toLowerCase();
+  const currentMember = value ? activeMembers.find((m) => m.member_user_id === value) : null;
+  const otherMembers = activeMembers.filter((m) => m.member_user_id !== value && (
+    !query || m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q)
+  ));
+  // Current is always shown first (if query matches or no query)
+  const currentMatchesQuery = !query || (currentMember && (
+    currentMember.name.toLowerCase().includes(q) || currentMember.email.toLowerCase().includes(q)
+  ));
+
   useEffect(() => {
     function h(e: MouseEvent) { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); }
     document.addEventListener("mousedown", h);
     return () => document.removeEventListener("mousedown", h);
   }, []);
+
+  function pick(userId: string, name: string) {
+    onChange(userId, name);
+    setOpen(false);
+    setQuery("");
+  }
+
+  const noResults = !currentMatchesQuery && otherMembers.length === 0;
+
   return (
     <div className="relative" ref={ref}>
       <button type="button" disabled={disabled} onClick={() => { setOpen((o) => !o); setQuery(""); }}
@@ -708,14 +731,33 @@ export function MentorPicker({ members, value, onChange, placeholder, disabled }
               className="w-full rounded-lg border border-border bg-muted px-2.5 py-1.5 text-xs outline-none focus:border-primary" />
           </div>
           <div className="max-h-48 overflow-y-auto">
-            {filtered.length === 0 && <p className="px-3 py-3 text-center text-xs text-muted-foreground">No results</p>}
-            {filtered.map((m) => (
-              <button key={m.member_id} type="button" onClick={() => { onChange(m.member_user_id!, m.name); setOpen(false); setQuery(""); }}
+            {noResults && <p className="px-3 py-3 text-center text-xs text-muted-foreground">No results</p>}
+            {/* Current person first */}
+            {currentMember && currentMatchesQuery && (
+              <button key={currentMember.member_id} type="button" onClick={() => pick(currentMember.member_user_id!, currentMember.name)}
+                className="w-full px-3 py-2 text-left text-xs bg-muted/50 hover:bg-muted transition-colors min-h-[44px]">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-medium text-foreground">{currentMember.name}</p>
+                  <span className="shrink-0 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">Current</span>
+                </div>
+                <p className="text-muted-foreground truncate">{currentMember.email}</p>
+              </button>
+            )}
+            {/* Others */}
+            {otherMembers.map((m) => (
+              <button key={m.member_id} type="button" onClick={() => pick(m.member_user_id!, m.name)}
                 className="w-full px-3 py-2 text-left text-xs hover:bg-muted transition-colors min-h-[44px]">
                 <p className="font-medium text-foreground">{m.name}</p>
                 <p className="text-muted-foreground truncate">{m.email}</p>
               </button>
             ))}
+            {/* Unassign at the bottom */}
+            {showUnassign && value && (
+              <button type="button" onClick={() => pick("", "Unassigned")}
+                className="w-full border-t border-border px-3 py-2 text-left text-xs text-amber-600 hover:bg-amber-50 transition-colors min-h-[44px]">
+                Unassign
+              </button>
+            )}
           </div>
         </div>
       )}
