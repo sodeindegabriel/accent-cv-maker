@@ -87,6 +87,25 @@ function friendlyError(msg: string): string {
   return "Something went wrong. Please try again.";
 }
 
+function parseEmails(raw: string): string[] {
+  return raw
+    .split(/[\s,;]+/)
+    .map((e) => e.trim().toLowerCase())
+    .filter((e) => e.length > 0);
+}
+
+interface AddResult {
+  added: number;
+  skipped: number;
+  invalid: number;
+  wrong_domain: number;
+  skipped_list: string[];
+  invalid_list: string[];
+  wrong_domain_list: string[];
+  added_list: string[];
+  role: string;
+}
+
 function TeamScreenInner() {
   const { roleInfo, refreshRole } = usePartner();
   const isOwner = roleInfo?.role === "owner";
@@ -94,10 +113,12 @@ function TeamScreenInner() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteEmails, setInviteEmails] = useState("");
   const [inviteRole, setInviteRole] = useState<"manager" | "mentor">("mentor");
-  const [inviting, setInviting] = useState(false);
-  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [addResult, setAddResult] = useState<AddResult | null>(null);
+  const [sendingEmails, setSendingEmails] = useState(false);
+  const [emailSendResult, setEmailSendResult] = useState<string | null>(null);
   const [removeDialog, setRemoveDialog] = useState<TeamMember | null>(null);
   const [reassignTo, setReassignTo] = useState("");
   const [removing, setRemoving] = useState(false);
@@ -105,10 +126,12 @@ function TeamScreenInner() {
   const [roleChanging, setRoleChanging] = useState<string | null>(null);
   const [cancellingInvite, setCancellingInvite] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [showPendingOnly, setShowPendingOnly] = useState(false);
   const [showNamePrompt, setShowNamePrompt] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
 
   const managerCount = members.filter((m) => m.status === "active" && (m.role === "owner" || m.role === "manager")).length;
+  const pendingCount = members.filter((m) => m.status === "invited").length;
 
   async function loadMembers() {
     setError(null);
@@ -135,32 +158,84 @@ function TeamScreenInner() {
   }, []);
 
   const filteredMembers = useMemo(() => {
-    if (!search.trim()) return members;
-    const q = search.toLowerCase();
-    return members.filter((m) =>
-      (m.name ?? "").toLowerCase().includes(q) || m.email.toLowerCase().includes(q)
-    );
-  }, [members, search]);
-
-  async function handleInvite(e: React.FormEvent) {
-    e.preventDefault();
-    const email = inviteEmail.trim().toLowerCase();
-    if (!email) return;
-    setInviting(true); setInviteError(null);
-    const { error: err } = await supabase.rpc("invite_partner_members", {
-      p_emails: [email],
-      p_role: inviteRole,
-    });
-    if (err) {
-      setInviteError(friendlyError(err.message));
-      setInviting(false); return;
+    let list = members;
+    if (showPendingOnly) list = list.filter((m) => m.status === "invited");
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter((m) =>
+        (m.name ?? "").toLowerCase().includes(q) || m.email.toLowerCase().includes(q)
+      );
     }
-    try {
-      if (roleInfo) await sendTeamInviteEmail(roleInfo.partner_name, email);
-    } catch { /* non-fatal */ }
-    setInviteEmail(""); setAddOpen(false);
-    setInviting(false);
+    return list;
+  }, [members, search, showPendingOnly]);
+
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault();
+    const emails = parseEmails(inviteEmails);
+    if (emails.length === 0) return;
+    setAdding(true); setAddResult(null); setEmailSendResult(null);
+
+    const { data, error: err } = await supabase.rpc("invite_partner_members", {
+      p_emails: emails,
+      p_role: isOwner ? inviteRole : "mentor",
+    });
+    setAdding(false);
+
+    if (err) {
+      setAddResult({
+        added: 0, skipped: 0, invalid: 0, wrong_domain: 0,
+        skipped_list: [], invalid_list: [], wrong_domain_list: [],
+        added_list: [], role: inviteRole,
+      });
+      setError(friendlyError(err.message));
+      return;
+    }
+
+    const r = data as { added: number; skipped: number; invalid: number; wrong_domain: number; skipped_list: string[]; invalid_list: string[]; wrong_domain_list: string[] };
+    const skipped = new Set([...r.skipped_list, ...r.invalid_list, ...r.wrong_domain_list].map((e) => e.toLowerCase()));
+    const addedList = emails.filter((e) => !skipped.has(e));
+
+    setAddResult({
+      ...r,
+      added_list: addedList,
+      role: isOwner ? inviteRole : "mentor",
+    });
+    setInviteEmails("");
     void loadMembers();
+  }
+
+  async function handleSendInviteEmails(emailsList: string[]) {
+    if (!roleInfo) return;
+    setSendingEmails(true); setEmailSendResult(null);
+    let sent = 0; const failed: string[] = [];
+    for (const email of emailsList) {
+      try {
+        await sendTeamInviteEmail(roleInfo.partner_name, email);
+        sent++;
+      } catch {
+        failed.push(email);
+      }
+    }
+    setSendingEmails(false);
+    setEmailSendResult(
+      failed.length === 0
+        ? `${sent} invite email${sent !== 1 ? "s" : ""} sent.`
+        : `${sent} sent, ${failed.length} failed: ${failed.join(", ")}`
+    );
+  }
+
+  function getCopyMessage(emails: string[], role: string): string {
+    const roleWord = role === "manager" ? "manager" : "mentor";
+    return [
+      `You have been added to ${roleInfo?.partner_name ?? "our partner organisation"} on CVLingo as a ${roleWord}.`,
+      "",
+      "To sign in:",
+      "1. Go to cvlingo.com/partner/login",
+      `2. Enter your email address (${emails.length === 1 ? emails[0] : "the one this was sent to"})`,
+      "3. Enter the code we email you.",
+      "",
+      "The CVLingo team",
+    ].join("\n");
   }
 
   async function handleRoleChange(member: TeamMember, newRole: "manager" | "mentor") {
@@ -220,7 +295,22 @@ function TeamScreenInner() {
       )}
 
       <div className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-foreground">Team</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-foreground">Team</h1>
+          {!loading && pendingCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowPendingOnly((v) => !v)}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                showPendingOnly
+                  ? "bg-amber-100 text-amber-800 border border-amber-300"
+                  : "border border-border text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              {pendingCount} waiting for first sign-in
+            </button>
+          )}
+        </div>
         <div className="flex items-center gap-2">
           {isOwner && (
             <button
@@ -233,7 +323,7 @@ function TeamScreenInner() {
           )}
           <button
             type="button"
-            onClick={() => setAddOpen((o) => !o)}
+            onClick={() => { setAddOpen((o) => !o); setAddResult(null); setEmailSendResult(null); }}
             className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity min-h-[44px]"
           >
             {addOpen ? "Cancel" : "Add people"}
@@ -256,45 +346,119 @@ function TeamScreenInner() {
       {/* Add people panel */}
       {addOpen && (
         <div className="mb-6 rounded-2xl border border-border bg-card px-6 py-5">
-          <h2 className="mb-4 text-base font-semibold text-foreground">Invite a team member</h2>
-          <form onSubmit={(e) => void handleInvite(e)} className="flex flex-col gap-4 sm:flex-row sm:items-end">
-            <div className="flex-1">
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Email address</label>
-              <input
-                type="email"
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-                placeholder="colleague@example.com"
-                required
-                className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Role</label>
-              {isOwner ? (
-                <select
-                  value={inviteRole}
-                  onChange={(e) => setInviteRole(e.target.value as "manager" | "mentor")}
-                  className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary min-h-[44px]"
-                >
-                  <option value="mentor">Mentor</option>
-                  <option value="manager">Manager</option>
-                </select>
-              ) : (
-                <div className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-muted-foreground min-h-[44px] flex items-center">
-                  Mentor <span className="ml-2 text-xs text-muted-foreground/70">(only the owner can add managers)</span>
-                </div>
+          <h2 className="mb-1 text-base font-semibold text-foreground">Add team members</h2>
+          <p className="mb-4 text-sm text-muted-foreground">
+            People are added straight away with the chosen role. They sign in at{" "}
+            <span className="font-medium text-foreground">cvlingo.com/partner/login</span> using this email — no link to accept.
+          </p>
+
+          {/* Result panel */}
+          {addResult && (
+            <div className="mb-5 rounded-xl border border-border bg-background px-5 py-4">
+              {addResult.added > 0 && (
+                <p className="mb-1 text-sm font-medium text-foreground">
+                  {addResult.added} {addResult.added === 1 ? "person" : "people"} added as {addResult.role === "manager" ? "Manager" : "Mentor"}
+                  {addResult.added_list.length > 0 && (
+                    <span className="font-normal text-muted-foreground">: {addResult.added_list.join(", ")}</span>
+                  )}
+                </p>
+              )}
+              {addResult.skipped > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  {addResult.skipped} already on team: {addResult.skipped_list.join(", ")}
+                </p>
+              )}
+              {addResult.invalid > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  {addResult.invalid} not valid email{addResult.invalid !== 1 ? "s" : ""}: {addResult.invalid_list.join(", ")}
+                </p>
+              )}
+              {addResult.wrong_domain > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  {addResult.wrong_domain} blocked by domain restriction: {addResult.wrong_domain_list.join(", ")}
+                </p>
+              )}
+              {addResult.added === 0 && addResult.skipped === 0 && addResult.invalid === 0 && addResult.wrong_domain === 0 && (
+                <p className="text-sm text-muted-foreground">No changes made.</p>
+              )}
+
+              {addResult.added > 0 && (
+                <>
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    They can sign in at{" "}
+                    <span className="font-medium text-foreground">cvlingo.com/partner/login</span> with these emails.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      disabled={sendingEmails}
+                      onClick={() => void handleSendInviteEmails(addResult.added_list)}
+                      className="rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50 min-h-[44px]"
+                    >
+                      {sendingEmails ? "Sending…" : "Send invite emails"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void navigator.clipboard.writeText(getCopyMessage(addResult.added_list, addResult.role))}
+                      className="rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted min-h-[44px]"
+                    >
+                      Copy message
+                    </button>
+                  </div>
+                  {emailSendResult && (
+                    <p className="mt-2 text-sm text-muted-foreground">{emailSendResult}</p>
+                  )}
+                </>
               )}
             </div>
-            <button
-              type="submit"
-              disabled={inviting || !inviteEmail.trim()}
-              className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 min-h-[44px]"
-            >
-              {inviting ? "Inviting…" : "Send invite"}
-            </button>
+          )}
+
+          <form onSubmit={(e) => void handleAdd(e)} className="flex flex-col gap-4">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                Email addresses (one per line, or comma-separated)
+              </label>
+              <textarea
+                value={inviteEmails}
+                onChange={(e) => setInviteEmails(e.target.value)}
+                placeholder={"colleague@example.com\nanother@example.com"}
+                rows={3}
+                required
+                className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary resize-none"
+              />
+            </div>
+            <div className="flex items-end gap-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Role</label>
+                {isOwner ? (
+                  <select
+                    value={inviteRole}
+                    onChange={(e) => setInviteRole(e.target.value as "manager" | "mentor")}
+                    className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary min-h-[44px]"
+                  >
+                    <option value="mentor">Mentor</option>
+                    <option value="manager">Manager</option>
+                  </select>
+                ) : (
+                  <div className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-muted-foreground min-h-[44px] flex items-center gap-2">
+                    Mentor <span className="text-xs text-muted-foreground/70">(only the owner can add managers)</span>
+                  </div>
+                )}
+              </div>
+              <button
+                type="submit"
+                disabled={adding || !inviteEmails.trim()}
+                className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 min-h-[44px]"
+              >
+                {adding ? "Adding…" : "Add"}
+              </button>
+            </div>
           </form>
-          {inviteError && <p className="mt-2 text-sm text-destructive">{inviteError}</p>}
+
+          <p className="mt-3 text-xs text-muted-foreground">
+            People can also sign in themselves at{" "}
+            <span className="font-medium">cvlingo.com/partner/login</span> using the invited email.
+          </p>
         </div>
       )}
 
@@ -323,7 +487,7 @@ function TeamScreenInner() {
       )}
 
       {!loading && !error && filteredMembers.length === 0 && members.length === 0 && (
-        <EmptyState message={'No team members yet. Use "Add people" to invite someone.'} />
+        <EmptyState message={'No team members yet. Use "Add people" to add someone.'} />
       )}
       {!loading && !error && filteredMembers.length === 0 && members.length > 0 && (
         <p className="text-sm text-muted-foreground">No results for &ldquo;{search}&rdquo;</p>
@@ -379,6 +543,11 @@ function TeamScreenInner() {
               onRoleChange={(role) => void handleRoleChange(m, role)}
               onRemove={() => { setRemoveDialog(m); setRemoveError(null); }}
               onCancelInvite={() => void handleCancelInvite(m)}
+              onSendInviteEmail={(email) => void handleSendInviteEmails([email])}
+              onCopyMessage={(email) => {
+                const role = m.role === "manager" ? "manager" : "mentor";
+                void navigator.clipboard.writeText(getCopyMessage([email], role));
+              }}
             />
           ))}
         </div>
@@ -387,7 +556,7 @@ function TeamScreenInner() {
   );
 }
 
-function MemberCard({ member, isViewerOwner, managerCount, roleChanging, cancellingInvite, onRoleChange, onRemove, onCancelInvite }: {
+function MemberCard({ member, isViewerOwner, managerCount, roleChanging, cancellingInvite, onRoleChange, onRemove, onCancelInvite, onSendInviteEmail, onCopyMessage }: {
   member: TeamMember;
   isViewerOwner: boolean;
   managerCount: number;
@@ -396,6 +565,8 @@ function MemberCard({ member, isViewerOwner, managerCount, roleChanging, cancell
   onRoleChange: (role: "manager" | "mentor") => void;
   onRemove: () => void;
   onCancelInvite: () => void;
+  onSendInviteEmail: (email: string) => void;
+  onCopyMessage: (email: string) => void;
 }) {
   const isInvited = member.status === "invited";
   const isOwner = member.role === "owner";
@@ -439,11 +610,24 @@ function MemberCard({ member, isViewerOwner, managerCount, roleChanging, cancell
               <option value="mentor">Mentor</option>
             </select>
           )}
-          {/* Actions */}
+          {/* Pending-invite actions */}
+          {isInvited && (
+            <>
+              <button type="button" onClick={() => onSendInviteEmail(member.email)}
+                className="rounded-xl border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted min-h-[44px]">
+                Send invite email
+              </button>
+              <button type="button" onClick={() => onCopyMessage(member.email)}
+                className="rounded-xl border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted min-h-[44px]">
+                Copy message
+              </button>
+            </>
+          )}
+          {/* Cancel / Remove */}
           {showCancelInvite ? (
             <button type="button" onClick={onCancelInvite} disabled={cancellingInvite}
               className="rounded-xl border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted disabled:opacity-50 min-h-[44px]">
-              {cancellingInvite ? "Cancelling…" : "Cancel invite"}
+              {cancellingInvite ? "Cancelling…" : "Cancel"}
             </button>
           ) : showRemove ? (
             <button type="button" onClick={onRemove} disabled={isLastManager}
