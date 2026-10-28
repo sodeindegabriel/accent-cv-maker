@@ -1,11 +1,10 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { usePartner } from "@/context/PartnerContext";
 import type { TeamMember } from "@/components/partner-shared";
 import {
   EmptyState,
-  ErrorState,
   PageSpinner,
   fmtDate,
   roleLabel,
@@ -21,7 +20,6 @@ function TeamScreen() {
   const { roleInfo, loading: ctxLoading } = usePartner();
   const navigate = useNavigate();
 
-  // Redirect mentors to clients screen
   useEffect(() => {
     if (!ctxLoading && roleInfo && !roleInfo.is_manager) {
       void navigate({ to: "/partner/clients", search: { filter: "all", mentor: "", q: "", page: 1, pageSize: 25 }, replace: true });
@@ -32,6 +30,53 @@ function TeamScreen() {
   if (!roleInfo.is_manager) return null;
 
   return <TeamScreenInner />;
+}
+
+function NamePromptDialog({ onSave }: { onSave: (name: string) => void }) {
+  const [name, setName] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    setSaving(true);
+    setError(null);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setSaving(false); return; }
+    const { error: err } = await supabase.from("profiles").update({ full_name: trimmed }).eq("id", user.id);
+    if (err) { setError("Could not save name. Please try again."); setSaving(false); return; }
+    onSave(trimmed);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+        <h2 className="font-semibold text-foreground mb-1">What is your name?</h2>
+        <p className="text-sm text-muted-foreground mb-4">Your colleagues will see it when assigning clients.</p>
+        <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-3">
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Your full name"
+            required
+            autoFocus
+            className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary"
+          />
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <button
+            type="submit"
+            disabled={saving || !name.trim()}
+            className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 min-h-[44px]"
+          >
+            {saving ? "Saving…" : "Save"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
 }
 
 function TeamScreenInner() {
@@ -50,8 +95,9 @@ function TeamScreenInner() {
   const [removeError, setRemoveError] = useState<string | null>(null);
   const [roleChanging, setRoleChanging] = useState<string | null>(null);
   const [cancellingInvite, setCancellingInvite] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [showNamePrompt, setShowNamePrompt] = useState(false);
 
-  const activeCount = members.filter((m) => m.status === "active").length;
   const managerCount = members.filter((m) => m.status === "active" && (m.role === "owner" || m.role === "manager")).length;
 
   async function loadMembers() {
@@ -63,10 +109,29 @@ function TeamScreenInner() {
     });
     setLoading(false);
     if (err) { setError("Could not load team. Please try again."); return; }
-    setMembers(Array.isArray(data) ? (data as TeamMember[]) : []);
+    const d = data as { rows: TeamMember[]; total: number } | null;
+    setMembers(d?.rows ?? []);
   }
 
-  useEffect(() => { void loadMembers(); }, []);
+  useEffect(() => {
+    void loadMembers();
+    // Check if current user needs to set their name
+    void (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: profile } = await supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle();
+      if (!profile?.full_name) setShowNamePrompt(true);
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const filteredMembers = useMemo(() => {
+    if (!search.trim()) return members;
+    const q = search.toLowerCase();
+    return members.filter((m) =>
+      (m.name ?? "").toLowerCase().includes(q) || m.email.toLowerCase().includes(q)
+    );
+  }, [members, search]);
 
   async function handleInvite(e: React.FormEvent) {
     e.preventDefault();
@@ -81,7 +146,7 @@ function TeamScreenInner() {
       if (err.message.includes("domain")) {
         setInviteError("That email domain is not allowed for this partner.");
       } else {
-        setInviteError(err.message);
+        setInviteError("Could not send invite. Please try again.");
       }
       setInviting(false); return;
     }
@@ -100,7 +165,7 @@ function TeamScreenInner() {
       p_role: newRole,
     });
     setRoleChanging(null);
-    if (err) { alert("Could not change role. Please try again."); return; }
+    if (err) { setError("Could not change role. Please try again."); return; }
     void loadMembers();
   }
 
@@ -125,7 +190,7 @@ function TeamScreenInner() {
       p_member_id: member.member_id,
     });
     setCancellingInvite(null);
-    if (err) { alert("Could not cancel invite. Please try again."); return; }
+    if (err) { setError("Could not cancel invite. Please try again."); return; }
     void loadMembers();
   }
 
@@ -133,6 +198,10 @@ function TeamScreenInner() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+      {showNamePrompt && (
+        <NamePromptDialog onSave={() => setShowNamePrompt(false)} />
+      )}
+
       <div className="mb-6 flex items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-foreground">Team</h1>
         <button
@@ -144,7 +213,7 @@ function TeamScreenInner() {
         </button>
       </div>
 
-      {/* Second-manager banner — only after successful load */}
+      {/* Second-manager banner */}
       {!loading && !error && managerCount === 1 && (
         <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           Add at least one other manager so the team can continue if you lose access.
@@ -190,6 +259,19 @@ function TeamScreenInner() {
         </div>
       )}
 
+      {/* Search box */}
+      {!loading && !error && members.length > 1 && (
+        <div className="mb-4">
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name or email…"
+            className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary sm:max-w-xs"
+          />
+        </div>
+      )}
+
       {loading && <PageSpinner />}
       {error && !loading && (
         <div className="rounded-2xl border border-destructive/20 bg-destructive/5 px-6 py-6 text-center">
@@ -200,7 +282,13 @@ function TeamScreenInner() {
           </button>
         </div>
       )}
-      {!loading && !error && members.length === 0 && <EmptyState message="No team members yet" />}
+
+      {!loading && !error && filteredMembers.length === 0 && members.length === 0 && (
+        <EmptyState message={'No team members yet. Use "Add people" to invite someone.'} />
+      )}
+      {!loading && !error && filteredMembers.length === 0 && members.length > 0 && (
+        <p className="text-sm text-muted-foreground">No results for "{search}"</p>
+      )}
 
       {/* Remove/reassign dialog */}
       {removeDialog && (
@@ -239,13 +327,12 @@ function TeamScreenInner() {
       )}
 
       {/* Members list */}
-      {!loading && !error && members.length > 0 && (
+      {!loading && !error && filteredMembers.length > 0 && (
         <div className="space-y-3">
-          {members.map((m) => (
+          {filteredMembers.map((m) => (
             <MemberCard
               key={m.member_id}
               member={m}
-              isSelf={m.member_user_id === null /* fallback */ || false}
               managerCount={managerCount}
               roleChanging={roleChanging === m.member_id}
               cancellingInvite={cancellingInvite === m.member_id}
@@ -262,7 +349,6 @@ function TeamScreenInner() {
 
 function MemberCard({ member, managerCount, roleChanging, cancellingInvite, onRoleChange, onRemove, onCancelInvite }: {
   member: TeamMember;
-  isSelf: boolean;
   managerCount: number;
   roleChanging: boolean;
   cancellingInvite: boolean;
@@ -281,7 +367,11 @@ function MemberCard({ member, managerCount, roleChanging, cancellingInvite, onRo
           <p className="font-medium text-foreground">{member.name || <span className="italic text-muted-foreground">Name pending</span>}</p>
           <p className="text-sm text-muted-foreground">{member.email}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {isInvited ? "Invite pending" : `Joined ${fmtDate(member.created_at)}`}
+            {isInvited
+              ? <span className="text-amber-600 font-medium">Added: not signed in yet</span>
+              : <span className="text-green-700 font-medium">Active</span>}
+            {" · "}
+            {isInvited ? `Added ${fmtDate(member.created_at)}` : `Joined ${fmtDate(member.created_at)}`}
             {" · "}
             {member.assigned_count} assigned · {member.closed_count} closed
           </p>
@@ -319,12 +409,6 @@ function MemberCard({ member, managerCount, roleChanging, cancellingInvite, onRo
           ) : null}
         </div>
       </div>
-      {/* Login message for invited users */}
-      {isInvited && (
-        <p className="mt-2 text-xs text-muted-foreground">
-          They can log in at cvlingo.com using this email to accept the invitation.
-        </p>
-      )}
     </div>
   );
 }

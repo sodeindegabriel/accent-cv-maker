@@ -76,7 +76,8 @@ function ClientsScreen() {
   useEffect(() => {
     if (isManager) {
       void supabase.rpc("list_partner_team", { p_limit: 200, p_offset: 0, p_search: null }).then(({ data }) => {
-        setMembers(Array.isArray(data) ? (data as TeamMember[]) : []);
+        const d = data as { rows: TeamMember[]; total: number } | null;
+        setMembers(d?.rows ?? []);
       });
     }
   }, [isManager]);
