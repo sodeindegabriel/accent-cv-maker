@@ -56,7 +56,7 @@ function ActivityScreenInner({ refreshBadges }: { refreshBadges: () => void }) {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-6 flex items-center gap-3">
+      <div className="mb-2 flex items-center gap-3">
         <h1 className="text-2xl font-bold text-foreground">Activity</h1>
         {unreadCount > 0 && (
           <span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-semibold text-primary-foreground">
@@ -64,6 +64,9 @@ function ActivityScreenInner({ refreshBadges }: { refreshBadges: () => void }) {
           </span>
         )}
       </div>
+      <p className="mb-6 text-sm text-muted-foreground">
+        You will see a message here when someone closes or reopens a case.
+      </p>
 
       {error && (
         <div className="rounded-2xl border border-destructive/20 bg-destructive/5 px-6 py-6 text-center">
@@ -77,7 +80,8 @@ function ActivityScreenInner({ refreshBadges }: { refreshBadges: () => void }) {
 
       {!error && notifications.length === 0 && (
         <div className="rounded-2xl border border-border bg-card px-6 py-12 text-center">
-          <p className="text-sm text-muted-foreground">No activity yet. Events appear here as your candidates use CVLingo.</p>
+          <p className="text-sm font-medium text-foreground mb-1">Nothing here yet</p>
+          <p className="text-sm text-muted-foreground">Events will appear here when cases are closed or reopened.</p>
         </div>
       )}
 
