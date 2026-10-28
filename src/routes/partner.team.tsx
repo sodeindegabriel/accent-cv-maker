@@ -79,8 +79,17 @@ function NamePromptDialog({ onSave }: { onSave: (name: string) => void }) {
   );
 }
 
+function friendlyError(msg: string): string {
+  if (msg.includes("owner_only")) return "Only the owner can do this.";
+  if (msg.includes("last_manager")) return "There must always be at least one manager.";
+  if (msg.includes("cannot remove the owner")) return "The owner cannot be removed. Transfer ownership first.";
+  if (msg.includes("domain")) return "That email domain is not allowed for this partner.";
+  return "Something went wrong. Please try again.";
+}
+
 function TeamScreenInner() {
-  const { roleInfo } = usePartner();
+  const { roleInfo, refreshRole } = usePartner();
+  const isOwner = roleInfo?.role === "owner";
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -97,6 +106,7 @@ function TeamScreenInner() {
   const [cancellingInvite, setCancellingInvite] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [showNamePrompt, setShowNamePrompt] = useState(false);
+  const [transferOpen, setTransferOpen] = useState(false);
 
   const managerCount = members.filter((m) => m.status === "active" && (m.role === "owner" || m.role === "manager")).length;
 
@@ -115,7 +125,6 @@ function TeamScreenInner() {
 
   useEffect(() => {
     void loadMembers();
-    // Check if current user needs to set their name
     void (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -143,11 +152,7 @@ function TeamScreenInner() {
       p_role: inviteRole,
     });
     if (err) {
-      if (err.message.includes("domain")) {
-        setInviteError("That email domain is not allowed for this partner.");
-      } else {
-        setInviteError("Could not send invite. Please try again.");
-      }
+      setInviteError(friendlyError(err.message));
       setInviting(false); return;
     }
     try {
@@ -165,7 +170,7 @@ function TeamScreenInner() {
       p_role: newRole,
     });
     setRoleChanging(null);
-    if (err) { setError("Could not change role. Please try again."); return; }
+    if (err) { setError(friendlyError(err.message)); return; }
     void loadMembers();
   }
 
@@ -177,7 +182,7 @@ function TeamScreenInner() {
       p_reassign_to: reassignUserId ?? null,
     });
     if (err) {
-      setRemoveError(err.message.includes("only manager") ? "Cannot remove the only manager." : "Could not remove member. Please try again.");
+      setRemoveError(friendlyError(err.message));
       setRemoving(false); return;
     }
     setRemoving(false); setRemoveDialog(null); setReassignTo("");
@@ -190,7 +195,7 @@ function TeamScreenInner() {
       p_member_id: member.member_id,
     });
     setCancellingInvite(null);
-    if (err) { setError("Could not cancel invite. Please try again."); return; }
+    if (err) { setError(friendlyError(err.message)); return; }
     void loadMembers();
   }
 
@@ -202,16 +207,44 @@ function TeamScreenInner() {
         <NamePromptDialog onSave={() => setShowNamePrompt(false)} />
       )}
 
+      {transferOpen && (
+        <TransferOwnershipDialog
+          members={members}
+          onClose={() => setTransferOpen(false)}
+          onSuccess={async () => {
+            setTransferOpen(false);
+            await refreshRole();
+            void loadMembers();
+          }}
+        />
+      )}
+
       <div className="mb-6 flex items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-foreground">Team</h1>
-        <button
-          type="button"
-          onClick={() => setAddOpen((o) => !o)}
-          className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity min-h-[44px]"
-        >
-          {addOpen ? "Cancel" : "Add people"}
-        </button>
+        <div className="flex items-center gap-2">
+          {isOwner && (
+            <button
+              type="button"
+              onClick={() => setTransferOpen(true)}
+              className="rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted transition-colors min-h-[44px]"
+            >
+              Transfer ownership
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setAddOpen((o) => !o)}
+            className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity min-h-[44px]"
+          >
+            {addOpen ? "Cancel" : "Add people"}
+          </button>
+        </div>
       </div>
+
+      {/* Role explanation */}
+      <p className="mb-4 text-sm text-muted-foreground">
+        Managers can add and remove mentors and assign clients. Only the owner can add, remove or change managers and transfer ownership.
+      </p>
 
       {/* Second-manager banner */}
       {!loading && !error && managerCount === 1 && (
@@ -238,14 +271,20 @@ function TeamScreenInner() {
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-muted-foreground">Role</label>
-              <select
-                value={inviteRole}
-                onChange={(e) => setInviteRole(e.target.value as "manager" | "mentor")}
-                className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary min-h-[44px]"
-              >
-                <option value="mentor">Mentor</option>
-                <option value="manager">Manager</option>
-              </select>
+              {isOwner ? (
+                <select
+                  value={inviteRole}
+                  onChange={(e) => setInviteRole(e.target.value as "manager" | "mentor")}
+                  className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary min-h-[44px]"
+                >
+                  <option value="mentor">Mentor</option>
+                  <option value="manager">Manager</option>
+                </select>
+              ) : (
+                <div className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-muted-foreground min-h-[44px] flex items-center">
+                  Mentor <span className="ml-2 text-xs text-muted-foreground/70">(only the owner can add managers)</span>
+                </div>
+              )}
             </div>
             <button
               type="submit"
@@ -287,7 +326,7 @@ function TeamScreenInner() {
         <EmptyState message={'No team members yet. Use "Add people" to invite someone.'} />
       )}
       {!loading && !error && filteredMembers.length === 0 && members.length > 0 && (
-        <p className="text-sm text-muted-foreground">No results for "{search}"</p>
+        <p className="text-sm text-muted-foreground">No results for &ldquo;{search}&rdquo;</p>
       )}
 
       {/* Remove/reassign dialog */}
@@ -333,6 +372,7 @@ function TeamScreenInner() {
             <MemberCard
               key={m.member_id}
               member={m}
+              isViewerOwner={isOwner ?? false}
               managerCount={managerCount}
               roleChanging={roleChanging === m.member_id}
               cancellingInvite={cancellingInvite === m.member_id}
@@ -347,8 +387,9 @@ function TeamScreenInner() {
   );
 }
 
-function MemberCard({ member, managerCount, roleChanging, cancellingInvite, onRoleChange, onRemove, onCancelInvite }: {
+function MemberCard({ member, isViewerOwner, managerCount, roleChanging, cancellingInvite, onRoleChange, onRemove, onCancelInvite }: {
   member: TeamMember;
+  isViewerOwner: boolean;
   managerCount: number;
   roleChanging: boolean;
   cancellingInvite: boolean;
@@ -359,6 +400,10 @@ function MemberCard({ member, managerCount, roleChanging, cancellingInvite, onRo
   const isInvited = member.status === "invited";
   const isOwner = member.role === "owner";
   const isLastManager = managerCount <= 1 && (member.role === "manager" || member.role === "owner");
+
+  const showRoleSelector = isViewerOwner && !isOwner && !isInvited;
+  const showRemove = !isOwner && (isViewerOwner || member.role === "mentor");
+  const showCancelInvite = isInvited && (isViewerOwner || member.role === "mentor");
 
   return (
     <div className="rounded-2xl border border-border bg-card px-5 py-4">
@@ -380,7 +425,7 @@ function MemberCard({ member, managerCount, roleChanging, cancellingInvite, onRo
           {/* Role badge / selector */}
           {isOwner ? (
             <span className="rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground">Owner</span>
-          ) : isInvited ? (
+          ) : isInvited || !showRoleSelector ? (
             <span className="rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground">{roleLabel(member.role)}</span>
           ) : (
             <select
@@ -395,18 +440,125 @@ function MemberCard({ member, managerCount, roleChanging, cancellingInvite, onRo
             </select>
           )}
           {/* Actions */}
-          {isInvited ? (
+          {showCancelInvite ? (
             <button type="button" onClick={onCancelInvite} disabled={cancellingInvite}
               className="rounded-xl border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted disabled:opacity-50 min-h-[44px]">
               {cancellingInvite ? "Cancelling…" : "Cancel invite"}
             </button>
-          ) : !isOwner ? (
+          ) : showRemove ? (
             <button type="button" onClick={onRemove} disabled={isLastManager}
               title={isLastManager ? "Cannot remove the only manager" : undefined}
               className="rounded-xl border border-destructive/30 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/5 disabled:opacity-40 min-h-[44px]">
               Remove
             </button>
           ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TransferOwnershipDialog({ members, onClose, onSuccess }: {
+  members: TeamMember[];
+  onClose: () => void;
+  onSuccess: () => Promise<void>;
+}) {
+  const activeManagers = members.filter((m) => m.status === "active" && m.role === "manager" && m.member_user_id);
+  const [selectedId, setSelectedId] = useState(activeManagers[0]?.member_user_id ?? "");
+  const [search, setSearch] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [transferring, setTransferring] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return activeManagers;
+    const q = search.toLowerCase();
+    return activeManagers.filter((m) =>
+      (m.name ?? "").toLowerCase().includes(q) || m.email.toLowerCase().includes(q)
+    );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [members, search]);
+
+  async function handleTransfer() {
+    if (confirm !== "TRANSFER" || !selectedId) return;
+    setTransferring(true); setError(null);
+    const { error: err } = await supabase.rpc("transfer_partner_ownership", {
+      p_new_owner_user_id: selectedId,
+    });
+    if (err) {
+      setError(friendlyError(err.message));
+      setTransferring(false); return;
+    }
+    await onSuccess();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+        <h2 className="font-semibold text-foreground mb-1">Transfer ownership</h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          The selected manager will become the owner and you will become a manager.
+        </p>
+
+        {activeManagers.length === 0 ? (
+          <p className="text-sm text-muted-foreground mb-4">There are no active managers to transfer ownership to.</p>
+        ) : (
+          <>
+            {activeManagers.length > 3 && (
+              <input
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search managers…"
+                className="mb-3 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary"
+              />
+            )}
+            <div className="mb-4 max-h-48 overflow-y-auto space-y-2">
+              {filtered.map((m) => (
+                <label key={m.member_id} className="flex items-center gap-3 rounded-xl border border-border px-4 py-3 cursor-pointer hover:bg-muted">
+                  <input
+                    type="radio"
+                    name="transfer-target"
+                    value={m.member_user_id!}
+                    checked={selectedId === m.member_user_id}
+                    onChange={() => setSelectedId(m.member_user_id!)}
+                    className="accent-primary"
+                  />
+                  <span className="text-sm font-medium text-foreground">{m.name || m.email}</span>
+                  {m.name && <span className="text-xs text-muted-foreground">{m.email}</span>}
+                </label>
+              ))}
+              {filtered.length === 0 && <p className="text-sm text-muted-foreground">No results.</p>}
+            </div>
+
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+              Type <span className="font-mono font-semibold">TRANSFER</span> to confirm
+            </label>
+            <input
+              type="text"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              placeholder="TRANSFER"
+              className="mb-4 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary"
+            />
+          </>
+        )}
+
+        {error && <p className="mb-3 text-sm text-destructive">{error}</p>}
+
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => void handleTransfer()}
+            disabled={transferring || confirm !== "TRANSFER" || !selectedId}
+            className="flex-1 rounded-xl bg-destructive px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 min-h-[44px]"
+          >
+            {transferring ? "Transferring…" : "Transfer ownership"}
+          </button>
+          <button type="button" onClick={onClose} disabled={transferring}
+            className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted min-h-[44px]">
+            Cancel
+          </button>
         </div>
       </div>
     </div>
