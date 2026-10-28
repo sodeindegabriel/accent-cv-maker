@@ -704,11 +704,11 @@ export function MentorPicker({ members, value, onChange, placeholder, disabled }
       {open && (
         <div className="absolute left-0 top-full z-50 mt-1 w-60 rounded-xl border border-border bg-background shadow-xl">
           <div className="p-2 border-b border-border">
-            <input type="text" autoFocus placeholder="Search mentor…" value={query} onChange={(e) => setQuery(e.target.value)}
+            <input type="text" autoFocus placeholder="Search by name or email" value={query} onChange={(e) => setQuery(e.target.value)}
               className="w-full rounded-lg border border-border bg-muted px-2.5 py-1.5 text-xs outline-none focus:border-primary" />
           </div>
           <div className="max-h-48 overflow-y-auto">
-            {filtered.length === 0 && <p className="px-3 py-3 text-center text-xs text-muted-foreground">No mentors found</p>}
+            {filtered.length === 0 && <p className="px-3 py-3 text-center text-xs text-muted-foreground">No results</p>}
             {filtered.map((m) => (
               <button key={m.member_id} type="button" onClick={() => { onChange(m.member_user_id!, m.name); setOpen(false); setQuery(""); }}
                 className="w-full px-3 py-2 text-left text-xs hover:bg-muted transition-colors min-h-[44px]">

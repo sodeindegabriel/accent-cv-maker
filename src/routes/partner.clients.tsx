@@ -212,18 +212,21 @@ function ClientsScreen() {
             <option value="closed">Closed</option>
           </select>
         )}
-        {/* Mentor filter (managers only) */}
+        {/* Assigned-to filter (managers only) */}
         {isManager && members.length > 0 && (
-          <select
-            value={search.mentor}
-            onChange={(e) => void navigate({ search: (s: ClientSearch) => ({ ...s, mentor: e.target.value, page: 1 }), replace: true })}
-            className="rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary min-h-[44px]"
-          >
-            <option value="">All mentors</option>
-            {mentorActiveMembers.map((m) => (
-              <option key={m.member_id} value={m.member_user_id!}>{m.name || m.email}</option>
-            ))}
-          </select>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-muted-foreground whitespace-nowrap">Assigned to</span>
+            <select
+              value={search.mentor}
+              onChange={(e) => void navigate({ search: (s: ClientSearch) => ({ ...s, mentor: e.target.value, page: 1 }), replace: true })}
+              className="rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary min-h-[44px]"
+            >
+              <option value="">All people</option>
+              {mentorActiveMembers.map((m) => (
+                <option key={m.member_id} value={m.member_user_id!}>{m.name || m.email}</option>
+              ))}
+            </select>
+          </div>
         )}
         {/* Search */}
         <input
@@ -280,12 +283,12 @@ function ClientsScreen() {
             members={members}
             value={bulkMentorId}
             onChange={(id, name) => { setBulkMentorId(id); setBulkMentorName(name); }}
-            placeholder="Pick mentor to assign…"
+            placeholder="Choose person…"
           />
           {bulkMentorId && (
             <button type="button" onClick={() => setBulkConfirm(true)}
               className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 min-h-[44px]">
-              Assign to {bulkMentorName}
+              Assign {selectedRefs.size} selected to {bulkMentorName}
             </button>
           )}
           <button type="button" onClick={() => { setSelectedRefs(new Set()); setAllMatchingRefs([]); }}
@@ -344,7 +347,7 @@ function ClientsScreen() {
                   )}
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">Name</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">Language</th>
-                  {isManager && <th className="px-4 py-3 text-left font-medium text-muted-foreground">Mentor</th>}
+                  {isManager && <th className="px-4 py-3 text-left font-medium text-muted-foreground">Assigned to</th>}
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">Joined</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">Actions</th>
