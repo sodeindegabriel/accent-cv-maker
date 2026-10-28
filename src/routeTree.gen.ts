@@ -38,6 +38,7 @@ import { Route as PartnerActivityRouteImport } from './routes/partner.activity'
 import { Route as PartnerClientsRouteImport } from './routes/partner.clients'
 import { Route as PartnerDashboardRouteImport } from './routes/partner.dashboard'
 import { Route as PartnerTeamRouteImport } from './routes/partner.team'
+import { Route as PartnerLoginRouteImport } from './routes/partner.login'
 import { Route as RefCodeRouteImport } from './routes/ref.$code'
 
 const IndexRoute = IndexRouteImport.update({
@@ -185,6 +186,11 @@ const PartnerTeamRoute = PartnerTeamRouteImport.update({
   path: '/team',
   getParentRoute: () => PartnerRoute,
 } as any)
+const PartnerLoginRoute = PartnerLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => PartnerRoute,
+} as any)
 const RefCodeRoute = RefCodeRouteImport.update({
   id: '/ref/$code',
   path: '/ref/$code',
@@ -218,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/partner/activity': typeof PartnerActivityRoute
   '/partner/clients': typeof PartnerClientsRoute
   '/partner/dashboard': typeof PartnerDashboardRoute
+  '/partner/login': typeof PartnerLoginRoute
   '/partner/team': typeof PartnerTeamRoute
   '/ref/$code': typeof RefCodeRoute
   '/admin/': typeof AdminIndexRoute
@@ -248,6 +255,7 @@ export interface FileRoutesByTo {
   '/partner/activity': typeof PartnerActivityRoute
   '/partner/clients': typeof PartnerClientsRoute
   '/partner/dashboard': typeof PartnerDashboardRoute
+  '/partner/login': typeof PartnerLoginRoute
   '/partner/team': typeof PartnerTeamRoute
   '/ref/$code': typeof RefCodeRoute
   '/admin': typeof AdminIndexRoute
@@ -281,6 +289,7 @@ export interface FileRoutesById {
   '/partner/activity': typeof PartnerActivityRoute
   '/partner/clients': typeof PartnerClientsRoute
   '/partner/dashboard': typeof PartnerDashboardRoute
+  '/partner/login': typeof PartnerLoginRoute
   '/partner/team': typeof PartnerTeamRoute
   '/ref/$code': typeof RefCodeRoute
   '/admin/': typeof AdminIndexRoute
@@ -315,6 +324,7 @@ export interface FileRouteTypes {
     | '/partner/activity'
     | '/partner/clients'
     | '/partner/dashboard'
+    | '/partner/login'
     | '/partner/team'
     | '/ref/$code'
     | '/admin/'
@@ -345,6 +355,7 @@ export interface FileRouteTypes {
     | '/partner/activity'
     | '/partner/clients'
     | '/partner/dashboard'
+    | '/partner/login'
     | '/partner/team'
     | '/ref/$code'
     | '/admin'
@@ -377,6 +388,7 @@ export interface FileRouteTypes {
     | '/partner/activity'
     | '/partner/clients'
     | '/partner/dashboard'
+    | '/partner/login'
     | '/partner/team'
     | '/ref/$code'
     | '/admin/'
@@ -607,6 +619,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PartnerTeamRouteImport
       parentRoute: typeof PartnerRoute
     }
+    '/partner/login': {
+      id: '/partner/login'
+      path: '/login'
+      fullPath: '/partner/login'
+      preLoaderRoute: typeof PartnerLoginRouteImport
+      parentRoute: typeof PartnerRoute
+    }
     '/ref/$code': {
       id: '/ref/$code'
       path: '/ref/$code'
@@ -657,6 +676,7 @@ interface PartnerRouteChildren {
   PartnerActivityRoute: typeof PartnerActivityRoute
   PartnerClientsRoute: typeof PartnerClientsRoute
   PartnerDashboardRoute: typeof PartnerDashboardRoute
+  PartnerLoginRoute: typeof PartnerLoginRoute
   PartnerTeamRoute: typeof PartnerTeamRoute
 }
 
@@ -664,6 +684,7 @@ const PartnerRouteChildren: PartnerRouteChildren = {
   PartnerActivityRoute: PartnerActivityRoute,
   PartnerClientsRoute: PartnerClientsRoute,
   PartnerDashboardRoute: PartnerDashboardRoute,
+  PartnerLoginRoute: PartnerLoginRoute,
   PartnerTeamRoute: PartnerTeamRoute,
 }
 
@@ -691,3 +712,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

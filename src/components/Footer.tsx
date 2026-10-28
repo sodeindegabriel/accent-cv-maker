@@ -50,6 +50,7 @@ export function Footer() {
             <li><Link to="/blog" className="hover:text-accent transition-colors">Blog</Link></li>
             <li><Link to="/employers" className="hover:text-accent transition-colors">For Employers</Link></li>
             <li><Link to="/partners" className="hover:text-accent transition-colors">Community Partners</Link></li>
+            <li><Link to="/partner/login" className="hover:text-accent transition-colors">Partner sign-in</Link></li>
             <li><Link to="/about" className="hover:text-accent transition-colors">Our Story</Link></li>
             <li><Link to="/privacy" className="hover:text-accent transition-colors">Privacy Policy</Link></li>
             <li><Link to="/terms" className="hover:text-accent transition-colors">Terms of Service</Link></li>

@@ -5,9 +5,10 @@ import { PartnerProvider, usePartner } from "@/context/PartnerContext";
 
 export const Route = createFileRoute("/partner")({
   codeSplitGroupings: [],
-  beforeLoad: async () => {
+  beforeLoad: async ({ location }) => {
+    if (location.pathname === "/partner/login") return;
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw redirect({ to: "/" });
+    if (!session) throw redirect({ to: "/partner/login" });
   },
   component: PartnerLayout,
 });
@@ -19,6 +20,10 @@ interface NavItem {
 }
 
 function PartnerLayout() {
+  const routerState = useRouterState();
+  if (routerState.location.pathname === "/partner/login") {
+    return <Outlet />;
+  }
   return (
     <PartnerProvider>
       <PartnerLayoutInner />

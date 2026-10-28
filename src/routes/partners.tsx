@@ -196,12 +196,20 @@ function PartnersPage() {
           <Link to="/" className="flex items-center gap-2 text-primary transition hover:opacity-80">
             <img src="/cvlingo-logo.svg" alt="CVLingo" className="h-10 w-10 rounded-full" />
           </Link>
-          <button
-            onClick={scrollToForm}
-            className="inline-flex items-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md"
-          >
-            Apply to Partner
-          </button>
+          <div className="flex items-center gap-3">
+            <Link
+              to="/partner/login"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Partner sign-in
+            </Link>
+            <button
+              onClick={scrollToForm}
+              className="inline-flex items-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md"
+            >
+              Apply to Partner
+            </button>
+          </div>
         </div>
       </header>
 
