@@ -24,7 +24,7 @@ function TeamScreen() {
   // Redirect mentors to clients screen
   useEffect(() => {
     if (!ctxLoading && roleInfo && !roleInfo.is_manager) {
-      void navigate({ to: "/partner/clients", replace: true });
+      void navigate({ to: "/partner/clients", search: { filter: "all", mentor: "", q: "", page: 1, pageSize: 25 }, replace: true });
     }
   }, [ctxLoading, roleInfo, navigate]);
 
@@ -56,9 +56,13 @@ function TeamScreenInner() {
 
   async function loadMembers() {
     setError(null);
-    const { data, error: err } = await supabase.rpc("list_partner_team");
+    const { data, error: err } = await supabase.rpc("list_partner_team", {
+      p_limit: 200,
+      p_offset: 0,
+      p_search: null,
+    });
     setLoading(false);
-    if (err) { setError(err.message); return; }
+    if (err) { setError("Could not load team. Please try again."); return; }
     setMembers(Array.isArray(data) ? (data as TeamMember[]) : []);
   }
 
@@ -92,11 +96,11 @@ function TeamScreenInner() {
   async function handleRoleChange(member: TeamMember, newRole: "manager" | "mentor") {
     setRoleChanging(member.member_id);
     const { error: err } = await supabase.rpc("set_partner_member_role", {
-      p_member_id: member.member_id,
+      p_member_user_id: member.member_user_id,
       p_role: newRole,
     });
     setRoleChanging(null);
-    if (err) { alert(err.message); return; }
+    if (err) { alert("Could not change role. Please try again."); return; }
     void loadMembers();
   }
 
@@ -104,11 +108,11 @@ function TeamScreenInner() {
     if (!removeDialog) return;
     setRemoving(true); setRemoveError(null);
     const { error: err } = await supabase.rpc("remove_partner_member", {
-      p_member_id: removeDialog.member_id,
-      p_reassign_user_id: reassignUserId ?? null,
+      p_member_user_id: removeDialog.member_user_id,
+      p_reassign_to: reassignUserId ?? null,
     });
     if (err) {
-      setRemoveError(err.message.includes("only manager") ? "Cannot remove the only manager." : err.message);
+      setRemoveError(err.message.includes("only manager") ? "Cannot remove the only manager." : "Could not remove member. Please try again.");
       setRemoving(false); return;
     }
     setRemoving(false); setRemoveDialog(null); setReassignTo("");
@@ -121,7 +125,7 @@ function TeamScreenInner() {
       p_member_id: member.member_id,
     });
     setCancellingInvite(null);
-    if (err) { alert(err.message); return; }
+    if (err) { alert("Could not cancel invite. Please try again."); return; }
     void loadMembers();
   }
 
@@ -140,8 +144,8 @@ function TeamScreenInner() {
         </button>
       </div>
 
-      {/* Second-manager banner */}
-      {managerCount < 2 && (
+      {/* Second-manager banner — only after successful load */}
+      {!loading && !error && managerCount === 1 && (
         <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           Add at least one other manager so the team can continue if you lose access.
         </div>
@@ -187,7 +191,15 @@ function TeamScreenInner() {
       )}
 
       {loading && <PageSpinner />}
-      {error && !loading && <ErrorState message={error} />}
+      {error && !loading && (
+        <div className="rounded-2xl border border-destructive/20 bg-destructive/5 px-6 py-6 text-center">
+          <p className="mb-3 text-sm text-destructive">{error}</p>
+          <button type="button" onClick={() => { setLoading(true); void loadMembers(); }}
+            className="rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted min-h-[44px]">
+            Retry
+          </button>
+        </div>
+      )}
       {!loading && !error && members.length === 0 && <EmptyState message="No team members yet" />}
 
       {/* Remove/reassign dialog */}

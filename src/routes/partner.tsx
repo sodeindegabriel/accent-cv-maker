@@ -7,7 +7,7 @@ export const Route = createFileRoute("/partner")({
   codeSplitGroupings: [],
   beforeLoad: async () => {
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw redirect({ to: "/login" });
+    if (!session) throw redirect({ to: "/" });
   },
   component: PartnerLayout,
 });

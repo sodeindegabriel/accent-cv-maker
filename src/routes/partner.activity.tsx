@@ -3,14 +3,12 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { usePartner } from "@/context/PartnerContext";
 import type { PartnerNotification } from "@/components/partner-shared";
-import { ErrorState, PageSpinner, fmtDate } from "@/components/partner-shared";
+import { PageSpinner, fmtDate } from "@/components/partner-shared";
 
 export const Route = createFileRoute("/partner/activity")({
   codeSplitGroupings: [],
   component: ActivityScreen,
 });
-
-const PAGE_SIZE = 20;
 
 function ActivityScreen() {
   const { roleInfo, loading: ctxLoading, refreshBadges } = usePartner();
@@ -18,7 +16,7 @@ function ActivityScreen() {
 
   useEffect(() => {
     if (!ctxLoading && roleInfo && !roleInfo.is_manager) {
-      void navigate({ to: "/partner/clients", replace: true });
+      void navigate({ to: "/partner/clients", search: { filter: "all", mentor: "", q: "", page: 1, pageSize: 25 }, replace: true });
     }
   }, [ctxLoading, roleInfo, navigate]);
 
@@ -28,44 +26,31 @@ function ActivityScreen() {
   return <ActivityScreenInner refreshBadges={refreshBadges} />;
 }
 
+const MAX_ROWS = 50;
+
 function ActivityScreenInner({ refreshBadges }: { refreshBadges: () => void }) {
   const [notifications, setNotifications] = useState<PartnerNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [offset, setOffset] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
 
-  async function load(o: number, append = false) {
-    if (!append) setLoading(true); else setLoadingMore(true);
+  async function load() {
+    setLoading(true);
     setError(null);
-    const { data, error: err } = await supabase.rpc("get_partner_notifications", {
-      p_limit: PAGE_SIZE,
-      p_offset: o,
-    } as Record<string, unknown>);
-    setLoading(false); setLoadingMore(false);
-    if (err) { setError(err.message); return; }
+    // get_partner_notifications takes NO parameters — DB returns latest 50
+    const { data, error: err } = await supabase.rpc("get_partner_notifications");
+    setLoading(false);
+    if (err) { setError("Could not load activity. Please try again."); return; }
     const d = data as { rows: PartnerNotification[]; unread_count: number };
-    const rows = d.rows ?? [];
-    if (append) setNotifications((prev) => [...prev, ...rows]);
-    else setNotifications(rows);
+    setNotifications(d.rows ?? []);
     setUnreadCount(d.unread_count ?? 0);
-    setHasMore(rows.length === PAGE_SIZE);
   }
 
   useEffect(() => {
-    void load(0);
-    // Mark seen
+    void load();
     void supabase.rpc("mark_partner_notifications_seen").then(() => { refreshBadges(); });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  function loadMore() {
-    const next = offset + PAGE_SIZE;
-    setOffset(next);
-    void load(next, true);
-  }
 
   if (loading) return <PageSpinner />;
 
@@ -80,7 +65,15 @@ function ActivityScreenInner({ refreshBadges }: { refreshBadges: () => void }) {
         )}
       </div>
 
-      {error && <ErrorState message={error} />}
+      {error && (
+        <div className="rounded-2xl border border-destructive/20 bg-destructive/5 px-6 py-6 text-center">
+          <p className="mb-3 text-sm text-destructive">{error}</p>
+          <button type="button" onClick={() => void load()}
+            className="rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted min-h-[44px]">
+            Retry
+          </button>
+        </div>
+      )}
 
       {!error && notifications.length === 0 && (
         <div className="rounded-2xl border border-border bg-card px-6 py-12 text-center">
@@ -93,13 +86,10 @@ function ActivityScreenInner({ refreshBadges }: { refreshBadges: () => void }) {
           {notifications.map((n) => (
             <NotificationRow key={n.id} notification={n} />
           ))}
-          {hasMore && (
-            <div className="pt-4 flex justify-center">
-              <button type="button" onClick={loadMore} disabled={loadingMore}
-                className="rounded-xl border border-border px-6 py-2.5 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50 min-h-[44px]">
-                {loadingMore ? "Loading…" : "Load more"}
-              </button>
-            </div>
+          {notifications.length >= MAX_ROWS && (
+            <p className="pt-4 text-center text-xs text-muted-foreground">
+              Showing the latest {MAX_ROWS} events
+            </p>
           )}
         </div>
       )}

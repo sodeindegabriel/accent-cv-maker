@@ -49,6 +49,7 @@ function ClientsScreen() {
   const [loading, setLoading] = useState(true);
   const [firstLoad, setFirstLoad] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const [members, setMembers] = useState<TeamMember[]>([]);
 
   // Debounced search
@@ -74,7 +75,7 @@ function ClientsScreen() {
 
   useEffect(() => {
     if (isManager) {
-      void supabase.rpc("list_partner_team").then(({ data }) => {
+      void supabase.rpc("list_partner_team", { p_limit: 200, p_offset: 0, p_search: null }).then(({ data }) => {
         setMembers(Array.isArray(data) ? (data as TeamMember[]) : []);
       });
     }
@@ -94,7 +95,7 @@ function ClientsScreen() {
       });
       setLoading(false);
       setFirstLoad(false);
-      if (err) { setError(err.message); return; }
+      if (err) { setError("Could not load clients. Please try again."); return; }
       const d = data as { rows: PartnerPageClient[]; total: number; unassigned_count: number | null };
       setClients(d.rows ?? []);
       setTotal(d.total ?? 0);
@@ -102,7 +103,7 @@ function ClientsScreen() {
       refreshBadges();
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search.filter, search.mentor, search.page, search.pageSize, debouncedQ]);
+  }, [search.filter, search.mentor, search.page, search.pageSize, debouncedQ, retryCount]);
 
   const totalPages = Math.ceil(total / search.pageSize);
   const mentorActiveMembers = members.filter((m) => m.status === "active" && m.member_user_id && (m.role === "mentor" || m.role === "owner" || m.role === "manager"));
@@ -313,7 +314,15 @@ function ClientsScreen() {
       )}
 
       {/* Error */}
-      {error && <ErrorState message={error} />}
+      {error && (
+        <div className="rounded-2xl border border-destructive/20 bg-destructive/5 px-6 py-6 text-center">
+          <p className="mb-3 text-sm text-destructive">{error}</p>
+          <button type="button" onClick={() => { setLoading(true); setFirstLoad(true); setRetryCount((n) => n + 1); }}
+            className="rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted min-h-[44px]">
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Table (desktop) */}
       {!error && (
