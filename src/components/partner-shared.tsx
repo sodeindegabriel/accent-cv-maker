@@ -697,8 +697,8 @@ export function MentorPicker({ members, value, onChange, placeholder, disabled }
   return (
     <div className="relative" ref={ref}>
       <button type="button" disabled={disabled} onClick={() => { setOpen((o) => !o); setQuery(""); }}
-        className="flex min-w-[140px] items-center justify-between gap-1 rounded-lg border border-border bg-background px-2.5 py-1 text-xs text-foreground hover:bg-muted disabled:opacity-50 min-h-[44px]">
-        <span className="truncate">{selected ? selected.name : (placeholder ?? "Assign to…")}</span>
+        className={`flex min-w-[140px] items-center justify-between gap-1 rounded-lg border border-border bg-background px-2.5 py-1 text-xs hover:bg-muted disabled:opacity-50 min-h-[44px] ${!value ? "text-amber-600 font-medium" : "text-foreground"}`}>
+        <span className="truncate">{selected ? selected.name : (placeholder ?? "Unassigned")}</span>
         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
       {open && (
