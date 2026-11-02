@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { usePartner } from "@/context/PartnerContext";
 import type { TeamMember } from "@/components/partner-shared";
@@ -161,24 +161,57 @@ function TeamScreenInner() {
     return () => { timers.forEach((t) => clearTimeout(t)); };
   }, []);
 
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 100;
+
   const managerCount = members.filter((m) => m.status === "active" && (m.role === "owner" || m.role === "manager")).length;
   const pendingCount = members.filter((m) => m.status === "invited").length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  async function loadMembers() {
+  function sortMembers(rows: TeamMember[]): TeamMember[] {
+    function groupRank(m: TeamMember): number {
+      if (m.role === "owner") return 0;
+      if (m.role === "manager") return 1;
+      if (m.status === "active") return 2;
+      return 3; // invited / pending
+    }
+    const key = (m: TeamMember) => (m.name?.trim() || m.email).toLowerCase();
+    return [...rows].sort((a, b) => {
+      const gr = groupRank(a) - groupRank(b);
+      if (gr !== 0) return gr;
+      return key(a).localeCompare(key(b));
+    });
+  }
+
+  const loadMembers = useCallback(async (pg: number, q: string) => {
     setError(null);
+    setLoading(true);
     const { data, error: err } = await supabase.rpc("list_partner_team", {
-      p_limit: 200,
-      p_offset: 0,
-      p_search: null,
+      p_limit: PAGE_SIZE,
+      p_offset: pg * PAGE_SIZE,
+      p_search: q.trim() || null,
     });
     setLoading(false);
     if (err) { setError("Could not load team. Please try again."); return; }
     const d = data as { rows: TeamMember[]; total: number } | null;
-    setMembers(d?.rows ?? []);
+    setMembers(sortMembers(d?.rows ?? []));
+    setTotal(d?.total ?? 0);
+    setPage(pg);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Debounced search: fires server call 350ms after typing stops
+  const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+  function handleSearchChange(val: string) {
+    setSearch(val);
+    setPage(0);
+    if (searchDebounce.current) clearTimeout(searchDebounce.current);
+    searchDebounce.current = setTimeout(() => { void loadMembers(0, val); }, 350);
   }
 
   useEffect(() => {
-    void loadMembers();
+    void loadMembers(0, "");
     void (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -188,17 +221,10 @@ function TeamScreenInner() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const filteredMembers = useMemo(() => {
-    let list = members;
-    if (showPendingOnly) list = list.filter((m) => m.status === "invited");
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      list = list.filter((m) =>
-        (m.name ?? "").toLowerCase().includes(q) || m.email.toLowerCase().includes(q)
-      );
-    }
-    return list;
-  }, [members, search, showPendingOnly]);
+  // Client-side pending filter (applied on top of server results)
+  const filteredMembers = showPendingOnly
+    ? members.filter((m) => m.status === "invited")
+    : members;
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -233,7 +259,7 @@ function TeamScreenInner() {
       role: isOwner ? inviteRole : "mentor",
     });
     setInviteEmails("");
-    void loadMembers();
+    void loadMembers(page, search);
   }
 
   async function handleSendInviteEmails(memberIds: string[]) {
@@ -323,7 +349,7 @@ function TeamScreenInner() {
     });
     setRoleChanging(null);
     if (err) { setError(friendlyError(err.message)); return; }
-    void loadMembers();
+    void loadMembers(page, search);
   }
 
   async function handleRemove(reassignUserId?: string) {
@@ -338,7 +364,7 @@ function TeamScreenInner() {
       setRemoving(false); return;
     }
     setRemoving(false); setRemoveDialog(null); setReassignTo("");
-    void loadMembers();
+    void loadMembers(page, search);
   }
 
   async function handleCancelInvite(member: TeamMember) {
@@ -348,7 +374,7 @@ function TeamScreenInner() {
     });
     setCancellingInvite(null);
     if (err) { setError(friendlyError(err.message)); return; }
-    void loadMembers();
+    void loadMembers(page, search);
   }
 
   const activeMentors = members.filter((m) => m.status === "active" && m.member_user_id && m.member_id !== removeDialog?.member_id);
@@ -392,7 +418,7 @@ function TeamScreenInner() {
           onSuccess={async () => {
             setTransferOpen(false);
             await refreshRole();
-            void loadMembers();
+            void loadMembers(page, search);
           }}
         />
       )}
@@ -580,13 +606,13 @@ function TeamScreenInner() {
         </div>
       )}
 
-      {/* Search box */}
-      {!loading && !error && members.length > 1 && (
+      {/* Search box — always visible once loaded so you can search beyond page 1 */}
+      {!loading && !error && total > 0 && (
         <div className="mb-4">
           <input
             type="search"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Search by name or email…"
             className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary sm:max-w-xs"
           />
@@ -597,17 +623,17 @@ function TeamScreenInner() {
       {error && !loading && (
         <div className="rounded-2xl border border-destructive/20 bg-destructive/5 px-6 py-6 text-center">
           <p className="mb-3 text-sm text-destructive">{error}</p>
-          <button type="button" onClick={() => { setLoading(true); void loadMembers(); }}
+          <button type="button" onClick={() => void loadMembers(page, search)}
             className="rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted min-h-[44px]">
             Retry
           </button>
         </div>
       )}
 
-      {!loading && !error && filteredMembers.length === 0 && members.length === 0 && (
+      {!loading && !error && total === 0 && !search.trim() && (
         <EmptyState message={'No team members yet. Use "Add people" to add someone.'} />
       )}
-      {!loading && !error && filteredMembers.length === 0 && members.length > 0 && (
+      {!loading && !error && filteredMembers.length === 0 && (total > 0 || search.trim()) && (
         <p className="text-sm text-muted-foreground">No results for &ldquo;{search}&rdquo;</p>
       )}
 
@@ -672,6 +698,31 @@ function TeamScreenInner() {
           ))}
         </div>
       )}
+
+      {/* Pagination */}
+      {!loading && !error && totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-between gap-4">
+          <button
+            type="button"
+            disabled={page === 0 || loading}
+            onClick={() => void loadMembers(page - 1, search)}
+            className="rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-40 min-h-[44px]"
+          >
+            Previous
+          </button>
+          <span className="text-sm text-muted-foreground">
+            {`Showing ${page * PAGE_SIZE + 1}–${Math.min((page + 1) * PAGE_SIZE, total)} of ${total}`}
+          </span>
+          <button
+            type="button"
+            disabled={page >= totalPages - 1 || loading}
+            onClick={() => void loadMembers(page + 1, search)}
+            className="rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-40 min-h-[44px]"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -709,7 +760,7 @@ function MemberCard({ member, isViewerOwner, managerCount, roleChanging, cancell
               ? <span className="text-amber-600 font-medium">Added: not signed in yet</span>
               : <span className="text-green-700 font-medium">Active</span>}
             {" · "}
-            {isInvited ? `Added ${fmtDate(member.created_at)}` : `Joined ${fmtDate(member.created_at)}`}
+            {`Added ${fmtDate(member.created_at)}`}
             {" · "}
             {member.assigned_count} assigned · {member.closed_count} closed
             {emailedAtTime && (
