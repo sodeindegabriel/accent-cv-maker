@@ -113,7 +113,8 @@ export type TKey =
   | "partnerShareSuccess" | "partnerShareAlreadyShared"
   | "partnerSharingHeading" | "partnerSharingOn" | "partnerSharingOff"
   | "partnerSharingTurnOn" | "partnerSharingTurnOff"
-  | "partnerSharingAlwaysVisible" | "partnerSharingUpdated";
+  | "partnerSharingAlwaysVisible" | "partnerSharingUpdated"
+  | "ageConfirmCheckbox";
 
 
 type Dict = Partial<Record<TKey, string>>;
@@ -432,6 +433,7 @@ const en: Record<TKey, string> = {
   partnerSharingTurnOff: "Stop sharing",
   partnerSharingAlwaysVisible: "{partner} always sees your first name and initial and that you joined.",
   partnerSharingUpdated: "Sharing updated.",
+  ageConfirmCheckbox: "I confirm I am 18 or over",
 };
 
 const pl: Dict = {
@@ -730,6 +732,7 @@ const pl: Dict = {
   partnerSharingTurnOff: 'Zatrzymaj udostępnianie',
   partnerSharingAlwaysVisible: '{partner} zawsze widzi Twoje imię i inicjał oraz że dołączyłeś/aś.',
   partnerSharingUpdated: 'Udostępnianie zaktualizowane.',
+  ageConfirmCheckbox: 'Potwierdzam, że mam 18 lat lub więcej',
 };
 
 const ro: Dict = {
@@ -1028,6 +1031,7 @@ const ro: Dict = {
   partnerSharingTurnOff: 'Oprește partajarea',
   partnerSharingAlwaysVisible: '{partner} vede întotdeauna prenumele și inițiala ta și că te-ai alăturat.',
   partnerSharingUpdated: 'Partajare actualizată.',
+  ageConfirmCheckbox: 'Confirm că am 18 ani sau mai mult',
 };
 
 const es: Dict = {
@@ -1326,6 +1330,7 @@ const es: Dict = {
   partnerSharingTurnOff: 'Dejar de compartir',
   partnerSharingAlwaysVisible: '{partner} siempre ve tu nombre, inicial y que te has unido.',
   partnerSharingUpdated: 'Compartición actualizada.',
+  ageConfirmCheckbox: 'Confirmo que tengo 18 años o más',
 };
 
 const pt: Dict = {
@@ -1624,6 +1629,7 @@ const pt: Dict = {
   partnerSharingTurnOff: 'Parar de partilhar',
   partnerSharingAlwaysVisible: '{partner} vê sempre o seu primeiro nome e inicial e que se juntou.',
   partnerSharingUpdated: 'Partilha atualizada.',
+  ageConfirmCheckbox: 'Confirmo que tenho 18 anos ou mais',
 };
 
 const fr: Dict = {
@@ -1922,6 +1928,7 @@ const fr: Dict = {
   partnerSharingTurnOff: 'Arrêter le partage',
   partnerSharingAlwaysVisible: '{partner} voit toujours votre prénom, votre initiale et que vous vous êtes inscrit(e).',
   partnerSharingUpdated: 'Partage mis à jour.',
+  ageConfirmCheckbox: "Je confirme que j'ai 18 ans ou plus",
 };
 
 const ar: Dict = {
@@ -2220,6 +2227,7 @@ const ar: Dict = {
   partnerSharingTurnOff: 'إيقاف المشاركة',
   partnerSharingAlwaysVisible: '{partner} يرى دائماً اسمك الأول وحرفه الأول وأنك انضممت.',
   partnerSharingUpdated: 'تم تحديث المشاركة.',
+  ageConfirmCheckbox: 'أؤكد أنني في الثامنة عشرة من عمري أو أكبر',
 };
 
 const ur: Dict = {
@@ -2518,6 +2526,7 @@ const ur: Dict = {
   partnerSharingTurnOff: 'شیئرنگ بند کریں',
   partnerSharingAlwaysVisible: '{partner} ہمیشہ آپ کا پہلا نام، ابتدائی حرف اور یہ کہ آپ شامل ہوئے دیکھتے ہیں۔',
   partnerSharingUpdated: 'شیئرنگ اپ ڈیٹ ہو گئی۔',
+  ageConfirmCheckbox: 'میں تصدیق کرتا/کرتی ہوں کہ میری عمر 18 سال یا اس سے زیادہ ہے',
 };
 
 const hi: Dict = {
@@ -2816,6 +2825,7 @@ const hi: Dict = {
   partnerSharingTurnOff: 'साझाकरण बंद करें',
   partnerSharingAlwaysVisible: '{partner} हमेशा आपका पहला नाम, प्रारंभिक अक्षर और यह देखते हैं कि आप शामिल हुए।',
   partnerSharingUpdated: 'साझाकरण अपडेट हो गया।',
+  ageConfirmCheckbox: 'मैं पुष्टि करता/करती हूँ कि मेरी आयु 18 वर्ष या उससे अधिक है',
 };
 
 const bn: Dict = {
@@ -3114,6 +3124,7 @@ const bn: Dict = {
   partnerSharingTurnOff: 'শেয়ারিং বন্ধ করুন',
   partnerSharingAlwaysVisible: '{partner} সবসময় আপনার প্রথম নাম, আদ্যক্ষর এবং আপনি যোগ দিয়েছেন তা দেখতে পাবেন।',
   partnerSharingUpdated: 'শেয়ারিং আপডেট করা হয়েছে।',
+  ageConfirmCheckbox: 'আমি নিশ্চিত করছি যে আমার বয়স ১৮ বছর বা তার বেশি',
 };
 
 const so: Dict = {
@@ -3412,6 +3423,7 @@ const so: Dict = {
   partnerSharingTurnOff: 'Jooji la wadaagida',
   partnerSharingAlwaysVisible: '{partner} wuxuu had iyo jeer arki doonaa magacaaga hore, xarfahaaga bilowga ah iyo in aad ku biirtay.',
   partnerSharingUpdated: 'La wadaagida waa la cusboonaysiiyay.',
+  ageConfirmCheckbox: 'Waxaan xaqiijinayaa inaan jiraa 18 sano ama ka weyn',
 };
 
 const tr: Dict = {
@@ -3710,6 +3722,7 @@ const tr: Dict = {
   partnerSharingTurnOff: 'Paylaşımı durdur',
   partnerSharingAlwaysVisible: '{partner} her zaman adınızı, baş harfinizi ve katıldığınızı görür.',
   partnerSharingUpdated: 'Paylaşım güncellendi.',
+  ageConfirmCheckbox: '18 yaşında veya daha büyük olduğumu onaylıyorum',
 };
 
 const fa: Dict = {
@@ -4008,6 +4021,7 @@ const fa: Dict = {
   partnerSharingTurnOff: 'توقف اشتراک‌گذاری',
   partnerSharingAlwaysVisible: '{partner} همیشه نام کوچک، حرف اول و اینکه شما عضو شده‌اید را می‌بیند.',
   partnerSharingUpdated: 'اشتراک‌گذاری به‌روزرسانی شد.',
+  ageConfirmCheckbox: 'تأیید می‌کنم که ۱۸ سال یا بیشتر دارم',
 };
 
 const uk: Dict = {
@@ -4306,6 +4320,7 @@ const uk: Dict = {
   partnerSharingTurnOff: 'Зупинити спільний доступ',
   partnerSharingAlwaysVisible: '{partner} завжди бачить ваше ім\'я, ініціал і те, що ви приєдналися.',
   partnerSharingUpdated: 'Спільний доступ оновлено.',
+  ageConfirmCheckbox: 'Я підтверджую, що мені 18 років або більше',
 };
 
 const zh: Dict = {
@@ -4604,6 +4619,7 @@ const zh: Dict = {
   partnerSharingTurnOff: '停止共享',
   partnerSharingAlwaysVisible: '{partner}始终可以看到您的名字、姓名首字母以及您已加入。',
   partnerSharingUpdated: '共享已更新。',
+  ageConfirmCheckbox: '我确认我已年满18岁',
 };
 
 const pa: Dict = {
@@ -4902,6 +4918,7 @@ const pa: Dict = {
   partnerSharingTurnOff: 'ਸਾਂਝਾਕਰਨ ਬੰਦ ਕਰੋ',
   partnerSharingAlwaysVisible: '{partner} ਹਮੇਸ਼ਾ ਤੁਹਾਡਾ ਪਹਿਲਾ ਨਾਮ, ਅਦ੍ਯ-ਅੱਖਰ ਅਤੇ ਇਹ ਦੇਖਦਾ ਹੈ ਕਿ ਤੁਸੀਂ ਜੁੜੇ।',
   partnerSharingUpdated: 'ਸਾਂਝਾਕਰਨ ਅੱਪਡੇਟ ਹੋਇਆ।',
+  ageConfirmCheckbox: 'ਮੈਂ ਪੁਸ਼ਟੀ ਕਰਦਾ/ਕਰਦੀ ਹਾਂ ਕਿ ਮੇਰੀ ਉਮਰ 18 ਸਾਲ ਜਾਂ ਵੱਧ ਹੈ',
 };
 
 const gu: Dict = {
@@ -5200,6 +5217,7 @@ const gu: Dict = {
   partnerSharingTurnOff: 'શેરિંગ બંધ કરો',
   partnerSharingAlwaysVisible: '{partner} હંમેશા તમારું પ્રથમ નામ, આદ્યયક્ષ અને તમે જોડાયા છો તે જોઈ શકે છે.',
   partnerSharingUpdated: 'શેરિંગ અપડેટ થઈ.',
+  ageConfirmCheckbox: 'હું પુષ્ટિ કરું છું કે મારી ઉંમર 18 વર્ષ અથવા વધુ છે',
 };
 
 const ku: Dict = {
@@ -5498,6 +5516,7 @@ const ku: Dict = {
   partnerSharingTurnOff: 'Parvekirinê rawestîne',
   partnerSharingAlwaysVisible: '{partner} her dem navê te yê yekem, destpêka navê te û ku tu beşdar bûyî dibîne.',
   partnerSharingUpdated: 'Parvekirin hat nûve kirin.',
+  ageConfirmCheckbox: 'Ez piştrast dikim ku temenê min 18 sal an zêdetir e',
 };
 
 const ta: Dict = {
@@ -5796,6 +5815,7 @@ const ta: Dict = {
   partnerSharingTurnOff: 'பகிர்வை நிறுத்தவும்',
   partnerSharingAlwaysVisible: '{partner} எப்போதும் உங்கள் முதல் பெயர், தொடக்க எழுத்து மற்றும் நீங்கள் சேர்ந்தீர்கள் என்பதை காண்பார்.',
   partnerSharingUpdated: 'பகிர்வு புதுப்பிக்கப்பட்டது.',
+  ageConfirmCheckbox: 'என் வயது 18 அல்லது அதிகம் என்று உறுதிப்படுத்துகிறேன்',
 };
 
 const am: Dict = {
@@ -6094,6 +6114,7 @@ const am: Dict = {
   partnerSharingTurnOff: 'ማጋሪያ አቁም',
   partnerSharingAlwaysVisible: '{partner} ሁሌም የእርስዎን የመጀመሪያ ስም፣ ፊደል እና የተቀላቀሉ መሆኑን ይመለከታል።',
   partnerSharingUpdated: 'ማጋሪያ ተዘምኗል።',
+  ageConfirmCheckbox: 'እድሜዬ 18 ወይም ከዚያ በላይ እንደሆነ አረጋግጣለሁ',
 };
 
 const ti: Dict = {
@@ -6392,6 +6413,7 @@ const ti: Dict = {
   partnerSharingTurnOff: 'ምሕባር ኣቋርጽ',
   partnerSharingAlwaysVisible: '{partner} ሕልፍ ሕልፍ ናትካ መጀምርታ ስም፣ ፊደሉን ዝተጸምበርካ ምዃንካ ኩሉ ግዜ ክርኢ ኢዩ።',
   partnerSharingUpdated: 'ምሕባር ተዓዲሉ ኣሎ።',
+  ageConfirmCheckbox: 'ዕድሜይ 18 ወይ ካብኡ ንላዕሊ ምዃኑ ኣረጋጊጸ ኣለኹ',
 };
 
 const translations: Record<string, Dict> = {

@@ -428,6 +428,7 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
   const [resendCooldown, setResendCooldown] = useState(0);
   const [partnerName, setPartnerName] = useState<string | null>(null);
   const [shareWithPartner, setShareWithPartner] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
 
   // Load partner display name for referral notice
   useEffect(() => {
@@ -454,6 +455,7 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
     setError(null);
     if (!loginMode && !fullName.trim()) { setError(t(lang, "authValidFirstName")); return; }
     if (!isValidEmail(email)) { setError(t(lang, "authValidEmail")); return; }
+    if (!loginMode && !ageConfirmed) { setError("Please confirm you are 18 or over to continue."); return; }
     setSubmitting(true);
     const { error: err } = await sendOtp(email.trim(), fullName.trim());
     setSubmitting(false);
@@ -513,6 +515,7 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
     if (!loginMode && !fullName.trim()) { setError(t(lang, "authValidFirstName")); return; }
     if (!isValidEmail(email)) { setError(t(lang, "authValidEmail")); return; }
     if (password.length < 6) { setError(t(lang, "authValidPassword")); return; }
+    if (!loginMode && !ageConfirmed) { setError("Please confirm you are 18 or over to continue."); return; }
     setSubmitting(true);
     const hasRedirectDest = !!((() => { try { return sessionStorage.getItem("cvlingo:redirectAfterAuth"); } catch { return null; } })());
     if (loginMode) {
@@ -693,6 +696,26 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
                     </span>
                   </label>
                 </div>
+              )}
+
+              {/* Age confirmation — required on all sign-up paths, hidden on login */}
+              {!loginMode && (
+                <label className="mb-4 flex cursor-pointer items-start gap-3">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={ageConfirmed}
+                    onChange={(e) => { setAgeConfirmed(e.target.checked); setError(null); }}
+                    className="mt-0.5 h-4 w-4 shrink-0 rounded border-border accent-primary"
+                  />
+                  <span className="text-xs text-muted-foreground leading-relaxed">
+                    {t(lang, "ageConfirmCheckbox")}{" "}(
+                    <a href="/terms" className="underline underline-offset-2 hover:text-foreground">{t(lang, "authTerms")}</a>
+                    {" "}&amp;{" "}
+                    <a href="/privacy" className="underline underline-offset-2 hover:text-foreground">{t(lang, "authPrivacy")}</a>
+                    )
+                  </span>
+                </label>
               )}
 
               {screen === "password" && (

@@ -92,13 +92,17 @@ function PrivacyPage() {
               </ul>
             </Section>
 
-            <Section title="5. Data Storage and Security">
+            <Section title="5. Children and Age">
+              <p>We do not knowingly collect personal data from anyone under 18, and we do not ask for dates of birth. If you are a parent or carer and think a child has used CVLingo, contact us at{" "}<ObfuscatedEmail className="text-primary hover:underline" /> and we will delete the account.</p>
+            </Section>
+
+            <Section title="6. Data Storage and Security">
               <p>Your CV data is processed in real time to generate your CV. If you join our candidate pool, your data is stored securely on our servers.</p>
               <p>We implement appropriate technical and organisational measures to protect your personal data against unauthorised access, alteration, disclosure or destruction.</p>
               <p>Your data is stored on secure UK/EU servers and is never transferred to countries without adequate data protection laws.</p>
             </Section>
 
-            <Section title="6. How Long We Keep Your Data">
+            <Section title="7. How Long We Keep Your Data">
               <ul className="mt-2 list-disc space-y-2 pl-5">
                 <li><span className="font-medium">CV generation data:</span> processed in real time and not permanently stored unless you join the candidate pool</li>
                 <li><span className="font-medium">Candidate pool data:</span> retained for up to 2 years or until you request deletion</li>
@@ -106,7 +110,7 @@ function PrivacyPage() {
               </ul>
             </Section>
 
-            <Section title="7. Your Rights Under UK GDPR">
+            <Section title="8. Your Rights Under UK GDPR">
               <p>You have the following rights:</p>
               <ul className="mt-2 list-disc space-y-2 pl-5">
                 <li><span className="font-medium">Right to access:</span> Request a copy of the personal data we hold about you</li>
@@ -120,7 +124,7 @@ function PrivacyPage() {
               <p>To exercise any of these rights, contact us at{" "}<ObfuscatedEmail className="text-primary hover:underline" />. We will respond within 30 days.</p>
             </Section>
 
-            <Section title="8. Candidate Pool">
+            <Section title="9. Candidate Pool">
               <p>If you choose to join our candidate pool:</p>
               <ul className="mt-2 list-disc space-y-1 pl-5">
                 <li>Your CV and contact details may be shared with employers who are actively hiring for roles that match your profile</li>
@@ -129,18 +133,18 @@ function PrivacyPage() {
               </ul>
             </Section>
 
-            <Section title="9. Sharing with a Partner Organisation">
+            <Section title="10. Sharing with a Partner Organisation">
               <p>If you arrived at CVLingo via a partner link (from a charity, job centre, community organisation, or similar), we will tell the partner that you have signed up and used the service. This is basic referral tracking and is part of our legitimate interest in maintaining partner relationships.</p>
               <p>We will only share your CV, cover letters, or contact details with the partner if you explicitly chose to do so when you created your account.</p>
               <p>Partner staff can see activity on cases they manage — for example when you use the service, when your case status changes, and notes that staff have written. They cannot see your password or payment details (we hold none).</p>
               <p>If you want to know exactly what data a specific partner can see, or if you want to withdraw your sharing consent, contact us at{" "}<ObfuscatedEmail className="text-primary hover:underline" />.</p>
             </Section>
 
-            <Section title="10. Cookies">
+            <Section title="11. Cookies">
               <p>We use essential cookies only to keep the platform functioning correctly. We do not use tracking, advertising, or analytics cookies without your consent.</p>
             </Section>
 
-            <Section title="11. Third Party Services">
+            <Section title="12. Third Party Services">
               <p>We use the following third party services:</p>
               <ul className="mt-2 list-disc space-y-2 pl-5">
                 <li><span className="font-medium">Anthropic Claude API:</span> To generate CV and cover letter content. Your data is sent to Anthropic under a data processing agreement. Anthropic does not use it to train their models.</li>
@@ -149,7 +153,7 @@ function PrivacyPage() {
               </ul>
             </Section>
 
-            <Section title="12. Complaints">
+            <Section title="13. Complaints">
               <p>If you are unhappy with how we handle your personal data, you have the right to lodge a complaint with the Information Commissioner's Office (ICO):</p>
               <div className="mt-2 space-y-1">
                 <p><span className="font-medium">Website:</span>{" "}<a href="https://ico.org.uk" target="_blank" rel="noreferrer" className="text-primary hover:underline">ico.org.uk</a></p>
@@ -157,11 +161,11 @@ function PrivacyPage() {
               </div>
             </Section>
 
-            <Section title="13. Changes to This Policy">
+            <Section title="14. Changes to This Policy">
               <p>We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated date. Continued use of CVLingo after changes constitutes acceptance of the new policy.</p>
             </Section>
 
-            <Section title="14. Contact Us">
+            <Section title="15. Contact Us">
               <p>For any privacy related queries:</p>
               <div className="mt-2 space-y-1">
                 <p><span className="font-medium">Email:</span>{" "}<ObfuscatedEmail className="text-primary hover:underline" /></p>

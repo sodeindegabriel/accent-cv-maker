@@ -22,7 +22,7 @@ function TermsPage() {
 
           <div className="mb-10 border-b border-border pb-8">
             <h1 className="font-serif text-4xl text-foreground">Terms of Service</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Last updated: June 2026</p>
+            <p className="mt-2 text-sm text-muted-foreground">Last updated: November 2026</p>
           </div>
 
           <div className="space-y-10">
@@ -46,7 +46,11 @@ function TermsPage() {
               <p>CVLingo is and will always be free for individual job seekers. We do not charge job seekers for CV generation, download, or basic platform features.</p>
             </Section>
 
-            <Section title="4. User Responsibilities">
+            <Section title="4. Age">
+              <p>CVLingo is for adults. You must be 18 or over to create an account. By creating an account you confirm that you are 18 or over. If we learn that someone under 18 has an account, we will close it and delete their data.</p>
+            </Section>
+
+            <Section title="5. User Responsibilities">
               <p>By using CVLingo you agree to:</p>
               <ul className="mt-2 list-disc space-y-1 pl-5">
                 <li>Provide accurate and truthful information</li>
@@ -57,7 +61,7 @@ function TermsPage() {
               </ul>
             </Section>
 
-            <Section title="5. Intellectual Property">
+            <Section title="6. Intellectual Property">
               <ul className="mt-2 list-disc space-y-1 pl-5">
                 <li>CVs generated through CVLingo belong to the user who created them</li>
                 <li>The CVLingo name, logo, platform design and technology are owned by Jebaco Global</li>
@@ -65,7 +69,7 @@ function TermsPage() {
               </ul>
             </Section>
 
-            <Section title="6. Candidate Pool">
+            <Section title="7. Candidate Pool">
               <p>If you choose to join our candidate pool:</p>
               <ul className="mt-2 list-disc space-y-1 pl-5">
                 <li>You consent to your CV profile being visible to employers using CVLingo</li>
@@ -74,7 +78,7 @@ function TermsPage() {
               </ul>
             </Section>
 
-            <Section title="7. Employer Terms">
+            <Section title="8. Employer Terms">
               <p>Employers accessing the CVLingo candidate pool agree to:</p>
               <ul className="mt-2 list-disc space-y-1 pl-5">
                 <li>Use candidate data only for legitimate recruitment purposes</li>
@@ -84,7 +88,7 @@ function TermsPage() {
               </ul>
             </Section>
 
-            <Section title="8. Limitations of Liability">
+            <Section title="9. Limitations of Liability">
               <p>CVLingo provides CV generation as a tool. We do not guarantee:</p>
               <ul className="mt-2 list-disc space-y-1 pl-5">
                 <li>Employment outcomes or job placements</li>
@@ -94,7 +98,7 @@ function TermsPage() {
               <p>Our liability is limited to the maximum extent permitted by UK law.</p>
             </Section>
 
-            <Section title="9. AI Generated Content">
+            <Section title="10. AI Generated Content">
               <p>CVs are generated using artificial intelligence. While we strive for accuracy:</p>
               <ul className="mt-2 list-disc space-y-1 pl-5">
                 <li>You are responsible for reviewing your CV before submitting it to employers</li>
@@ -103,7 +107,7 @@ function TermsPage() {
               </ul>
             </Section>
 
-            <Section title="10. Platform Availability">
+            <Section title="11. Platform Availability">
               <p>We aim to keep CVLingo available at all times but do not guarantee uninterrupted service. We reserve the right to:</p>
               <ul className="mt-2 list-disc space-y-1 pl-5">
                 <li>Update or modify the platform</li>
@@ -112,15 +116,15 @@ function TermsPage() {
               </ul>
             </Section>
 
-            <Section title="11. Governing Law">
+            <Section title="12. Governing Law">
               <p>These terms are governed by the laws of England and Wales. Any disputes will be subject to the exclusive jurisdiction of the courts of England and Wales.</p>
             </Section>
 
-            <Section title="12. Changes to Terms">
+            <Section title="13. Changes to Terms">
               <p>We may update these terms from time to time. Continued use of CVLingo after changes constitutes acceptance of the updated terms.</p>
             </Section>
 
-            <Section title="13. Contact">
+            <Section title="14. Contact">
               <p>For any queries about these terms:</p>
               <div className="mt-2 space-y-1">
                 <p><span className="font-medium">Email:</span>{" "}<ObfuscatedEmail className="text-primary hover:underline" /></p>
