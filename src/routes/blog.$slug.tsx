@@ -150,9 +150,6 @@ function BlogPostPage() {
     );
   }
 
-  const wordCount = post.content.trim().split(/\s+/).length;
-  const readingTime = Math.ceil(wordCount / 200);
-
   return (
     <main className="min-h-screen bg-background text-foreground">
       {/* Post header: two-column on desktop, stacked on mobile */}
@@ -194,7 +191,6 @@ function BlogPostPage() {
                 })}
               </time>
               {post.author_name && <span>· {post.author_name}</span>}
-              <span>· {readingTime} min read</span>
             </div>
           </div>
         </div>
