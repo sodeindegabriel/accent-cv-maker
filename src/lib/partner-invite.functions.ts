@@ -86,12 +86,12 @@ export const sendPartnerInviteEmails = createServerFn({ method: "POST" })
 <p>CVLingo is a free CV builder in 21 languages.</p>
 <p><strong>No password is needed.</strong> To sign in:</p>
 <ol>
-  <li>Go to <a href="${loginUrl}" style="color:#4f46e5">${loginUrl}</a></li>
+  <li>Go to <a href="${loginUrl}" style="color:#0d6e6e">${loginUrl}</a></li>
   <li>Enter your email address (${safeEmail})</li>
   <li>Enter the code we email you.</li>
 </ol>
 <p style="margin-top:24px">
-  <a href="${loginUrl}" style="display:inline-block;background:#4f46e5;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">Sign in to CVLingo</a>
+  <a href="${loginUrl}" style="display:inline-block;background:#0d6e6e;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">Sign in to CVLingo</a>
 </p>
 <p style="color:#555;font-size:14px">Questions? Ask ${safeInviter}, who added you.</p>
 <p style="color:#888;font-size:13px">If you were not expecting this, you can ignore this message.</p>
