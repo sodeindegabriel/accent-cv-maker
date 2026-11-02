@@ -4,18 +4,22 @@ import { useEffect, useRef, useState } from "react";
 // Pass `busy` while an action is in flight to block accidental dismissal.
 // Pass `dirty` when the form has unsaved edits — close attempts show an inline
 // "Discard your changes?" confirm instead of closing immediately.
+// Pass `required` to block ALL close mechanisms (Escape, backdrop, ×) — only the
+// dialog's own buttons can close it. Use for mandatory age/consent flows.
 // Put `autoFocus` on the safe (non-destructive) button inside so keyboard users land there.
 export function DialogShell({
   children,
   onClose,
   busy = false,
   dirty = false,
+  required = false,
   maxWidth = "max-w-sm",
 }: {
   children: React.ReactNode;
   onClose: () => void;
   busy?: boolean;
   dirty?: boolean;
+  required?: boolean;
   maxWidth?: string;
 }) {
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -35,6 +39,7 @@ export function DialogShell({
   }, [confirmDiscard]);
 
   function tryClose() {
+    if (required) return;
     if (busy) return;
     if (dirty) { setConfirmDiscard(true); return; }
     onClose();
@@ -44,6 +49,7 @@ export function DialogShell({
   // Use capture so this fires before any child Escape handler.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
+      if (required) return;
       if (e.key !== "Escape" || busy) return;
       if (confirmDiscard) { e.stopPropagation(); setConfirmDiscard(false); return; }
       if (dirty) { setConfirmDiscard(true); return; }
@@ -51,7 +57,7 @@ export function DialogShell({
     }
     document.addEventListener("keydown", onKey, true);
     return () => document.removeEventListener("keydown", onKey, true);
-  }, [busy, dirty, confirmDiscard, onClose]);
+  }, [busy, dirty, required, confirmDiscard, onClose]);
 
   // Tab trap: keep focus cycling inside the panel
   useEffect(() => {
@@ -79,18 +85,20 @@ export function DialogShell({
     <div
       ref={overlayRef}
       className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-      onMouseDown={(e) => { if (e.target === overlayRef.current) tryClose(); }}
+      onMouseDown={(e) => { if (!required && e.target === overlayRef.current) tryClose(); }}
     >
       <div ref={panelRef} className={`bg-white rounded-2xl shadow-xl w-full ${maxWidth} p-6 relative`}>
-        <button
-          type="button"
-          onClick={tryClose}
-          disabled={busy}
-          aria-label="Close"
-          className="absolute top-3 right-3 text-muted-foreground hover:text-foreground text-xl leading-none rounded-full w-8 h-8 flex items-center justify-center hover:bg-muted disabled:opacity-30"
-        >
-          ×
-        </button>
+        {!required && (
+          <button
+            type="button"
+            onClick={tryClose}
+            disabled={busy}
+            aria-label="Close"
+            className="absolute top-3 right-3 text-muted-foreground hover:text-foreground text-xl leading-none rounded-full w-8 h-8 flex items-center justify-center hover:bg-muted disabled:opacity-30"
+          >
+            ×
+          </button>
+        )}
         {children}
         {confirmDiscard && (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-white/95 p-6 text-center">

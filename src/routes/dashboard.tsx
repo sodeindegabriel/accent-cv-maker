@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
+import { DialogShell } from "@/components/dialog-shell";
 import {
   Check,
   Copy,
@@ -82,6 +83,11 @@ function DashboardPage() {
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [forceEnglish, setForceEnglish] = useState(false);
   const [comingSoonMsg, setComingSoonMsg] = useState<string | null>(null);
+  const [adultConfirmed, setAdultConfirmed] = useState<boolean | null>(null);
+  const [adultDialogCheckbox, setAdultDialogCheckbox] = useState(false);
+  const [adultDialogBusy, setAdultDialogBusy] = useState(false);
+  const [adultDialogError, setAdultDialogError] = useState<string | null>(null);
+  const [adultSignedOut, setAdultSignedOut] = useState(false);
 
   const storedLang = profile?.preferred_ui_language || "en";
   const lang = forceEnglish ? "en" : storedLang;
@@ -206,6 +212,13 @@ function DashboardPage() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  useEffect(() => {
+    if (authLoading || !user) return;
+    supabase.rpc("has_confirmed_adult").then(({ data }) => {
+      setAdultConfirmed(data === true ? true : false);
+    });
+  }, [authLoading, user]);
+
   if (authLoading || (!user && !authLoading)) return null;
 
   const fullName =
@@ -232,6 +245,61 @@ function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {adultSignedOut && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
+            <p className="text-foreground">{t(lang, "adultBlockUnder18Msg")}</p>
+          </div>
+        </div>
+      )}
+      {adultConfirmed === false && !adultSignedOut && (
+        <DialogShell required onClose={() => {}} maxWidth="max-w-sm">
+          <h2 className="font-semibold text-foreground text-lg mb-4">{t(lang, "adultBlockHeading")}</h2>
+          {adultDialogError && <p className="text-sm text-destructive mb-3">{adultDialogError}</p>}
+          <label className="flex cursor-pointer items-start gap-3 mb-6">
+            <input
+              type="checkbox"
+              checked={adultDialogCheckbox}
+              onChange={(e) => { setAdultDialogCheckbox(e.target.checked); setAdultDialogError(null); }}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-border accent-primary"
+              disabled={adultDialogBusy}
+            />
+            <span className="text-sm text-muted-foreground leading-relaxed">{t(lang, "ageConfirmCheckbox")}</span>
+          </label>
+          <button
+            type="button"
+            disabled={!adultDialogCheckbox || adultDialogBusy}
+            onClick={async () => {
+              setAdultDialogBusy(true);
+              setAdultDialogError(null);
+              const { error: e1 } = await supabase.rpc("confirm_adult");
+              if (e1) {
+                const { error: e2 } = await supabase.rpc("confirm_adult");
+                if (e2) {
+                  setAdultDialogBusy(false);
+                  setAdultDialogError(t(lang, "adultBlockFailed"));
+                  return;
+                }
+              }
+              setAdultConfirmed(true);
+            }}
+            className="w-full rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 min-h-[44px] mb-3"
+          >
+            {adultDialogBusy ? "…" : t(lang, "continue")}
+          </button>
+          <button
+            type="button"
+            disabled={adultDialogBusy}
+            onClick={async () => {
+              await signOut();
+              setAdultSignedOut(true);
+            }}
+            className="text-sm text-muted-foreground hover:text-foreground underline"
+          >
+            {t(lang, "adultBlockUnder18")}
+          </button>
+        </DialogShell>
+      )}
       {/* ── Header ── */}
       <header className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
         <a href="/" className="text-sm font-bold text-primary tracking-tight">CVLingo</a>

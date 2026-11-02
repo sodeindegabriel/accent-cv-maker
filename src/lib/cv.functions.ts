@@ -256,6 +256,12 @@ export const generateCVServer = createServerFn({ method: "POST" })
       throw new Error("Your session has expired. Please sign in again.");
     }
 
+    // ── 1b. Adult confirmation check ─────────────────────────────────────────
+    const { data: adultOk } = await sb.rpc("has_confirmed_adult");
+    if (!adultOk) {
+      throw new Error("adult_not_confirmed");
+    }
+
     // ── 2. Pre-flight doc/edit cap (mirror server-side trigger logic) ─────────
     const { data: isAdmin } = await sb.rpc("is_admin");
     if (!isAdmin) {

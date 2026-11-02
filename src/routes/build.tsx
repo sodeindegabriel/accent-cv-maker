@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { generateCV, type GeneratedCV } from "@/utils/generateCV";
 import { GeneratingOverlay } from "@/components/GeneratingOverlay";
+import { DialogShell } from "@/components/dialog-shell";
 import { FlagIcon, langToCountry } from "@/components/FlagIcon";
 import { Clock, Lock, Search, Check, X, Plus } from "lucide-react";
 import { t, type TKey } from "@/lib/buildTranslations";
@@ -238,6 +239,11 @@ function BuildPage() {
     } catch { /* ignore */ }
     return false;
   });
+  const [adultConfirmed, setAdultConfirmed] = useState<boolean | null>(null);
+  const [adultDialogCheckbox, setAdultDialogCheckbox] = useState(false);
+  const [adultDialogBusy, setAdultDialogBusy] = useState(false);
+  const [adultDialogError, setAdultDialogError] = useState<string | null>(null);
+  const [adultSignedOut, setAdultSignedOut] = useState(false);
 
   // Scroll to top on mount and on every step change
   useEffect(() => {
@@ -277,6 +283,13 @@ function BuildPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading]); // intentionally omits `user` — see comment above
+
+  useEffect(() => {
+    if (authLoading || !user) return;
+    supabase.rpc("has_confirmed_adult").then(({ data }) => {
+      setAdultConfirmed(data === true ? true : false);
+    });
+  }, [authLoading, user]);
 
   useEffect(() => {
     try {
@@ -367,6 +380,61 @@ function BuildPage() {
           </Link>
         </div>
       </header>
+      {adultSignedOut && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
+            <p className="text-foreground">{t(data.languageCode || "en", "adultBlockUnder18Msg")}</p>
+          </div>
+        </div>
+      )}
+      {adultConfirmed === false && !adultSignedOut && (
+        <DialogShell required onClose={() => {}} maxWidth="max-w-sm">
+          <h2 className="font-semibold text-foreground text-lg mb-4">{t(data.languageCode || "en", "adultBlockHeading")}</h2>
+          {adultDialogError && <p className="text-sm text-destructive mb-3">{adultDialogError}</p>}
+          <label className="flex cursor-pointer items-start gap-3 mb-6">
+            <input
+              type="checkbox"
+              checked={adultDialogCheckbox}
+              onChange={(e) => { setAdultDialogCheckbox(e.target.checked); setAdultDialogError(null); }}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-border accent-primary"
+              disabled={adultDialogBusy}
+            />
+            <span className="text-sm text-muted-foreground leading-relaxed">{t(data.languageCode || "en", "ageConfirmCheckbox")}</span>
+          </label>
+          <button
+            type="button"
+            disabled={!adultDialogCheckbox || adultDialogBusy}
+            onClick={async () => {
+              setAdultDialogBusy(true);
+              setAdultDialogError(null);
+              const { error: e1 } = await supabase.rpc("confirm_adult");
+              if (e1) {
+                const { error: e2 } = await supabase.rpc("confirm_adult");
+                if (e2) {
+                  setAdultDialogBusy(false);
+                  setAdultDialogError(t(data.languageCode || "en", "adultBlockFailed"));
+                  return;
+                }
+              }
+              setAdultConfirmed(true);
+            }}
+            className="w-full rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 min-h-[44px] mb-3"
+          >
+            {adultDialogBusy ? "…" : t(data.languageCode || "en", "continue")}
+          </button>
+          <button
+            type="button"
+            disabled={adultDialogBusy}
+            onClick={async () => {
+              await supabase.auth.signOut();
+              setAdultSignedOut(true);
+            }}
+            className="text-sm text-muted-foreground hover:text-foreground underline"
+          >
+            {t(data.languageCode || "en", "adultBlockUnder18")}
+          </button>
+        </DialogShell>
+      )}
       {step === 0 && <StepAuth onSuccess={advanceFromAuth} authLoading={authLoading} lang={data.languageCode || "en"} loginMode={loginMode} onSwitchToLogin={() => setLoginMode(true)} />}
       {step === 1 && <Step1Language data={data} update={update} onNext={next} />}
       {step === 2 && <Step2JobType {...stepProps} onBack={back} onNext={next} />}
@@ -477,6 +545,17 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
       await maybeAttributeReferral(authedUser.id);
       if (shareWithPartner) supabase.rpc("set_partner_sharing", { p_share: true }).then(() => {/* fire-and-forget */});
     }
+    if (!loginMode && ageConfirmed) {
+      const { error: e1 } = await supabase.rpc("confirm_adult");
+      if (e1) {
+        const { error: e2 } = await supabase.rpc("confirm_adult");
+        if (e2) {
+          setSubmitting(false);
+          setError(t(lang, "adultBlockFailed"));
+          return;
+        }
+      }
+    }
     // Check for partner account — handles both first-login claim and returning partners.
     // claim_partner_account() sets user_id + role='partner' on first login, then returns
     // the referral_code for any subsequent login too.
@@ -539,6 +618,17 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
       if (newUser) {
         await maybeAttributeReferral(newUser.id);
         if (shareWithPartner) supabase.rpc("set_partner_sharing", { p_share: true }).then(() => {/* fire-and-forget */});
+      }
+      if (ageConfirmed) {
+        const { error: e1 } = await supabase.rpc("confirm_adult");
+        if (e1) {
+          const { error: e2 } = await supabase.rpc("confirm_adult");
+          if (e2) {
+            setSubmitting(false);
+            setError(t(lang, "adultBlockFailed"));
+            return;
+          }
+        }
       }
       setSubmitting(false);
       onSuccess();

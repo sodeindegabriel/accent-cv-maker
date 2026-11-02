@@ -160,6 +160,11 @@ export const generateCoverLetterServer = createServerFn({ method: "POST" })
       throw new Error("Unauthorized: your session has expired. Please sign in again.");
     }
 
+    const { data: adultOk } = await sb.rpc("has_confirmed_adult");
+    if (!adultOk) {
+      throw new Error("adult_not_confirmed");
+    }
+
     // Cap / sanitise input fields before any DB or API calls
     const input = capCLInput(rawInput);
 

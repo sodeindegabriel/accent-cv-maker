@@ -114,7 +114,9 @@ export type TKey =
   | "partnerSharingHeading" | "partnerSharingOn" | "partnerSharingOff"
   | "partnerSharingTurnOn" | "partnerSharingTurnOff"
   | "partnerSharingAlwaysVisible" | "partnerSharingUpdated"
-  | "ageConfirmCheckbox";
+  | "ageConfirmCheckbox"
+  | "adultBlockHeading" | "adultBlockUnder18" | "adultBlockUnder18Msg"
+  | "adultBlockFailed" | "adultNotConfirmed";
 
 
 type Dict = Partial<Record<TKey, string>>;
@@ -434,6 +436,11 @@ const en: Record<TKey, string> = {
   partnerSharingAlwaysVisible: "{partner} always sees your first name and initial and that you joined.",
   partnerSharingUpdated: "Sharing updated.",
   ageConfirmCheckbox: "I confirm I am 18 or over",
+  adultBlockHeading: "Please confirm you are 18 or over to continue",
+  adultBlockUnder18: "I am under 18",
+  adultBlockUnder18Msg: "CVLingo is only available to adults aged 18 and over. You have been signed out.",
+  adultBlockFailed: "We could not record your confirmation. Please try again.",
+  adultNotConfirmed: "You must be 18 or over to use CVLingo.",
 };
 
 const pl: Dict = {
@@ -733,6 +740,11 @@ const pl: Dict = {
   partnerSharingAlwaysVisible: '{partner} zawsze widzi Twoje imię i inicjał oraz że dołączyłeś/aś.',
   partnerSharingUpdated: 'Udostępnianie zaktualizowane.',
   ageConfirmCheckbox: 'Potwierdzam, że mam 18 lat lub więcej',
+  adultBlockHeading: 'Potwierdź, że masz 18 lat lub więcej, aby kontynuować',
+  adultBlockUnder18: 'Mam mniej niż 18 lat',
+  adultBlockUnder18Msg: 'CVLingo jest dostępne tylko dla osób pełnoletnich (18+). Zostałeś/aś wylogowany/a.',
+  adultBlockFailed: 'Nie udało się zarejestrować Twojego potwierdzenia. Spróbuj ponownie.',
+  adultNotConfirmed: 'Musisz mieć 18 lat lub więcej, aby korzystać z CVLingo.',
 };
 
 const ro: Dict = {
@@ -1032,6 +1044,11 @@ const ro: Dict = {
   partnerSharingAlwaysVisible: '{partner} vede întotdeauna prenumele și inițiala ta și că te-ai alăturat.',
   partnerSharingUpdated: 'Partajare actualizată.',
   ageConfirmCheckbox: 'Confirm că am 18 ani sau mai mult',
+  adultBlockHeading: 'Te rugăm să confirmi că ai 18 ani sau mai mult pentru a continua',
+  adultBlockUnder18: 'Am mai puțin de 18 ani',
+  adultBlockUnder18Msg: 'CVLingo este disponibil doar pentru adulți cu vârsta de 18 ani sau mai mult. Ai fost deconectat/ă.',
+  adultBlockFailed: 'Nu am putut înregistra confirmarea ta. Te rugăm să încerci din nou.',
+  adultNotConfirmed: 'Trebuie să ai 18 ani sau mai mult pentru a folosi CVLingo.',
 };
 
 const es: Dict = {
@@ -1331,6 +1348,11 @@ const es: Dict = {
   partnerSharingAlwaysVisible: '{partner} siempre ve tu nombre, inicial y que te has unido.',
   partnerSharingUpdated: 'Compartición actualizada.',
   ageConfirmCheckbox: 'Confirmo que tengo 18 años o más',
+  adultBlockHeading: 'Por favor confirma que tienes 18 años o más para continuar',
+  adultBlockUnder18: 'Tengo menos de 18 años',
+  adultBlockUnder18Msg: 'CVLingo solo está disponible para adultos de 18 años o más. Has cerrado sesión.',
+  adultBlockFailed: 'No pudimos registrar tu confirmación. Por favor inténtalo de nuevo.',
+  adultNotConfirmed: 'Debes tener 18 años o más para usar CVLingo.',
 };
 
 const pt: Dict = {
@@ -1630,6 +1652,11 @@ const pt: Dict = {
   partnerSharingAlwaysVisible: '{partner} vê sempre o seu primeiro nome e inicial e que se juntou.',
   partnerSharingUpdated: 'Partilha atualizada.',
   ageConfirmCheckbox: 'Confirmo que tenho 18 anos ou mais',
+  adultBlockHeading: 'Por favor confirma que tens 18 anos ou mais para continuar',
+  adultBlockUnder18: 'Tenho menos de 18 anos',
+  adultBlockUnder18Msg: 'O CVLingo está disponível apenas para adultos com 18 anos ou mais. A tua sessão foi encerrada.',
+  adultBlockFailed: 'Não conseguimos registar a tua confirmação. Por favor tenta novamente.',
+  adultNotConfirmed: 'Tens de ter 18 anos ou mais para usar o CVLingo.',
 };
 
 const fr: Dict = {
@@ -1929,6 +1956,11 @@ const fr: Dict = {
   partnerSharingAlwaysVisible: '{partner} voit toujours votre prénom, votre initiale et que vous vous êtes inscrit(e).',
   partnerSharingUpdated: 'Partage mis à jour.',
   ageConfirmCheckbox: "Je confirme que j'ai 18 ans ou plus",
+  adultBlockHeading: 'Veuillez confirmer que vous avez 18 ans ou plus pour continuer',
+  adultBlockUnder18: "J'ai moins de 18 ans",
+  adultBlockUnder18Msg: "CVLingo est uniquement disponible pour les adultes de 18 ans et plus. Vous avez été déconnecté(e).",
+  adultBlockFailed: "Nous n'avons pas pu enregistrer votre confirmation. Veuillez réessayer.",
+  adultNotConfirmed: 'Vous devez avoir 18 ans ou plus pour utiliser CVLingo.',
 };
 
 const ar: Dict = {
@@ -2228,6 +2260,11 @@ const ar: Dict = {
   partnerSharingAlwaysVisible: '{partner} يرى دائماً اسمك الأول وحرفه الأول وأنك انضممت.',
   partnerSharingUpdated: 'تم تحديث المشاركة.',
   ageConfirmCheckbox: 'أؤكد أنني في الثامنة عشرة من عمري أو أكبر',
+  adultBlockHeading: 'يرجى تأكيد أن عمرك 18 عامًا أو أكثر للمتابعة',
+  adultBlockUnder18: 'عمري أقل من 18 عامًا',
+  adultBlockUnder18Msg: 'CVLingo متاح فقط للبالغين الذين تبلغ أعمارهم 18 عامًا فأكثر. تم تسجيل خروجك.',
+  adultBlockFailed: 'لم نتمكن من تسجيل تأكيدك. يرجى المحاولة مرة أخرى.',
+  adultNotConfirmed: 'يجب أن يكون عمرك 18 عامًا أو أكثر لاستخدام CVLingo.',
 };
 
 const ur: Dict = {
@@ -2527,6 +2564,11 @@ const ur: Dict = {
   partnerSharingAlwaysVisible: '{partner} ہمیشہ آپ کا پہلا نام، ابتدائی حرف اور یہ کہ آپ شامل ہوئے دیکھتے ہیں۔',
   partnerSharingUpdated: 'شیئرنگ اپ ڈیٹ ہو گئی۔',
   ageConfirmCheckbox: 'میں تصدیق کرتا/کرتی ہوں کہ میری عمر 18 سال یا اس سے زیادہ ہے',
+  adultBlockHeading: 'براہ کرم تصدیق کریں کہ آپ کی عمر 18 سال یا اس سے زیادہ ہے',
+  adultBlockUnder18: 'میری عمر 18 سال سے کم ہے',
+  adultBlockUnder18Msg: 'CVLingo صرف 18 سال یا اس سے زیادہ عمر کے بالغ افراد کے لیے دستیاب ہے۔ آپ کو سائن آؤٹ کر دیا گیا ہے۔',
+  adultBlockFailed: 'ہم آپ کی تصدیق ریکارڈ نہیں کر سکے۔ براہ کرم دوبارہ کوشش کریں۔',
+  adultNotConfirmed: 'CVLingo استعمال کرنے کے لیے آپ کی عمر 18 سال یا اس سے زیادہ ہونی چاہیے۔',
 };
 
 const hi: Dict = {
@@ -2826,6 +2868,11 @@ const hi: Dict = {
   partnerSharingAlwaysVisible: '{partner} हमेशा आपका पहला नाम, प्रारंभिक अक्षर और यह देखते हैं कि आप शामिल हुए।',
   partnerSharingUpdated: 'साझाकरण अपडेट हो गया।',
   ageConfirmCheckbox: 'मैं पुष्टि करता/करती हूँ कि मेरी आयु 18 वर्ष या उससे अधिक है',
+  adultBlockHeading: 'कृपया पुष्टि करें कि आपकी आयु 18 वर्ष या उससे अधिक है',
+  adultBlockUnder18: 'मेरी आयु 18 वर्ष से कम है',
+  adultBlockUnder18Msg: 'CVLingo केवल 18 वर्ष या उससे अधिक आयु के वयस्कों के लिए उपलब्ध है। आपको साइन आउट कर दिया गया है।',
+  adultBlockFailed: 'हम आपकी पुष्टि दर्ज नहीं कर सके। कृपया पुनः प्रयास करें।',
+  adultNotConfirmed: 'CVLingo का उपयोग करने के लिए आपकी आयु 18 वर्ष या उससे अधिक होनी चाहिए।',
 };
 
 const bn: Dict = {
@@ -3125,6 +3172,11 @@ const bn: Dict = {
   partnerSharingAlwaysVisible: '{partner} সবসময় আপনার প্রথম নাম, আদ্যক্ষর এবং আপনি যোগ দিয়েছেন তা দেখতে পাবেন।',
   partnerSharingUpdated: 'শেয়ারিং আপডেট করা হয়েছে।',
   ageConfirmCheckbox: 'আমি নিশ্চিত করছি যে আমার বয়স ১৮ বছর বা তার বেশি',
+  adultBlockHeading: 'অনুগ্রহ করে নিশ্চিত করুন যে আপনার বয়স ১৮ বছর বা তার বেশি',
+  adultBlockUnder18: 'আমার বয়স ১৮ বছরের কম',
+  adultBlockUnder18Msg: 'CVLingo শুধুমাত্র ১৮ বছর বা তার বেশি বয়সের প্রাপ্তবয়স্কদের জন্য উপলব্ধ। আপনাকে সাইন আউট করা হয়েছে।',
+  adultBlockFailed: 'আমরা আপনার নিশ্চিতকরণ রেকর্ড করতে পারিনি। অনুগ্রহ করে আবার চেষ্টা করুন।',
+  adultNotConfirmed: 'CVLingo ব্যবহার করতে আপনার বয়স ১৮ বছর বা তার বেশি হতে হবে।',
 };
 
 const so: Dict = {
@@ -3424,6 +3476,11 @@ const so: Dict = {
   partnerSharingAlwaysVisible: '{partner} wuxuu had iyo jeer arki doonaa magacaaga hore, xarfahaaga bilowga ah iyo in aad ku biirtay.',
   partnerSharingUpdated: 'La wadaagida waa la cusboonaysiiyay.',
   ageConfirmCheckbox: 'Waxaan xaqiijinayaa inaan jiraa 18 sano ama ka weyn',
+  adultBlockHeading: 'Fadlan xaqiiji inaad jirtid 18 sano ama ka weyn si aad u sii wadato',
+  adultBlockUnder18: "Da'dadaydu waa ka yar tahay 18",
+  adultBlockUnder18Msg: "CVLingo waxa uu u diyaarsan yahay dadka waaweyn ee da'doodu tahay 18 sano ama ka weyn. Waxaad ka baxday.",
+  adultBlockFailed: 'Ma awoodin inaan diiwaangelino xaqiijintaada. Fadlan isku day mar kale.',
+  adultNotConfirmed: 'Waa inaad jirtid 18 sano ama ka weyn si aad u isticmaasho CVLingo.',
 };
 
 const tr: Dict = {
@@ -3723,6 +3780,11 @@ const tr: Dict = {
   partnerSharingAlwaysVisible: '{partner} her zaman adınızı, baş harfinizi ve katıldığınızı görür.',
   partnerSharingUpdated: 'Paylaşım güncellendi.',
   ageConfirmCheckbox: '18 yaşında veya daha büyük olduğumu onaylıyorum',
+  adultBlockHeading: 'Devam etmek için 18 yaşında veya daha büyük olduğunuzu onaylayın',
+  adultBlockUnder18: '18 yaşının altındayım',
+  adultBlockUnder18Msg: "CVLingo yalnızca 18 yaş ve üzerindeki yetişkinler için kullanılabilir. Oturumunuz kapatıldı.",
+  adultBlockFailed: 'Onayınızı kaydedirken bir sorun oluştu. Lütfen tekrar deneyin.',
+  adultNotConfirmed: "CVLingo'yu kullanmak için 18 yaşında veya daha büyük olmanız gerekir.",
 };
 
 const fa: Dict = {
@@ -4022,6 +4084,11 @@ const fa: Dict = {
   partnerSharingAlwaysVisible: '{partner} همیشه نام کوچک، حرف اول و اینکه شما عضو شده‌اید را می‌بیند.',
   partnerSharingUpdated: 'اشتراک‌گذاری به‌روزرسانی شد.',
   ageConfirmCheckbox: 'تأیید می‌کنم که ۱۸ سال یا بیشتر دارم',
+  adultBlockHeading: 'لطفاً تأیید کنید که ۱۸ سال یا بیشتر دارید تا ادامه دهید',
+  adultBlockUnder18: 'من زیر ۱۸ سال هستم',
+  adultBlockUnder18Msg: 'CVLingo فقط برای بزرگسالان ۱۸ سال به بالا در دسترس است. شما خارج شده‌اید.',
+  adultBlockFailed: 'نتوانستیم تأیید شما را ثبت کنیم. لطفاً دوباره تلاش کنید.',
+  adultNotConfirmed: 'برای استفاده از CVLingo باید ۱۸ سال یا بیشتر داشته باشید.',
 };
 
 const uk: Dict = {
@@ -4321,6 +4388,11 @@ const uk: Dict = {
   partnerSharingAlwaysVisible: '{partner} завжди бачить ваше ім\'я, ініціал і те, що ви приєдналися.',
   partnerSharingUpdated: 'Спільний доступ оновлено.',
   ageConfirmCheckbox: 'Я підтверджую, що мені 18 років або більше',
+  adultBlockHeading: 'Будь ласка, підтвердьте, що вам 18 років або більше, щоб продовжити',
+  adultBlockUnder18: 'Мені менше 18 років',
+  adultBlockUnder18Msg: 'CVLingo доступний лише для дорослих віком 18 років і старше. Вас вийдено з системи.',
+  adultBlockFailed: 'Не вдалося записати ваше підтвердження. Будь ласка, спробуйте ще раз.',
+  adultNotConfirmed: 'Для використання CVLingo вам має бути 18 років або більше.',
 };
 
 const zh: Dict = {
@@ -4620,6 +4692,11 @@ const zh: Dict = {
   partnerSharingAlwaysVisible: '{partner}始终可以看到您的名字、姓名首字母以及您已加入。',
   partnerSharingUpdated: '共享已更新。',
   ageConfirmCheckbox: '我确认我已年满18岁',
+  adultBlockHeading: '请确认您已满18岁方可继续',
+  adultBlockUnder18: '我未满18岁',
+  adultBlockUnder18Msg: 'CVLingo仅适用于18岁及以上的成年人。您已退出登录。',
+  adultBlockFailed: '无法记录您的确认信息，请重试。',
+  adultNotConfirmed: '您必须年满18岁才能使用CVLingo。',
 };
 
 const pa: Dict = {
@@ -4919,6 +4996,11 @@ const pa: Dict = {
   partnerSharingAlwaysVisible: '{partner} ਹਮੇਸ਼ਾ ਤੁਹਾਡਾ ਪਹਿਲਾ ਨਾਮ, ਅਦ੍ਯ-ਅੱਖਰ ਅਤੇ ਇਹ ਦੇਖਦਾ ਹੈ ਕਿ ਤੁਸੀਂ ਜੁੜੇ।',
   partnerSharingUpdated: 'ਸਾਂਝਾਕਰਨ ਅੱਪਡੇਟ ਹੋਇਆ।',
   ageConfirmCheckbox: 'ਮੈਂ ਪੁਸ਼ਟੀ ਕਰਦਾ/ਕਰਦੀ ਹਾਂ ਕਿ ਮੇਰੀ ਉਮਰ 18 ਸਾਲ ਜਾਂ ਵੱਧ ਹੈ',
+  adultBlockHeading: 'ਕਿਰਪਾ ਕਰਕੇ ਪੁਸ਼ਟੀ ਕਰੋ ਕਿ ਤੁਹਾਡੀ ਉਮਰ 18 ਸਾਲ ਜਾਂ ਵੱਧ ਹੈ',
+  adultBlockUnder18: 'ਮੇਰੀ ਉਮਰ 18 ਸਾਲ ਤੋਂ ਘੱਟ ਹੈ',
+  adultBlockUnder18Msg: 'CVLingo ਸਿਰਫ਼ 18 ਸਾਲ ਜਾਂ ਵੱਧ ਉਮਰ ਦੇ ਬਾਲਗਾਂ ਲਈ ਉਪਲਬਧ ਹੈ। ਤੁਹਾਨੂੰ ਸਾਈਨ ਆਊਟ ਕਰ ਦਿੱਤਾ ਗਿਆ ਹੈ।',
+  adultBlockFailed: 'ਅਸੀਂ ਤੁਹਾਡੀ ਪੁਸ਼ਟੀ ਰਿਕਾਰਡ ਨਹੀਂ ਕਰ ਸਕੇ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।',
+  adultNotConfirmed: 'CVLingo ਵਰਤਣ ਲਈ ਤੁਹਾਡੀ ਉਮਰ 18 ਸਾਲ ਜਾਂ ਵੱਧ ਹੋਣੀ ਚਾਹੀਦੀ ਹੈ।',
 };
 
 const gu: Dict = {
@@ -5218,6 +5300,11 @@ const gu: Dict = {
   partnerSharingAlwaysVisible: '{partner} હંમેશા તમારું પ્રથમ નામ, આદ્યયક્ષ અને તમે જોડાયા છો તે જોઈ શકે છે.',
   partnerSharingUpdated: 'શેરિંગ અપડેટ થઈ.',
   ageConfirmCheckbox: 'હું પુષ્ટિ કરું છું કે મારી ઉંમર 18 વર્ષ અથવા વધુ છે',
+  adultBlockHeading: 'કૃપા કરી પુષ્ટિ કરો કે તમારી ઉંમર 18 વર્ષ અથવા વધુ છે',
+  adultBlockUnder18: 'મારી ઉંમર 18 વર્ષથી ઓછી છે',
+  adultBlockUnder18Msg: 'CVLingo ફક્ત 18 વર્ષ કે તેથી વધુ ઉંમરના પ્રૌઢ માટે ઉપલબ્ધ છે. તમને સાઇન આઉટ કરવામાં આવ્યા છે.',
+  adultBlockFailed: 'અમે તમારી પુષ્ટિ રેકોર્ડ કરી શક્યા નહીં. કૃપા કરી ફરી પ્રયાસ કરો.',
+  adultNotConfirmed: 'CVLingo વાપરવા માટે તમારી ઉંમર 18 વર્ષ અથવા વધુ હોવી જોઈએ.',
 };
 
 const ku: Dict = {
@@ -5517,6 +5604,11 @@ const ku: Dict = {
   partnerSharingAlwaysVisible: '{partner} her dem navê te yê yekem, destpêka navê te û ku tu beşdar bûyî dibîne.',
   partnerSharingUpdated: 'Parvekirin hat nûve kirin.',
   ageConfirmCheckbox: 'Ez piştrast dikim ku temenê min 18 sal an zêdetir e',
+  adultBlockHeading: 'Ji kerema xwe piştrast bike ku temenê te 18 sal an zêdetir e',
+  adultBlockUnder18: 'Temenê min ji 18 salan kêmtir e',
+  adultBlockUnder18Msg: 'CVLingo tenê ji bo mezinên ku temenê wan 18 sal an zêdetir e heye. Derketiyî.',
+  adultBlockFailed: 'Piştrastkirina te tomar nekir. Ji kerema xwe careke din biceribîne.',
+  adultNotConfirmed: 'Ji bo ku CVLingo bikar bînî, divê temenê te 18 sal an zêdetir be.',
 };
 
 const ta: Dict = {
@@ -5816,6 +5908,11 @@ const ta: Dict = {
   partnerSharingAlwaysVisible: '{partner} எப்போதும் உங்கள் முதல் பெயர், தொடக்க எழுத்து மற்றும் நீங்கள் சேர்ந்தீர்கள் என்பதை காண்பார்.',
   partnerSharingUpdated: 'பகிர்வு புதுப்பிக்கப்பட்டது.',
   ageConfirmCheckbox: 'என் வயது 18 அல்லது அதிகம் என்று உறுதிப்படுத்துகிறேன்',
+  adultBlockHeading: 'தொடர தயவுசெய்து உங்கள் வயது 18 அல்லது அதிகம் என்று உறுதிப்படுத்தவும்',
+  adultBlockUnder18: 'என் வயது 18க்கும் குறைவு',
+  adultBlockUnder18Msg: 'CVLingo 18 வயது மற்றும் அதிகமான பெரியவர்களுக்கு மட்டுமே கிடைக்கும். நீங்கள் வெளியேற்றப்பட்டீர்கள்.',
+  adultBlockFailed: 'உங்கள் உறுதிப்படுத்தலை பதிவு செய்ய முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
+  adultNotConfirmed: 'CVLingo பயன்படுத்த உங்கள் வயது 18 அல்லது அதிகமாக இருக்க வேண்டும்.',
 };
 
 const am: Dict = {
@@ -6115,6 +6212,11 @@ const am: Dict = {
   partnerSharingAlwaysVisible: '{partner} ሁሌም የእርስዎን የመጀመሪያ ስም፣ ፊደል እና የተቀላቀሉ መሆኑን ይመለከታል።',
   partnerSharingUpdated: 'ማጋሪያ ተዘምኗል።',
   ageConfirmCheckbox: 'እድሜዬ 18 ወይም ከዚያ በላይ እንደሆነ አረጋግጣለሁ',
+  adultBlockHeading: 'ለመቀጠል ዕድሜዎ 18 ወይም ከዚያ በላይ እንደሆነ ያረጋግጡ',
+  adultBlockUnder18: 'ዕድሜዬ ከ18 ዓመት በታች ነው',
+  adultBlockUnder18Msg: 'CVLingo ለ18 ዓመት እና ከዚያ በላይ ለሆኑ ጎልማሶች ብቻ ይገኛል። ከሂሳቡ ወጥተዋል።',
+  adultBlockFailed: 'ማረጋገጫዎን መዝገብ አልቻልንም። እባክዎ እንደገና ይሞክሩ።',
+  adultNotConfirmed: 'CVLingo ለመጠቀም ዕድሜዎ 18 ወይም ከዚያ በላይ መሆን አለበት።',
 };
 
 const ti: Dict = {
@@ -6414,6 +6516,11 @@ const ti: Dict = {
   partnerSharingAlwaysVisible: '{partner} ሕልፍ ሕልፍ ናትካ መጀምርታ ስም፣ ፊደሉን ዝተጸምበርካ ምዃንካ ኩሉ ግዜ ክርኢ ኢዩ።',
   partnerSharingUpdated: 'ምሕባር ተዓዲሉ ኣሎ።',
   ageConfirmCheckbox: 'ዕድሜይ 18 ወይ ካብኡ ንላዕሊ ምዃኑ ኣረጋጊጸ ኣለኹ',
+  adultBlockHeading: 'ንምቕጻል ዕድሜኻ/ኺ 18 ወይ ካብኡ ንላዕሊ ምዃኑ ኣረጋግጽ',
+  adultBlockUnder18: 'ዕድሜይ ካብ 18 ዓመት ንታሕቲ እዩ',
+  adultBlockUnder18Msg: 'CVLingo ንዓበይቲ ዕድሜኦም 18 ወይ ካብኡ ንላዕሊ ዝኾነ ጥራይ ዝሰርሕ እዩ። ካብ ሒሳብካ/ኪ ወጺእካ/ኺ ኢኻ/ኺ።',
+  adultBlockFailed: 'ናትካ/ኪ ምርግጋጽ ምዝጋብ ኣይከኣልናን። በጃኻ/ኺ እንደገና ፈትን/ፈትኒ።',
+  adultNotConfirmed: 'CVLingo ንምጥቃም ዕድሜኻ/ኺ 18 ወይ ካብኡ ንላዕሊ ክኸውን ኣለዎ።',
 };
 
 const translations: Record<string, Dict> = {
