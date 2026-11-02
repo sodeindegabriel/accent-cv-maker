@@ -214,9 +214,28 @@ function DashboardPage() {
 
   useEffect(() => {
     if (authLoading || !user) return;
-    supabase.rpc("has_confirmed_adult").then(({ data }) => {
-      setAdultConfirmed(data === true ? true : false);
-    });
+    try {
+      if (sessionStorage.getItem("cvlingo:adultConfirmedFor") === user.id) {
+        setAdultConfirmed(true);
+        return;
+      }
+    } catch { /* ignore */ }
+    let cancelled = false;
+    function checkAdult(isRetry: boolean) {
+      supabase.rpc("has_confirmed_adult").then(({ data, error }) => {
+        if (cancelled) return;
+        if (error || data === null || data === undefined) {
+          if (!isRetry) {
+            console.warn("[dashboard] has_confirmed_adult returned error/null, retrying in 1s", error);
+            setTimeout(() => { if (!cancelled) checkAdult(true); }, 1000);
+          }
+          return;
+        }
+        setAdultConfirmed(data === true);
+      });
+    }
+    checkAdult(false);
+    return () => { cancelled = true; };
   }, [authLoading, user]);
 
   if (authLoading || (!user && !authLoading)) return null;
@@ -280,6 +299,9 @@ function DashboardPage() {
                   setAdultDialogError(t(lang, "adultBlockFailed"));
                   return;
                 }
+              }
+              if (user) {
+                try { sessionStorage.setItem("cvlingo:adultConfirmedFor", user.id); } catch { /* ignore */ }
               }
               setAdultConfirmed(true);
             }}

@@ -286,9 +286,30 @@ function BuildPage() {
 
   useEffect(() => {
     if (authLoading || !user) return;
-    supabase.rpc("has_confirmed_adult").then(({ data }) => {
-      setAdultConfirmed(data === true ? true : false);
-    });
+    // Session flag: skip RPC entirely if we already confirmed this user this session
+    try {
+      if (sessionStorage.getItem("cvlingo:adultConfirmedFor") === user.id) {
+        setAdultConfirmed(true);
+        return;
+      }
+    } catch { /* ignore */ }
+    let cancelled = false;
+    function checkAdult(isRetry: boolean) {
+      supabase.rpc("has_confirmed_adult").then(({ data, error }) => {
+        if (cancelled) return;
+        if (error || data === null || data === undefined) {
+          if (!isRetry) {
+            console.warn("[build] has_confirmed_adult returned error/null, retrying in 1s", error);
+            setTimeout(() => { if (!cancelled) checkAdult(true); }, 1000);
+          }
+          // Unknown result — do NOT set adultConfirmed to false
+          return;
+        }
+        setAdultConfirmed(data === true);
+      });
+    }
+    checkAdult(false);
+    return () => { cancelled = true; };
   }, [authLoading, user]);
 
   useEffect(() => {
@@ -415,6 +436,9 @@ function BuildPage() {
                   setAdultDialogError(t(data.languageCode || "en", "adultBlockFailed"));
                   return;
                 }
+              }
+              if (user) {
+                try { sessionStorage.setItem("cvlingo:adultConfirmedFor", user.id); } catch { /* ignore */ }
               }
               setAdultConfirmed(true);
             }}
@@ -555,6 +579,10 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
           return;
         }
       }
+      // Set session flag so the mount-time has_confirmed_adult() check doesn't race
+      if (authedUser) {
+        try { sessionStorage.setItem("cvlingo:adultConfirmedFor", authedUser.id); } catch { /* ignore */ }
+      }
     }
     // Check for partner account — handles both first-login claim and returning partners.
     // claim_partner_account() sets user_id + role='partner' on first login, then returns
@@ -628,6 +656,10 @@ function StepAuth({ onSuccess, authLoading, lang, loginMode, onSwitchToLogin }: 
             setError(t(lang, "adultBlockFailed"));
             return;
           }
+        }
+        // Set session flag so the mount-time has_confirmed_adult() check doesn't race
+        if (newUser) {
+          try { sessionStorage.setItem("cvlingo:adultConfirmedFor", newUser.id); } catch { /* ignore */ }
         }
       }
       setSubmitting(false);
