@@ -115,6 +115,83 @@ interface Toast {
 
 let toastSeq = 0;
 
+// Shared accessible dialog shell: Escape / backdrop-click / × to close, focus trap, focus restore.
+// Pass `busy` while an action is in flight to block accidental dismissal.
+// Put `autoFocus` on the safe (non-destructive) button inside so keyboard users land there.
+function DialogShell({
+  children,
+  onClose,
+  busy = false,
+  maxWidth = "max-w-sm",
+}: {
+  children: React.ReactNode;
+  onClose: () => void;
+  busy?: boolean;
+  maxWidth?: string;
+}) {
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const prevFocusRef = useRef<HTMLElement | null>(null);
+
+  // Save opener's focus element; restore it when the dialog closes
+  useEffect(() => {
+    prevFocusRef.current = document.activeElement as HTMLElement;
+    return () => { prevFocusRef.current?.focus(); };
+  }, []);
+
+  // Escape closes (unless busy)
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape" && !busy) onClose();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [busy, onClose]);
+
+  // Tab trap: keep focus cycling inside the panel
+  useEffect(() => {
+    function onTab(e: KeyboardEvent) {
+      if (e.key !== "Tab" || !panelRef.current) return;
+      const els = Array.from(
+        panelRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
+        )
+      );
+      if (els.length === 0) return;
+      const first = els[0];
+      const last = els[els.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault(); last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault(); first.focus();
+      }
+    }
+    document.addEventListener("keydown", onTab);
+    return () => document.removeEventListener("keydown", onTab);
+  }, []);
+
+  return (
+    <div
+      ref={overlayRef}
+      className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+      onMouseDown={(e) => { if (!busy && e.target === overlayRef.current) onClose(); }}
+    >
+      <div ref={panelRef} className={`bg-white rounded-2xl shadow-xl w-full ${maxWidth} p-6 relative`}>
+        <button
+          type="button"
+          onClick={() => !busy && onClose()}
+          disabled={busy}
+          aria-label="Close"
+          className="absolute top-3 right-3 text-muted-foreground hover:text-foreground text-xl leading-none rounded-full w-8 h-8 flex items-center justify-center hover:bg-muted disabled:opacity-30"
+        >
+          ×
+        </button>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function TeamScreenInner() {
   const { roleInfo, refreshRole } = usePartner();
   const isOwner = roleInfo?.role === "owner";
@@ -678,112 +755,154 @@ function TeamScreenInner() {
 
       {/* Remove/reassign dialog */}
       {removeDialog && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-            <h2 className="font-semibold text-foreground mb-2">Remove {removeDialog.name || removeDialog.email}?</h2>
-            {(removeDialog.assigned_count > 0 || removeDialog.closed_count > 0) && (
-              <p className="text-sm text-muted-foreground mb-4">
-                {removeDialog.assigned_count} assigned · {removeDialog.closed_count} closed.
-                {removeDialog.assigned_count > 0 && " Choose what to do with their active clients before removing."}
-              </p>
-            )}
-            {removeDialog.assigned_count > 0 && (
-              <div className="mb-4">
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Active clients</label>
-                <select value={reassignTo} onChange={(e) => setReassignTo(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary">
-                  <option value="">— Choose —</option>
-                  <option value="unassigned">Leave their {removeDialog.assigned_count} client{removeDialog.assigned_count !== 1 ? "s" : ""} unassigned</option>
-                  {activeMentors.map((m) => (
-                    <option key={m.member_id} value={m.member_user_id!}>Reassign to {m.name || m.email}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-            {removeError && <p className="mb-3 text-sm text-destructive">{removeError}</p>}
-            <div className="flex gap-3">
-              <button type="button" onClick={() => { setRemoveDialog(null); setReassignTo(""); setRemoveError(null); }} disabled={removing}
-                className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted min-h-[44px]">Keep</button>
-              <button type="button" onClick={() => void handleRemove()} disabled={removing || (removeDialog.assigned_count > 0 && !reassignTo)}
-                title={removeDialog.assigned_count > 0 && !reassignTo ? "Choose what to do with their clients first" : undefined}
-                className="flex-1 rounded-xl bg-destructive px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 min-h-[44px]">
-                {removing ? "Removing…" : "Remove"}
-              </button>
+        <DialogShell
+          busy={removing}
+          maxWidth="max-w-md"
+          onClose={() => { if (!removing) { setRemoveDialog(null); setReassignTo(""); setRemoveError(null); } }}
+        >
+          <h2 className="font-semibold text-foreground mb-2 pr-8">Remove {removeDialog.name || removeDialog.email}?</h2>
+          {removeDialog.role === "manager" && (
+            <p className="text-sm font-medium text-amber-700 mb-2">This person is a manager.</p>
+          )}
+          {(removeDialog.assigned_count > 0 || removeDialog.closed_count > 0) && (
+            <p className="text-sm text-muted-foreground mb-4">
+              {removeDialog.assigned_count} assigned · {removeDialog.closed_count} closed.
+              {removeDialog.assigned_count > 0 && " Choose what to do with their active clients before removing."}
+            </p>
+          )}
+          {removeDialog.assigned_count > 0 && (
+            <div className="mb-4">
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Active clients</label>
+              <select value={reassignTo} onChange={(e) => setReassignTo(e.target.value)}
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary">
+                <option value="">— Choose —</option>
+                <option value="unassigned">Leave their {removeDialog.assigned_count} client{removeDialog.assigned_count !== 1 ? "s" : ""} unassigned</option>
+                {activeMentors.map((m) => (
+                  <option key={m.member_id} value={m.member_user_id!}>Reassign to {m.name || m.email}</option>
+                ))}
+              </select>
             </div>
+          )}
+          {removeError && <p className="mb-3 text-sm text-destructive">{removeError}</p>}
+          <div className="flex gap-3">
+            <button
+              type="button"
+              autoFocus
+              onClick={() => { setRemoveDialog(null); setReassignTo(""); setRemoveError(null); }}
+              disabled={removing}
+              className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted min-h-[44px]"
+            >Keep</button>
+            <button
+              type="button"
+              onClick={() => void handleRemove()}
+              disabled={removing || (removeDialog.assigned_count > 0 && !reassignTo)}
+              title={removeDialog.assigned_count > 0 && !reassignTo ? "Choose what to do with their clients first" : undefined}
+              className="flex-1 rounded-xl bg-destructive px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 min-h-[44px]"
+            >
+              {removing ? "Removing…" : "Remove"}
+            </button>
           </div>
-        </div>
+        </DialogShell>
       )}
 
       {/* Cancel invite dialog */}
       {cancelDialog && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-            <h2 className="font-semibold text-foreground mb-2">Cancel the invite for {cancelDialog.email}?</h2>
-            <p className="text-sm text-muted-foreground mb-5">They will not be able to sign in until added again.</p>
-            <div className="flex gap-3">
-              <button type="button" onClick={() => setCancelDialog(null)} disabled={cancellingInvite !== null}
-                className="flex-1 rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-muted min-h-[44px]">
-                Keep invite
-              </button>
-              <button type="button" onClick={() => void handleCancelInviteConfirmed()} disabled={cancellingInvite !== null}
-                className="flex-1 rounded-xl bg-destructive px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 min-h-[44px]">
-                {cancellingInvite ? "Cancelling…" : "Cancel invite"}
-              </button>
-            </div>
+        <DialogShell
+          busy={cancellingInvite !== null}
+          onClose={() => { if (!cancellingInvite) setCancelDialog(null); }}
+        >
+          <h2 className="font-semibold text-foreground mb-2 pr-8">Cancel the invite for {cancelDialog.email}?</h2>
+          <p className="text-sm text-muted-foreground mb-5">They will not be able to sign in until added again.</p>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              autoFocus
+              onClick={() => setCancelDialog(null)}
+              disabled={cancellingInvite !== null}
+              className="flex-1 rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-muted min-h-[44px]"
+            >
+              Keep invite
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleCancelInviteConfirmed()}
+              disabled={cancellingInvite !== null}
+              className="flex-1 rounded-xl bg-destructive px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 min-h-[44px]"
+            >
+              {cancellingInvite ? "Cancelling…" : "Cancel invite"}
+            </button>
           </div>
-        </div>
+        </DialogShell>
       )}
 
       {/* Role change confirm dialog */}
       {roleChangeDialog && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-            <h2 className="font-semibold text-foreground mb-2">
-              {roleChangeDialog.newRole === "manager"
-                ? `Make ${roleChangeDialog.member.name || roleChangeDialog.member.email} a manager?`
-                : `Make ${roleChangeDialog.member.name || roleChangeDialog.member.email} a mentor?`}
-            </h2>
-            <p className="text-sm text-muted-foreground mb-5">
-              {roleChangeDialog.newRole === "manager"
-                ? "Managers can add and remove mentors and assign clients."
-                : "Mentors can only view and work their own assigned clients."}
-            </p>
-            <div className="flex gap-3">
-              <button type="button" onClick={() => setRoleChangeDialog(null)} disabled={roleChangeConfirming}
-                className="flex-1 rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-muted min-h-[44px]">
-                Keep as {roleChangeDialog.member.role === "manager" ? "Manager" : "Mentor"}
-              </button>
-              <button type="button" onClick={() => void handleRoleChangeConfirmed()} disabled={roleChangeConfirming}
-                className="flex-1 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 min-h-[44px]">
-                {roleChangeConfirming ? "Saving…" : `Make ${roleChangeDialog.newRole === "manager" ? "Manager" : "Mentor"}`}
-              </button>
-            </div>
+        <DialogShell
+          busy={roleChangeConfirming}
+          onClose={() => { if (!roleChangeConfirming) setRoleChangeDialog(null); }}
+        >
+          <h2 className="font-semibold text-foreground mb-2 pr-8">
+            {roleChangeDialog.newRole === "manager"
+              ? `Make ${roleChangeDialog.member.name || roleChangeDialog.member.email} a manager?`
+              : `Make ${roleChangeDialog.member.name || roleChangeDialog.member.email} a mentor?`}
+          </h2>
+          <p className="text-sm text-muted-foreground mb-5">
+            {roleChangeDialog.newRole === "manager"
+              ? "Managers can add and remove mentors and assign clients."
+              : "Mentors can only view and work their own assigned clients."}
+          </p>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              autoFocus
+              onClick={() => setRoleChangeDialog(null)}
+              disabled={roleChangeConfirming}
+              className="flex-1 rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-muted min-h-[44px]"
+            >
+              Keep as {roleChangeDialog.member.role === "manager" ? "Manager" : "Mentor"}
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleRoleChangeConfirmed()}
+              disabled={roleChangeConfirming}
+              className="flex-1 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 min-h-[44px]"
+            >
+              {roleChangeConfirming ? "Saving…" : `Make ${roleChangeDialog.newRole === "manager" ? "Manager" : "Mentor"}`}
+            </button>
           </div>
-        </div>
+        </DialogShell>
       )}
 
       {/* Send-all pending confirm dialog */}
       {sendAllConfirm && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-            <h2 className="font-semibold text-foreground mb-2">
-              Send {pendingCount} invite email{pendingCount !== 1 ? "s" : ""} now?
-            </h2>
-            <p className="text-sm text-muted-foreground mb-5">
-              Each pending member will receive an email invite. Members emailed in the last hour will be skipped automatically.
-            </p>
-            <div className="flex gap-3">
-              <button type="button" onClick={() => setSendAllConfirm(false)}
-                className="flex-1 rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-muted min-h-[44px]">
-                Not now
-              </button>
-              <button type="button" onClick={() => { setSendAllConfirm(false); void handleSendAllPendingEmails(); }}
-                className="flex-1 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 min-h-[44px]">
-                Send
-              </button>
-            </div>
+        <DialogShell
+          busy={false}
+          onClose={() => setSendAllConfirm(false)}
+        >
+          <h2 className="font-semibold text-foreground mb-2 pr-8">
+            Send {pendingCount} invite email{pendingCount !== 1 ? "s" : ""} now?
+          </h2>
+          <p className="text-sm text-muted-foreground mb-5">
+            Each pending member will receive an email invite. Members emailed in the last hour will be skipped automatically.
+          </p>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              autoFocus
+              onClick={() => setSendAllConfirm(false)}
+              className="flex-1 rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-muted min-h-[44px]"
+            >
+              Not now
+            </button>
+            <button
+              type="button"
+              onClick={() => { setSendAllConfirm(false); void handleSendAllPendingEmails(); }}
+              className="flex-1 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 min-h-[44px]"
+            >
+              Send
+            </button>
           </div>
-        </div>
+        </DialogShell>
       )}
 
       {/* Members list — faded with Searching… label during debounced search */}
@@ -943,7 +1062,7 @@ function MemberCard({ member, isViewerOwner, managerCount, roleChanging, cancell
           {showCancelInvite ? (
             <button type="button" onClick={onCancelInvite} disabled={cancellingInvite}
               className="rounded-xl border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted disabled:opacity-50 min-h-[44px]">
-              {cancellingInvite ? "Cancelling…" : "Cancel"}
+              {cancellingInvite ? "Cancelling…" : "Cancel invite"}
             </button>
           ) : showRemove ? (
             <button type="button" onClick={onRemove} disabled={isLastManager}
@@ -993,74 +1112,77 @@ function TransferOwnershipDialog({ members, onClose, onSuccess }: {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-        <h2 className="font-semibold text-foreground mb-1">Transfer ownership</h2>
-        <p className="text-sm text-muted-foreground mb-4">
-          The selected manager will become the owner and you will become a manager.
-        </p>
+    <DialogShell busy={transferring} maxWidth="max-w-md" onClose={() => { if (!transferring) onClose(); }}>
+      <h2 className="font-semibold text-foreground mb-1 pr-8">Transfer ownership</h2>
+      <p className="text-sm text-muted-foreground mb-4">
+        The selected manager will become the owner and you will become a manager.
+      </p>
 
-        {activeManagers.length === 0 ? (
-          <p className="text-sm text-muted-foreground mb-4">There are no active managers to transfer ownership to.</p>
-        ) : (
-          <>
-            {activeManagers.length > 3 && (
-              <input
-                type="search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search managers…"
-                className="mb-3 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary"
-              />
-            )}
-            <div className="mb-4 max-h-48 overflow-y-auto space-y-2">
-              {filtered.map((m) => (
-                <label key={m.member_id} className="flex items-center gap-3 rounded-xl border border-border px-4 py-3 cursor-pointer hover:bg-muted">
-                  <input
-                    type="radio"
-                    name="transfer-target"
-                    value={m.member_user_id!}
-                    checked={selectedId === m.member_user_id}
-                    onChange={() => setSelectedId(m.member_user_id!)}
-                    className="accent-primary"
-                  />
-                  <span className="text-sm font-medium text-foreground">{m.name || m.email}</span>
-                  {m.name && <span className="text-xs text-muted-foreground">{m.email}</span>}
-                </label>
-              ))}
-              {filtered.length === 0 && <p className="text-sm text-muted-foreground">No results.</p>}
-            </div>
-
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">
-              Type <span className="font-mono font-semibold">TRANSFER</span> to confirm
-            </label>
+      {activeManagers.length === 0 ? (
+        <p className="text-sm text-muted-foreground mb-4">There are no active managers to transfer ownership to.</p>
+      ) : (
+        <>
+          {activeManagers.length > 3 && (
             <input
-              type="text"
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              placeholder="TRANSFER"
-              className="mb-4 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary"
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search managers…"
+              className="mb-3 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary"
             />
-          </>
-        )}
+          )}
+          <div className="mb-4 max-h-48 overflow-y-auto space-y-2">
+            {filtered.map((m) => (
+              <label key={m.member_id} className="flex items-center gap-3 rounded-xl border border-border px-4 py-3 cursor-pointer hover:bg-muted">
+                <input
+                  type="radio"
+                  name="transfer-target"
+                  value={m.member_user_id!}
+                  checked={selectedId === m.member_user_id}
+                  onChange={() => setSelectedId(m.member_user_id!)}
+                  className="accent-primary"
+                />
+                <span className="text-sm font-medium text-foreground">{m.name || m.email}</span>
+                {m.name && <span className="text-xs text-muted-foreground">{m.email}</span>}
+              </label>
+            ))}
+            {filtered.length === 0 && <p className="text-sm text-muted-foreground">No results.</p>}
+          </div>
 
-        {error && <p className="mb-3 text-sm text-destructive">{error}</p>}
+          <label className="mb-1 block text-xs font-medium text-muted-foreground">
+            Type <span className="font-mono font-semibold">TRANSFER</span> to confirm
+          </label>
+          <input
+            type="text"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            placeholder="TRANSFER"
+            className="mb-4 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary"
+          />
+        </>
+      )}
 
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => void handleTransfer()}
-            disabled={transferring || confirm !== "TRANSFER" || !selectedId}
-            className="flex-1 rounded-xl bg-destructive px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 min-h-[44px]"
-          >
-            {transferring ? "Transferring…" : "Transfer ownership"}
-          </button>
-          <button type="button" onClick={onClose} disabled={transferring}
-            className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted min-h-[44px]">
-            Cancel
-          </button>
-        </div>
+      {error && <p className="mb-3 text-sm text-destructive">{error}</p>}
+
+      <div className="flex gap-3">
+        <button
+          type="button"
+          autoFocus
+          onClick={onClose}
+          disabled={transferring}
+          className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted min-h-[44px]"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={() => void handleTransfer()}
+          disabled={transferring || confirm !== "TRANSFER" || !selectedId}
+          className="flex-1 rounded-xl bg-destructive px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 min-h-[44px]"
+        >
+          {transferring ? "Transferring…" : "Transfer ownership"}
+        </button>
       </div>
-    </div>
+    </DialogShell>
   );
 }
