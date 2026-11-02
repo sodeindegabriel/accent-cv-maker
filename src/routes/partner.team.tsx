@@ -8,8 +8,8 @@ import {
   PageSpinner,
   fmtDate,
   roleLabel,
-  sendTeamInviteEmail,
 } from "@/components/partner-shared";
+import { sendPartnerInviteEmails } from "@/lib/partner-invite.functions";
 
 export const Route = createFileRoute("/partner/team")({
   codeSplitGroupings: [],
@@ -103,6 +103,7 @@ interface AddResult {
   invalid_list: string[];
   wrong_domain_list: string[];
   added_list: string[];
+  added_member_ids: string[];
   role: string;
 }
 
@@ -185,43 +186,57 @@ function TeamScreenInner() {
       setAddResult({
         added: 0, skipped: 0, invalid: 0, wrong_domain: 0,
         skipped_list: [], invalid_list: [], wrong_domain_list: [],
-        added_list: [], role: inviteRole,
+        added_list: [], added_member_ids: [], role: inviteRole,
       });
       setError(friendlyError(err.message));
       return;
     }
 
-    const r = data as { added: number; skipped: number; invalid: number; wrong_domain: number; skipped_list: string[]; invalid_list: string[]; wrong_domain_list: string[] };
+    const r = data as { added: number; skipped: number; invalid: number; wrong_domain: number; skipped_list: string[]; invalid_list: string[]; wrong_domain_list: string[]; added_member_ids?: string[] };
     const skipped = new Set([...r.skipped_list, ...r.invalid_list, ...r.wrong_domain_list].map((e) => e.toLowerCase()));
     const addedList = emails.filter((e) => !skipped.has(e));
 
     setAddResult({
       ...r,
       added_list: addedList,
+      added_member_ids: r.added_member_ids ?? [],
       role: isOwner ? inviteRole : "mentor",
     });
     setInviteEmails("");
     void loadMembers();
   }
 
-  async function handleSendInviteEmails(emailsList: string[]) {
+  async function handleSendInviteEmails(memberIds: string[]) {
     if (!roleInfo) return;
     setSendingEmails(true); setEmailSendResult(null);
-    let sent = 0; const failed: string[] = [];
-    for (const email of emailsList) {
-      try {
-        await sendTeamInviteEmail(roleInfo.partner_name, email);
-        sent++;
-      } catch {
-        failed.push(email);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { setEmailSendResult("Not signed in."); setSendingEmails(false); return; }
+      const result = await sendPartnerInviteEmails({
+        data: { accessToken: session.access_token, memberIds },
+      });
+      const parts: string[] = [];
+      if (result.sent > 0) parts.push(`${result.sent} email${result.sent !== 1 ? "s" : ""} sent`);
+      if (result.skipped_recent > 0) parts.push(`${result.skipped_recent} already emailed in the last hour`);
+      if (result.failed.length > 0) parts.push(`${result.failed.length} failed`);
+      setEmailSendResult(parts.join(", ") + ".");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("daily_invite_limit")) {
+        setEmailSendResult("Daily invite email limit (300) reached. Try again tomorrow.");
+      } else if (msg.includes("manager access required")) {
+        setEmailSendResult("Only managers can send invite emails.");
+      } else {
+        setEmailSendResult("Could not send emails. Please try again.");
       }
     }
     setSendingEmails(false);
-    setEmailSendResult(
-      failed.length === 0
-        ? `${sent} invite email${sent !== 1 ? "s" : ""} sent.`
-        : `${sent} sent, ${failed.length} failed: ${failed.join(", ")}`
-    );
+  }
+
+  async function handleSendAllPendingEmails() {
+    const pendingIds = members.filter((m) => m.status === "invited").map((m) => m.member_id);
+    if (pendingIds.length === 0) return;
+    await handleSendInviteEmails(pendingIds);
   }
 
   function getCopyMessage(emails: string[], role: string): string {
@@ -312,6 +327,16 @@ function TeamScreenInner() {
           )}
         </div>
         <div className="flex items-center gap-2">
+          {!loading && pendingCount > 0 && (
+            <button
+              type="button"
+              disabled={sendingEmails}
+              onClick={() => void handleSendAllPendingEmails()}
+              className="rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50 transition-colors min-h-[44px]"
+            >
+              {sendingEmails ? "Sending…" : `Send invite email to all ${pendingCount} pending`}
+            </button>
+          )}
           {isOwner && (
             <button
               type="button"
@@ -330,6 +355,11 @@ function TeamScreenInner() {
           </button>
         </div>
       </div>
+
+      {/* Email send result (when sent from heading, outside add panel) */}
+      {emailSendResult && !addOpen && (
+        <p className="mb-4 text-sm text-muted-foreground">{emailSendResult}</p>
+      )}
 
       {/* Role explanation */}
       <p className="mb-4 text-sm text-muted-foreground">
@@ -392,7 +422,7 @@ function TeamScreenInner() {
                     <button
                       type="button"
                       disabled={sendingEmails}
-                      onClick={() => void handleSendInviteEmails(addResult.added_list)}
+                      onClick={() => void handleSendInviteEmails(addResult.added_member_ids.length > 0 ? addResult.added_member_ids : members.filter((m) => m.status === "invited" && addResult.added_list.includes(m.email)).map((m) => m.member_id))}
                       className="rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50 min-h-[44px]"
                     >
                       {sendingEmails ? "Sending…" : "Send invite emails"}
@@ -543,7 +573,7 @@ function TeamScreenInner() {
               onRoleChange={(role) => void handleRoleChange(m, role)}
               onRemove={() => { setRemoveDialog(m); setRemoveError(null); }}
               onCancelInvite={() => void handleCancelInvite(m)}
-              onSendInviteEmail={(email) => void handleSendInviteEmails([email])}
+              onSendInviteEmail={(memberId) => void handleSendInviteEmails([memberId])}
               onCopyMessage={(email) => {
                 const role = m.role === "manager" ? "manager" : "mentor";
                 void navigator.clipboard.writeText(getCopyMessage([email], role));
@@ -565,7 +595,7 @@ function MemberCard({ member, isViewerOwner, managerCount, roleChanging, cancell
   onRoleChange: (role: "manager" | "mentor") => void;
   onRemove: () => void;
   onCancelInvite: () => void;
-  onSendInviteEmail: (email: string) => void;
+  onSendInviteEmail: (memberId: string) => void;
   onCopyMessage: (email: string) => void;
 }) {
   const isInvited = member.status === "invited";
@@ -613,7 +643,7 @@ function MemberCard({ member, isViewerOwner, managerCount, roleChanging, cancell
           {/* Pending-invite actions */}
           {isInvited && (
             <>
-              <button type="button" onClick={() => onSendInviteEmail(member.email)}
+              <button type="button" onClick={() => onSendInviteEmail(member.member_id)}
                 className="rounded-xl border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted min-h-[44px]">
                 Send invite email
               </button>
