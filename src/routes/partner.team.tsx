@@ -138,6 +138,12 @@ function TeamScreenInner() {
   const [removeError, setRemoveError] = useState<string | null>(null);
   const [roleChanging, setRoleChanging] = useState<string | null>(null);
   const [cancellingInvite, setCancellingInvite] = useState<string | null>(null);
+  const [cancelDialog, setCancelDialog] = useState<TeamMember | null>(null);
+  const [roleChangeDialog, setRoleChangeDialog] = useState<{ member: TeamMember; newRole: "manager" | "mentor" } | null>(null);
+  const [roleChangeConfirming, setRoleChangeConfirming] = useState(false);
+  const [sendAllConfirm, setSendAllConfirm] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const hasLoadedOnce = useRef(false);
   const [search, setSearch] = useState("");
   const [showPendingOnly, setShowPendingOnly] = useState(false);
   const [showNamePrompt, setShowNamePrompt] = useState(false);
@@ -186,13 +192,19 @@ function TeamScreenInner() {
 
   const loadMembers = useCallback(async (pg: number, q: string) => {
     setError(null);
-    setLoading(true);
+    if (!hasLoadedOnce.current) {
+      setLoading(true);
+    } else {
+      setSearching(true);
+    }
     const { data, error: err } = await supabase.rpc("list_partner_team", {
       p_limit: PAGE_SIZE,
       p_offset: pg * PAGE_SIZE,
       p_search: q.trim() || null,
     });
     setLoading(false);
+    setSearching(false);
+    hasLoadedOnce.current = true;
     if (err) { setError("Could not load team. Please try again."); return; }
     const d = data as { rows: TeamMember[]; total: number } | null;
     setMembers(sortMembers(d?.rows ?? []));
@@ -341,19 +353,26 @@ function TeamScreenInner() {
     ].join("\n");
   }
 
-  async function handleRoleChange(member: TeamMember, newRole: "manager" | "mentor") {
+  async function handleRoleChangeConfirmed() {
+    if (!roleChangeDialog) return;
+    const { member, newRole } = roleChangeDialog;
+    setRoleChangeConfirming(true);
     setRoleChanging(member.member_id);
     const { error: err } = await supabase.rpc("set_partner_member_role", {
       p_member_user_id: member.member_user_id,
       p_role: newRole,
     });
+    setRoleChangeConfirming(false);
     setRoleChanging(null);
-    if (err) { setError(friendlyError(err.message)); return; }
+    setRoleChangeDialog(null);
+    if (err) { showToast(friendlyError(err.message), "error"); return; }
     void loadMembers(page, search);
   }
 
-  async function handleRemove(reassignUserId?: string) {
+  async function handleRemove() {
     if (!removeDialog) return;
+    const name = removeDialog.name || removeDialog.email;
+    const reassignUserId = (reassignTo && reassignTo !== "unassigned") ? reassignTo : undefined;
     setRemoving(true); setRemoveError(null);
     const { error: err } = await supabase.rpc("remove_partner_member", {
       p_member_user_id: removeDialog.member_user_id,
@@ -363,17 +382,28 @@ function TeamScreenInner() {
       setRemoveError(friendlyError(err.message));
       setRemoving(false); return;
     }
+    const reassignedTo = reassignUserId
+      ? activeMentors.find((m) => m.member_user_id === reassignUserId)?.name
+      : null;
+    const toastMsg = reassignedTo
+      ? `${name} removed. Clients reassigned to ${reassignedTo}.`
+      : `${name} removed.`;
+    showToast(toastMsg, "success");
     setRemoving(false); setRemoveDialog(null); setReassignTo("");
     void loadMembers(page, search);
   }
 
-  async function handleCancelInvite(member: TeamMember) {
-    setCancellingInvite(member.member_id);
+  async function handleCancelInviteConfirmed() {
+    if (!cancelDialog) return;
+    const email = cancelDialog.email;
+    setCancellingInvite(cancelDialog.member_id);
     const { error: err } = await supabase.rpc("cancel_partner_invite", {
-      p_member_id: member.member_id,
+      p_member_id: cancelDialog.member_id,
     });
     setCancellingInvite(null);
-    if (err) { setError(friendlyError(err.message)); return; }
+    setCancelDialog(null);
+    if (err) { showToast(friendlyError(err.message), "error"); return; }
+    showToast(`Invite cancelled for ${email}.`, "success");
     void loadMembers(page, search);
   }
 
@@ -445,10 +475,10 @@ function TeamScreenInner() {
             <button
               type="button"
               disabled={sendingEmails}
-              onClick={() => void handleSendAllPendingEmails()}
+              onClick={() => setSendAllConfirm(true)}
               className="rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50 transition-colors min-h-[44px]"
             >
-              {sendingEmails ? "Sending…" : `Send invite email to all ${pendingCount} pending`}
+              {sendingEmails ? "Sending…" : `Send to all ${pendingCount} pending`}
             </button>
           )}
           {isOwner && (
@@ -480,8 +510,8 @@ function TeamScreenInner() {
         Managers can add and remove mentors and assign clients. Only the owner can add, remove or change managers and transfer ownership.
       </p>
 
-      {/* Second-manager banner */}
-      {!loading && !error && managerCount === 1 && (
+      {/* Second-manager banner — only shown when the full team is visible (no search, first page, ≤100 total) */}
+      {!loading && !searching && !error && search === "" && page === 0 && total <= 100 && managerCount === 1 && (
         <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           Add at least one other manager so the team can continue if you lose access.
         </div>
@@ -606,16 +636,28 @@ function TeamScreenInner() {
         </div>
       )}
 
-      {/* Search box — always visible once loaded so you can search beyond page 1 */}
-      {!loading && !error && total > 0 && (
+      {/* Search box — mounted outside loading/empty conditionals so focus is never lost */}
+      {(total > 0 || search.trim().length > 0) && (
         <div className="mb-4">
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Search by name or email…"
-            className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary sm:max-w-xs"
-          />
+          <div className="relative sm:max-w-xs">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              placeholder="Search by name or email…"
+              className="w-full rounded-xl border border-border bg-background px-4 py-2.5 pr-9 text-sm text-foreground outline-none focus:border-primary"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => handleSearchChange("")}
+                aria-label="Clear search"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-lg leading-none"
+              >
+                ×
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -630,11 +672,8 @@ function TeamScreenInner() {
         </div>
       )}
 
-      {!loading && !error && total === 0 && !search.trim() && (
+      {!loading && !searching && !error && total === 0 && !search.trim() && (
         <EmptyState message={'No team members yet. Use "Add people" to add someone.'} />
-      )}
-      {!loading && !error && filteredMembers.length === 0 && (total > 0 || search.trim()) && (
-        <p className="text-sm text-muted-foreground">No results for &ldquo;{search}&rdquo;</p>
       )}
 
       {/* Remove/reassign dialog */}
@@ -642,39 +681,140 @@ function TeamScreenInner() {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
             <h2 className="font-semibold text-foreground mb-2">Remove {removeDialog.name || removeDialog.email}?</h2>
-            {removeDialog.assigned_count > 0 && (
+            {(removeDialog.assigned_count > 0 || removeDialog.closed_count > 0) && (
               <p className="text-sm text-muted-foreground mb-4">
-                They have {removeDialog.assigned_count} active client{removeDialog.assigned_count !== 1 ? "s" : ""}.
-                Optionally reassign before removing.
+                {removeDialog.assigned_count} assigned · {removeDialog.closed_count} closed.
+                {removeDialog.assigned_count > 0 && " Choose what to do with their active clients before removing."}
               </p>
             )}
-            {removeDialog.assigned_count > 0 && activeMentors.length > 0 && (
+            {removeDialog.assigned_count > 0 && (
               <div className="mb-4">
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Reassign clients to (optional)</label>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Active clients</label>
                 <select value={reassignTo} onChange={(e) => setReassignTo(e.target.value)}
                   className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary">
-                  <option value="">Leave unassigned</option>
+                  <option value="">— Choose —</option>
+                  <option value="unassigned">Leave their {removeDialog.assigned_count} client{removeDialog.assigned_count !== 1 ? "s" : ""} unassigned</option>
                   {activeMentors.map((m) => (
-                    <option key={m.member_id} value={m.member_user_id!}>{m.name || m.email}</option>
+                    <option key={m.member_id} value={m.member_user_id!}>Reassign to {m.name || m.email}</option>
                   ))}
                 </select>
               </div>
             )}
             {removeError && <p className="mb-3 text-sm text-destructive">{removeError}</p>}
             <div className="flex gap-3">
-              <button type="button" onClick={() => void handleRemove(reassignTo || undefined)} disabled={removing}
+              <button type="button" onClick={() => { setRemoveDialog(null); setReassignTo(""); setRemoveError(null); }} disabled={removing}
+                className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted min-h-[44px]">Keep</button>
+              <button type="button" onClick={() => void handleRemove()} disabled={removing || (removeDialog.assigned_count > 0 && !reassignTo)}
+                title={removeDialog.assigned_count > 0 && !reassignTo ? "Choose what to do with their clients first" : undefined}
                 className="flex-1 rounded-xl bg-destructive px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 min-h-[44px]">
                 {removing ? "Removing…" : "Remove"}
               </button>
-              <button type="button" onClick={() => { setRemoveDialog(null); setReassignTo(""); setRemoveError(null); }} disabled={removing}
-                className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted min-h-[44px]">Cancel</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Members list */}
-      {!loading && !error && filteredMembers.length > 0 && (
+      {/* Cancel invite dialog */}
+      {cancelDialog && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <h2 className="font-semibold text-foreground mb-2">Cancel the invite for {cancelDialog.email}?</h2>
+            <p className="text-sm text-muted-foreground mb-5">They will not be able to sign in until added again.</p>
+            <div className="flex gap-3">
+              <button type="button" onClick={() => setCancelDialog(null)} disabled={cancellingInvite !== null}
+                className="flex-1 rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-muted min-h-[44px]">
+                Keep invite
+              </button>
+              <button type="button" onClick={() => void handleCancelInviteConfirmed()} disabled={cancellingInvite !== null}
+                className="flex-1 rounded-xl bg-destructive px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 min-h-[44px]">
+                {cancellingInvite ? "Cancelling…" : "Cancel invite"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Role change confirm dialog */}
+      {roleChangeDialog && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <h2 className="font-semibold text-foreground mb-2">
+              {roleChangeDialog.newRole === "manager"
+                ? `Make ${roleChangeDialog.member.name || roleChangeDialog.member.email} a manager?`
+                : `Make ${roleChangeDialog.member.name || roleChangeDialog.member.email} a mentor?`}
+            </h2>
+            <p className="text-sm text-muted-foreground mb-5">
+              {roleChangeDialog.newRole === "manager"
+                ? "Managers can add and remove mentors and assign clients."
+                : "Mentors can only view and work their own assigned clients."}
+            </p>
+            <div className="flex gap-3">
+              <button type="button" onClick={() => setRoleChangeDialog(null)} disabled={roleChangeConfirming}
+                className="flex-1 rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-muted min-h-[44px]">
+                Keep as {roleChangeDialog.member.role === "manager" ? "Manager" : "Mentor"}
+              </button>
+              <button type="button" onClick={() => void handleRoleChangeConfirmed()} disabled={roleChangeConfirming}
+                className="flex-1 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 min-h-[44px]">
+                {roleChangeConfirming ? "Saving…" : `Make ${roleChangeDialog.newRole === "manager" ? "Manager" : "Mentor"}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Send-all pending confirm dialog */}
+      {sendAllConfirm && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <h2 className="font-semibold text-foreground mb-2">
+              Send {pendingCount} invite email{pendingCount !== 1 ? "s" : ""} now?
+            </h2>
+            <p className="text-sm text-muted-foreground mb-5">
+              Each pending member will receive an email invite. Members emailed in the last hour will be skipped automatically.
+            </p>
+            <div className="flex gap-3">
+              <button type="button" onClick={() => setSendAllConfirm(false)}
+                className="flex-1 rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-muted min-h-[44px]">
+                Not now
+              </button>
+              <button type="button" onClick={() => { setSendAllConfirm(false); void handleSendAllPendingEmails(); }}
+                className="flex-1 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 min-h-[44px]">
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Members list — faded with Searching… label during debounced search */}
+      {!loading && !error && searching && (
+        <>
+          <div className="space-y-3 opacity-50 pointer-events-none">
+            {filteredMembers.map((m) => (
+              <MemberCard
+                key={m.member_id}
+                member={m}
+                isViewerOwner={isOwner ?? false}
+                managerCount={managerCount}
+                roleChanging={false}
+                cancellingInvite={false}
+                sendingEmail={false}
+                emailedAtTime={emailedAt[m.member_id] ?? null}
+                onRoleChange={() => undefined}
+                onRemove={() => undefined}
+                onCancelInvite={() => undefined}
+                onSendInviteEmail={() => undefined}
+                onCopyMessage={() => undefined}
+              />
+            ))}
+          </div>
+          <p className="mt-2 text-sm text-muted-foreground">Searching…</p>
+        </>
+      )}
+      {!loading && !searching && !error && filteredMembers.length === 0 && (total > 0 || search.trim()) && (
+        <p className="text-sm text-muted-foreground">No results for &ldquo;{search}&rdquo;</p>
+      )}
+      {!loading && !searching && !error && filteredMembers.length > 0 && (
         <div className="space-y-3">
           {filteredMembers.map((m) => (
             <MemberCard
@@ -686,9 +826,9 @@ function TeamScreenInner() {
               cancellingInvite={cancellingInvite === m.member_id}
               sendingEmail={sendingEmails}
               emailedAtTime={emailedAt[m.member_id] ?? null}
-              onRoleChange={(role) => void handleRoleChange(m, role)}
-              onRemove={() => { setRemoveDialog(m); setRemoveError(null); }}
-              onCancelInvite={() => void handleCancelInvite(m)}
+              onRoleChange={(role) => setRoleChangeDialog({ member: m, newRole: role })}
+              onRemove={() => { setRemoveDialog(m); setReassignTo(""); setRemoveError(null); }}
+              onCancelInvite={() => setCancelDialog(m)}
               onSendInviteEmail={(memberId) => void handleSendInviteEmails([memberId])}
               onCopyMessage={(email) => {
                 const role = m.role === "manager" ? "manager" : "mentor";
@@ -700,11 +840,11 @@ function TeamScreenInner() {
       )}
 
       {/* Pagination */}
-      {!loading && !error && totalPages > 1 && (
+      {!loading && !searching && !error && totalPages > 1 && (
         <div className="mt-6 flex items-center justify-between gap-4">
           <button
             type="button"
-            disabled={page === 0 || loading}
+            disabled={page === 0}
             onClick={() => void loadMembers(page - 1, search)}
             className="rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-40 min-h-[44px]"
           >
@@ -715,7 +855,7 @@ function TeamScreenInner() {
           </span>
           <button
             type="button"
-            disabled={page >= totalPages - 1 || loading}
+            disabled={page >= totalPages - 1}
             onClick={() => void loadMembers(page + 1, search)}
             className="rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-40 min-h-[44px]"
           >
