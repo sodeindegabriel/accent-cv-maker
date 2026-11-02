@@ -9,6 +9,7 @@ import {
   fmtDate,
   roleLabel,
 } from "@/components/partner-shared";
+import { DialogShell } from "@/components/dialog-shell";
 import { sendPartnerInviteEmails } from "@/lib/partner-invite.functions";
 
 export const Route = createFileRoute("/partner/team")({
@@ -32,7 +33,7 @@ function TeamScreen() {
   return <TeamScreenInner />;
 }
 
-function NamePromptDialog({ onSave }: { onSave: (name: string) => void }) {
+function NamePromptDialog({ onSave, onLater }: { onSave: (name: string) => void; onLater: () => void }) {
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,31 +52,40 @@ function NamePromptDialog({ onSave }: { onSave: (name: string) => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-        <h2 className="font-semibold text-foreground mb-1">What is your name?</h2>
-        <p className="text-sm text-muted-foreground mb-4">Your colleagues will see it when assigning clients.</p>
-        <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-3">
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Your full name"
-            required
-            autoFocus
-            className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary"
-          />
-          {error && <p className="text-sm text-destructive">{error}</p>}
+    <DialogShell onClose={onLater} busy={saving}>
+      <h2 className="font-semibold text-foreground mb-1">What is your name?</h2>
+      <p className="text-sm text-muted-foreground mb-4">Your colleagues will see it when assigning clients.</p>
+      <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-3">
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Your full name"
+          required
+          autoFocus
+          className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary"
+        />
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        <div className="flex gap-3">
           <button
             type="submit"
             disabled={saving || !name.trim()}
-            className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 min-h-[44px]"
+            className="flex-1 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 min-h-[44px]"
           >
             {saving ? "Saving…" : "Save"}
           </button>
-        </form>
-      </div>
-    </div>
+          <button
+            type="button"
+            onClick={onLater}
+            disabled={saving}
+            autoFocus
+            className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50 min-h-[44px]"
+          >
+            Later
+          </button>
+        </div>
+      </form>
+    </DialogShell>
   );
 }
 
@@ -115,82 +125,7 @@ interface Toast {
 
 let toastSeq = 0;
 
-// Shared accessible dialog shell: Escape / backdrop-click / × to close, focus trap, focus restore.
-// Pass `busy` while an action is in flight to block accidental dismissal.
-// Put `autoFocus` on the safe (non-destructive) button inside so keyboard users land there.
-function DialogShell({
-  children,
-  onClose,
-  busy = false,
-  maxWidth = "max-w-sm",
-}: {
-  children: React.ReactNode;
-  onClose: () => void;
-  busy?: boolean;
-  maxWidth?: string;
-}) {
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
-  const prevFocusRef = useRef<HTMLElement | null>(null);
 
-  // Save opener's focus element; restore it when the dialog closes
-  useEffect(() => {
-    prevFocusRef.current = document.activeElement as HTMLElement;
-    return () => { prevFocusRef.current?.focus(); };
-  }, []);
-
-  // Escape closes (unless busy)
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape" && !busy) onClose();
-    }
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [busy, onClose]);
-
-  // Tab trap: keep focus cycling inside the panel
-  useEffect(() => {
-    function onTab(e: KeyboardEvent) {
-      if (e.key !== "Tab" || !panelRef.current) return;
-      const els = Array.from(
-        panelRef.current.querySelectorAll<HTMLElement>(
-          'button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
-        )
-      );
-      if (els.length === 0) return;
-      const first = els[0];
-      const last = els[els.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault(); last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault(); first.focus();
-      }
-    }
-    document.addEventListener("keydown", onTab);
-    return () => document.removeEventListener("keydown", onTab);
-  }, []);
-
-  return (
-    <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-      onMouseDown={(e) => { if (!busy && e.target === overlayRef.current) onClose(); }}
-    >
-      <div ref={panelRef} className={`bg-white rounded-2xl shadow-xl w-full ${maxWidth} p-6 relative`}>
-        <button
-          type="button"
-          onClick={() => !busy && onClose()}
-          disabled={busy}
-          aria-label="Close"
-          className="absolute top-3 right-3 text-muted-foreground hover:text-foreground text-xl leading-none rounded-full w-8 h-8 flex items-center justify-center hover:bg-muted disabled:opacity-30"
-        >
-          ×
-        </button>
-        {children}
-      </div>
-    </div>
-  );
-}
 
 function TeamScreenInner() {
   const { roleInfo, refreshRole } = usePartner();
@@ -515,7 +450,7 @@ function TeamScreenInner() {
       )}
 
       {showNamePrompt && (
-        <NamePromptDialog onSave={() => setShowNamePrompt(false)} />
+        <NamePromptDialog onSave={() => setShowNamePrompt(false)} onLater={() => setShowNamePrompt(false)} />
       )}
 
       {transferOpen && (

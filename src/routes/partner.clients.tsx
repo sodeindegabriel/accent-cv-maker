@@ -14,6 +14,7 @@ import {
   outcomeLabel,
   PAGE_SIZE_DEFAULT,
 } from "@/components/partner-shared";
+import { DialogShell } from "@/components/dialog-shell";
 
 interface ClientSearch {
   filter: string;
@@ -162,7 +163,6 @@ function ClientsScreen() {
       if (err) failed += batch.length; else done += batch.length;
       setBulkProgress({ done: done + failed, total: refs.length });
     }
-    setBulkProgress(null);
     setBulkSummary({ assigned: done, failed });
     setBulkConfirm(false);
     setBulkMentorId(""); setBulkMentorName("");
@@ -250,25 +250,40 @@ function ClientsScreen() {
         <span className="ml-auto text-xs text-muted-foreground">{total.toLocaleString()} client{total !== 1 ? "s" : ""}</span>
       </div>
 
-      {/* Bulk assign summary */}
-      {bulkSummary && (
-        <div className="mb-4 rounded-xl border border-border bg-card px-4 py-3 flex items-center justify-between gap-3">
-          <span className="text-sm text-foreground">
+      {/* Bulk summary dialog */}
+      {bulkSummary && !bulkProgress && (
+        <DialogShell onClose={() => setBulkSummary(null)}>
+          <h2 className="font-semibold text-foreground mb-2">Assignment complete</h2>
+          <p className="text-sm text-muted-foreground mb-4">
             Assigned {bulkSummary.assigned} client{bulkSummary.assigned !== 1 ? "s" : ""}
-            {bulkSummary.failed > 0 ? ` (${bulkSummary.failed} failed)` : ""}.
-          </span>
-          <button type="button" onClick={() => setBulkSummary(null)} className="text-xs text-muted-foreground hover:text-foreground min-h-[44px]">Dismiss</button>
-        </div>
+            {bulkSummary.failed > 0 ? `. ${bulkSummary.failed} failed.` : "."}
+          </p>
+          <button type="button" onClick={() => setBulkSummary(null)} autoFocus
+            className="w-full rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 min-h-[44px]">
+            Done
+          </button>
+        </DialogShell>
       )}
 
-      {/* Bulk progress */}
+      {/* Bulk progress dialog */}
       {bulkProgress && (
-        <div className="mb-4 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3">
-          <p className="text-sm text-foreground">Assigning… {bulkProgress.done} / {bulkProgress.total}</p>
-          <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
+        <DialogShell onClose={() => setBulkProgress(null)} busy={bulkProgress.done < bulkProgress.total}>
+          <h2 className="font-semibold text-foreground mb-2">
+            {bulkProgress.done < bulkProgress.total ? "Assigning…" : "Assignment complete"}
+          </h2>
+          <p className="text-sm text-muted-foreground mb-3">
+            {bulkProgress.done} / {bulkProgress.total} clients processed
+          </p>
+          <div className="h-2 rounded-full bg-muted overflow-hidden mb-4">
             <div className="h-2 rounded-full bg-primary transition-all" style={{ width: `${(bulkProgress.done / bulkProgress.total) * 100}%` }} />
           </div>
-        </div>
+          {bulkProgress.done >= bulkProgress.total && (
+            <button type="button" onClick={() => setBulkProgress(null)} autoFocus
+              className="w-full rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 min-h-[44px]">
+              Done
+            </button>
+          )}
+        </DialogShell>
       )}
 
       {/* Bulk assign toolbar (managers only) */}
@@ -300,23 +315,21 @@ function ClientsScreen() {
 
       {/* Bulk confirm dialog */}
       {bulkConfirm && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-            <h2 className="font-semibold text-foreground mb-2">Confirm bulk assignment</h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              Assign {selectedRefs.size} client{selectedRefs.size !== 1 ? "s" : ""} to <strong>{bulkMentorName}</strong>?
-              This will replace any existing mentor assignment.
-            </p>
-            <div className="flex gap-3">
-              <button type="button" onClick={() => void handleBulkAssign()}
-                className="flex-1 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 min-h-[44px]">
-                Confirm
-              </button>
-              <button type="button" onClick={() => setBulkConfirm(false)}
-                className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted min-h-[44px]">Cancel</button>
-            </div>
+        <DialogShell onClose={() => setBulkConfirm(false)}>
+          <h2 className="font-semibold text-foreground mb-2">Confirm bulk assignment</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Assign {selectedRefs.size} client{selectedRefs.size !== 1 ? "s" : ""} to <strong>{bulkMentorName}</strong>?
+            This will replace any existing mentor assignment.
+          </p>
+          <div className="flex gap-3">
+            <button type="button" onClick={() => void handleBulkAssign()}
+              className="flex-1 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 min-h-[44px]">
+              Confirm
+            </button>
+            <button type="button" onClick={() => setBulkConfirm(false)} autoFocus
+              className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted min-h-[44px]">Cancel</button>
           </div>
-        </div>
+        </DialogShell>
       )}
 
       {/* Error */}
@@ -482,24 +495,20 @@ function ClientRow({ client, isManager, members, selected, onToggleSelect, onCha
     <>
       {/* Reassign confirm */}
       {pendingAssign && (
-        <tr><td colSpan={isManager ? 7 : 5} className="p-0">
-          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-              <h2 className="font-semibold text-foreground mb-3">Move client?</h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                Move <strong>{client.display_name}</strong> from <strong>{currentName}</strong> to <strong>{pendingAssign.name}</strong>?
-              </p>
-              <div className="flex gap-3">
-                <button type="button" onClick={() => void doAssign(pendingAssign.userId)} disabled={assigning}
-                  className="flex-1 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 min-h-[44px]">
-                  {assigning ? "Moving…" : "Move"}
-                </button>
-                <button type="button" onClick={() => setPendingAssign(null)} disabled={assigning}
-                  className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted min-h-[44px]">Cancel</button>
-              </div>
-            </div>
+        <DialogShell onClose={() => setPendingAssign(null)} busy={assigning}>
+          <h2 className="font-semibold text-foreground mb-3">Move client?</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Move <strong>{client.display_name}</strong> from <strong>{currentName}</strong> to <strong>{pendingAssign.name}</strong>?
+          </p>
+          <div className="flex gap-3">
+            <button type="button" onClick={() => void doAssign(pendingAssign.userId)} disabled={assigning}
+              className="flex-1 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 min-h-[44px]">
+              {assigning ? "Moving…" : "Move"}
+            </button>
+            <button type="button" onClick={() => setPendingAssign(null)} disabled={assigning} autoFocus
+              className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted min-h-[44px]">Cancel</button>
           </div>
-        </td></tr>
+        </DialogShell>
       )}
       <tr className="border-t border-border hover:bg-muted/30 transition-colors">
         {isManager && (
@@ -576,22 +585,20 @@ function MobileClientCard({ client, isManager, members, onChanged, currentUserId
   return (
     <div className="rounded-xl border border-border bg-card p-4 space-y-2">
       {pendingAssign && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-            <h2 className="font-semibold text-foreground mb-3">Move client?</h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              Move <strong>{client.display_name}</strong> from <strong>{currentName}</strong> to <strong>{pendingAssign.name}</strong>?
-            </p>
-            <div className="flex gap-3">
-              <button type="button" onClick={() => void doAssign(pendingAssign.userId)} disabled={assigning}
-                className="flex-1 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 min-h-[44px]">
-                {assigning ? "Moving…" : "Move"}
-              </button>
-              <button type="button" onClick={() => setPendingAssign(null)} disabled={assigning}
-                className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted min-h-[44px]">Cancel</button>
-            </div>
+        <DialogShell onClose={() => setPendingAssign(null)} busy={assigning}>
+          <h2 className="font-semibold text-foreground mb-3">Move client?</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Move <strong>{client.display_name}</strong> from <strong>{currentName}</strong> to <strong>{pendingAssign.name}</strong>?
+          </p>
+          <div className="flex gap-3">
+            <button type="button" onClick={() => void doAssign(pendingAssign.userId)} disabled={assigning}
+              className="flex-1 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 min-h-[44px]">
+              {assigning ? "Moving…" : "Move"}
+            </button>
+            <button type="button" onClick={() => setPendingAssign(null)} disabled={assigning} autoFocus
+              className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted min-h-[44px]">Cancel</button>
           </div>
-        </div>
+        </DialogShell>
       )}
       <div className="flex items-start justify-between gap-2">
         <span className="font-medium text-foreground">{client.display_name}</span>

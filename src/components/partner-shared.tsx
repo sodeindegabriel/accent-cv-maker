@@ -1,6 +1,7 @@
 // Shared components and helpers for all partner screens
 import { useEffect, useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
+import { DialogShell } from "@/components/dialog-shell";
 import { jsPDF } from "jspdf";
 import { QRCodeCanvas } from "qrcode.react";
 import { supabase } from "@/lib/supabaseClient";
@@ -391,7 +392,7 @@ export function ReferralLinkCard({ referralUrl, partnerName }: { referralUrl: st
 }
 
 // ── NameDialog ─────────────────────────────────────────────────────────────────
-export function NameDialog({ onSave }: { onSave: (name: string) => void }) {
+export function NameDialog({ onSave, onLater }: { onSave: (name: string) => void; onLater?: () => void }) {
   const [value, setValue] = useState("");
   const [saving, setSaving] = useState(false);
   async function handleSubmit(e: React.FormEvent) {
@@ -403,20 +404,26 @@ export function NameDialog({ onSave }: { onSave: (name: string) => void }) {
     setSaving(false); onSave(trimmed);
   }
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-        <h2 className="font-semibold text-foreground mb-1">What is your name?</h2>
-        <p className="text-sm text-muted-foreground mb-4">Your colleagues will see it when assigning clients.</p>
-        <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-3">
-          <input type="text" placeholder="Your name" value={value} onChange={(e) => setValue(e.target.value)} autoFocus
-            className="rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary" />
+    <DialogShell onClose={onLater ?? onSave.bind(null, "")} busy={saving}>
+      <h2 className="font-semibold text-foreground mb-1">What is your name?</h2>
+      <p className="text-sm text-muted-foreground mb-4">Your colleagues will see it when assigning clients.</p>
+      <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-3">
+        <input type="text" placeholder="Your name" value={value} onChange={(e) => setValue(e.target.value)} autoFocus
+          className="rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary" />
+        <div className="flex gap-3">
           <button type="submit" disabled={saving || !value.trim()}
-            className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-opacity min-h-[44px]">
+            className="flex-1 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-opacity min-h-[44px]">
             {saving ? "Saving…" : "Save"}
           </button>
-        </form>
-      </div>
-    </div>
+          {onLater && (
+            <button type="button" onClick={onLater} disabled={saving} autoFocus
+              className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50 min-h-[44px]">
+              Later
+            </button>
+          )}
+        </div>
+      </form>
+    </DialogShell>
   );
 }
 
@@ -462,14 +469,10 @@ export function CoverLetterModal({ client, letters, loading, error, onClose }: {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
-        <div className="flex items-center justify-between border-b border-border px-6 py-4 shrink-0">
+    <DialogShell onClose={onClose} maxWidth="max-w-2xl">
+      <div className="-m-6 flex flex-col max-h-[90vh]">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4 shrink-0 pr-14">
           <h2 className="font-semibold text-foreground">{client.display_name} — Cover letters</h2>
-          <button type="button" onClick={onClose} className="rounded-lg p-2 text-muted-foreground hover:bg-muted transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center" aria-label="Close">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
         </div>
         <div className="overflow-y-auto flex-1 p-6">
           {loading && <div className="flex justify-center py-8"><div className="h-7 w-7 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>}
@@ -535,7 +538,7 @@ export function CoverLetterModal({ client, letters, loading, error, onClose }: {
           )}
         </div>
       </div>
-    </div>
+    </DialogShell>
   );
 }
 
@@ -567,49 +570,46 @@ export function CaseStatusDialog({ client, action, onClose, onDone }: {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-        <h2 className="font-semibold text-foreground mb-4">
-          {action === "close" ? `Close case for ${client.display_name}` : `Reopen case for ${client.display_name}`}
-        </h2>
-        <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
-          {action === "reopen" && (
-            <p className="text-sm text-muted-foreground">
-              This will mark the case as active again. Are you sure?
-            </p>
-          )}
-          {action === "close" && (
-            <>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Outcome (optional)</label>
-                <select value={outcome} onChange={(e) => setOutcome(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary">
-                  <option value="">— Select outcome</option>
-                  {CASE_OUTCOMES.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Note (optional, max 500 characters)</label>
-                <textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={3}
-                  placeholder="Any additional context…"
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary resize-y" />
-                <p className="mt-0.5 text-right text-xs text-muted-foreground">{note.length}/500</p>
-              </div>
-            </>
-          )}
-          {error && <p className="text-sm text-destructive">{error}</p>}
-          <div className="flex gap-3">
-            <button type="submit" disabled={saving}
-              className="flex-1 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 min-h-[44px]">
-              {saving ? "Saving…" : action === "close" ? "Close case" : "Reopen case"}
-            </button>
-            <button type="button" onClick={onClose} disabled={saving}
-              className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50 min-h-[44px]">Cancel</button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <DialogShell onClose={onClose} busy={saving} maxWidth="max-w-md">
+      <h2 className="font-semibold text-foreground mb-4">
+        {action === "close" ? `Close case for ${client.display_name}` : `Reopen case for ${client.display_name}`}
+      </h2>
+      <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
+        {action === "reopen" && (
+          <p className="text-sm text-muted-foreground">
+            This will mark the case as active again. Are you sure?
+          </p>
+        )}
+        {action === "close" && (
+          <>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Outcome (optional)</label>
+              <select value={outcome} onChange={(e) => setOutcome(e.target.value)}
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary">
+                <option value="">— Select outcome</option>
+                {CASE_OUTCOMES.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Note (optional, max 500 characters)</label>
+              <textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={3}
+                placeholder="Any additional context…"
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary resize-y" />
+              <p className="mt-0.5 text-right text-xs text-muted-foreground">{note.length}/500</p>
+            </div>
+          </>
+        )}
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        <div className="flex gap-3">
+          <button type="submit" disabled={saving}
+            className="flex-1 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 min-h-[44px]">
+            {saving ? "Saving…" : action === "close" ? "Close case" : "Reopen case"}
+          </button>
+          <button type="button" onClick={onClose} disabled={saving} autoFocus
+            className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50 min-h-[44px]">Cancel</button>
+        </div>
+      </form>
+    </DialogShell>
   );
 }
 
