@@ -46,18 +46,57 @@ export const sendPartnerInviteEmails = createServerFn({ method: "POST" })
 
     for (const recipient of allowed) {
       const roleWord = recipient.role === "manager" ? "manager" : "mentor";
-      const emailBody = [
+      const loginUrl = "https://www.cvlingo.com/partner/login";
+
+      // Escape HTML special characters to prevent injection in the HTML body
+      function esc(s: string) {
+        return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+
+      const safePartner = esc(partner_name);
+      const safeInviter = esc(inviter_name);
+      const safeEmail = esc(recipient.email);
+      const safeRole = esc(roleWord);
+
+      const textBody = [
         `Hi,`,
         ``,
         `${inviter_name} has added you to ${partner_name} on CVLingo as a ${roleWord}.`,
         ``,
-        `To sign in:`,
-        `1. Go to https://cvlingo.com/partner/login`,
+        `CVLingo is a free CV builder in 21 languages.`,
+        ``,
+        `To sign in (no password needed):`,
+        `1. Go to ${loginUrl}`,
         `2. Enter your email address (${recipient.email})`,
         `3. Enter the code we email you.`,
         ``,
+        `Questions? Ask ${inviter_name}, who added you.`,
+        ``,
+        `If you were not expecting this, you can ignore this message.`,
+        ``,
         `The CVLingo team`,
       ].join("\n");
+
+      const htmlBody = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#111">
+<p>Hi,</p>
+<p><strong>${safeInviter}</strong> has added you to <strong>${safePartner}</strong> on CVLingo as a <strong>${safeRole}</strong>.</p>
+<p>CVLingo is a free CV builder in 21 languages.</p>
+<p><strong>No password is needed.</strong> To sign in:</p>
+<ol>
+  <li>Go to <a href="${loginUrl}" style="color:#4f46e5">${loginUrl}</a></li>
+  <li>Enter your email address (${safeEmail})</li>
+  <li>Enter the code we email you.</li>
+</ol>
+<p style="margin-top:24px">
+  <a href="${loginUrl}" style="display:inline-block;background:#4f46e5;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">Sign in to CVLingo</a>
+</p>
+<p style="color:#555;font-size:14px">Questions? Ask ${safeInviter}, who added you.</p>
+<p style="color:#888;font-size:13px">If you were not expecting this, you can ignore this message.</p>
+</body>
+</html>`;
 
       try {
         const res = await fetch("https://api.resend.com/emails", {
@@ -70,7 +109,8 @@ export const sendPartnerInviteEmails = createServerFn({ method: "POST" })
             from: "CVLingo <noreply@cvlingo.com>",
             to: [recipient.email],
             subject: `You have been added to ${partner_name} on CVLingo`,
-            text: emailBody,
+            text: textBody,
+            html: htmlBody,
           }),
         });
         if (!res.ok) {

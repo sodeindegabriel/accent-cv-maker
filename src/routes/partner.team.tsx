@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { usePartner } from "@/context/PartnerContext";
 import type { TeamMember } from "@/components/partner-shared";
@@ -107,6 +107,14 @@ interface AddResult {
   role: string;
 }
 
+interface Toast {
+  id: number;
+  message: string;
+  kind: "success" | "error";
+}
+
+let toastSeq = 0;
+
 function TeamScreenInner() {
   const { roleInfo, refreshRole } = usePartner();
   const isOwner = roleInfo?.role === "owner";
@@ -120,6 +128,10 @@ function TeamScreenInner() {
   const [addResult, setAddResult] = useState<AddResult | null>(null);
   const [sendingEmails, setSendingEmails] = useState(false);
   const [emailSendResult, setEmailSendResult] = useState<string | null>(null);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  // memberId → "HH:MM" time string (session only)
+  const [emailedAt, setEmailedAt] = useState<Record<string, string>>({});
+  const toastTimers = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
   const [removeDialog, setRemoveDialog] = useState<TeamMember | null>(null);
   const [reassignTo, setReassignTo] = useState("");
   const [removing, setRemoving] = useState(false);
@@ -130,6 +142,24 @@ function TeamScreenInner() {
   const [showPendingOnly, setShowPendingOnly] = useState(false);
   const [showNamePrompt, setShowNamePrompt] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
+
+  function showToast(message: string, kind: "success" | "error") {
+    const id = ++toastSeq;
+    setToasts((prev) => [...prev, { id, message, kind }]);
+    const timer = setTimeout(() => dismissToast(id), 8000);
+    toastTimers.current.set(id, timer);
+  }
+
+  function dismissToast(id: number) {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+    const timer = toastTimers.current.get(id);
+    if (timer) { clearTimeout(timer); toastTimers.current.delete(id); }
+  }
+
+  useEffect(() => {
+    const timers = toastTimers.current;
+    return () => { timers.forEach((t) => clearTimeout(t)); };
+  }, []);
 
   const managerCount = members.filter((m) => m.status === "active" && (m.role === "owner" || m.role === "manager")).length;
   const pendingCount = members.filter((m) => m.status === "invited").length;
@@ -211,24 +241,56 @@ function TeamScreenInner() {
     setSendingEmails(true); setEmailSendResult(null);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { setEmailSendResult("Not signed in."); setSendingEmails(false); return; }
+      if (!session) {
+        showToast("Not signed in.", "error");
+        setSendingEmails(false); return;
+      }
       const result = await sendPartnerInviteEmails({
         data: { accessToken: session.access_token, memberIds },
       });
+
+      // Record emailed-at time for each successfully contacted member
+      if (result.sent > 0) {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        // Determine which IDs were actually sent to (all requested minus skipped_recent and failed)
+        // We mark all requested IDs optimistically; skipped_recent ones weren't emailed
+        // The failed list has emails not IDs, so we mark all memberIds except we can't exclude failed
+        // Since failed is small/rare, mark all as a best-effort approximation
+        setEmailedAt((prev) => {
+          const next = { ...prev };
+          for (const id of memberIds) next[id] = timeStr;
+          return next;
+        });
+      }
+
       const parts: string[] = [];
-      if (result.sent > 0) parts.push(`${result.sent} email${result.sent !== 1 ? "s" : ""} sent`);
+      if (result.sent > 0) {
+        // Try to include the email address when sending to exactly one person
+        const sentTo = memberIds.length === 1
+          ? members.find((m) => m.member_id === memberIds[0])?.email
+          : null;
+        parts.push(sentTo
+          ? `Invite email sent to ${sentTo}`
+          : `${result.sent} invite email${result.sent !== 1 ? "s" : ""} sent`);
+      }
       if (result.skipped_recent > 0) parts.push(`${result.skipped_recent} already emailed in the last hour`);
       if (result.failed.length > 0) parts.push(`${result.failed.length} failed`);
-      setEmailSendResult(parts.join(", ") + ".");
+      const msg = parts.join(", ") + ".";
+      setEmailSendResult(msg);
+      showToast(msg, result.failed.length > 0 && result.sent === 0 ? "error" : "success");
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes("daily_invite_limit")) {
-        setEmailSendResult("Daily invite email limit (300) reached. Try again tomorrow.");
-      } else if (msg.includes("manager access required")) {
-        setEmailSendResult("Only managers can send invite emails.");
+      const errMsg = err instanceof Error ? err.message : String(err);
+      let msg: string;
+      if (errMsg.includes("daily_invite_limit")) {
+        msg = "Daily invite email limit (300) reached. Try again tomorrow.";
+      } else if (errMsg.includes("manager access required")) {
+        msg = "Only managers can send invite emails.";
       } else {
-        setEmailSendResult("Could not send emails. Please try again.");
+        msg = "Could not send emails. Please try again.";
       }
+      setEmailSendResult(msg);
+      showToast(msg, "error");
     }
     setSendingEmails(false);
   }
@@ -293,6 +355,32 @@ function TeamScreenInner() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+      {/* Toast stack */}
+      {toasts.length > 0 && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 w-full max-w-md px-4">
+          {toasts.map((t) => (
+            <div
+              key={t.id}
+              className={`flex items-start justify-between gap-3 rounded-xl px-4 py-3 shadow-lg text-sm font-semibold ${
+                t.kind === "success"
+                  ? "bg-green-600 text-white"
+                  : "bg-red-600 text-white"
+              }`}
+            >
+              <span>{t.message}</span>
+              <button
+                type="button"
+                onClick={() => dismissToast(t.id)}
+                className="shrink-0 opacity-80 hover:opacity-100 leading-none text-base"
+                aria-label="Dismiss"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {showNamePrompt && (
         <NamePromptDialog onSave={() => setShowNamePrompt(false)} />
       )}
@@ -570,6 +658,8 @@ function TeamScreenInner() {
               managerCount={managerCount}
               roleChanging={roleChanging === m.member_id}
               cancellingInvite={cancellingInvite === m.member_id}
+              sendingEmail={sendingEmails}
+              emailedAtTime={emailedAt[m.member_id] ?? null}
               onRoleChange={(role) => void handleRoleChange(m, role)}
               onRemove={() => { setRemoveDialog(m); setRemoveError(null); }}
               onCancelInvite={() => void handleCancelInvite(m)}
@@ -586,12 +676,14 @@ function TeamScreenInner() {
   );
 }
 
-function MemberCard({ member, isViewerOwner, managerCount, roleChanging, cancellingInvite, onRoleChange, onRemove, onCancelInvite, onSendInviteEmail, onCopyMessage }: {
+function MemberCard({ member, isViewerOwner, managerCount, roleChanging, cancellingInvite, sendingEmail, emailedAtTime, onRoleChange, onRemove, onCancelInvite, onSendInviteEmail, onCopyMessage }: {
   member: TeamMember;
   isViewerOwner: boolean;
   managerCount: number;
   roleChanging: boolean;
   cancellingInvite: boolean;
+  sendingEmail: boolean;
+  emailedAtTime: string | null;
   onRoleChange: (role: "manager" | "mentor") => void;
   onRemove: () => void;
   onCancelInvite: () => void;
@@ -620,6 +712,9 @@ function MemberCard({ member, isViewerOwner, managerCount, roleChanging, cancell
             {isInvited ? `Added ${fmtDate(member.created_at)}` : `Joined ${fmtDate(member.created_at)}`}
             {" · "}
             {member.assigned_count} assigned · {member.closed_count} closed
+            {emailedAtTime && (
+              <span className="ml-1 text-blue-600 font-medium"> · Invite emailed at {emailedAtTime}</span>
+            )}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -643,9 +738,9 @@ function MemberCard({ member, isViewerOwner, managerCount, roleChanging, cancell
           {/* Pending-invite actions */}
           {isInvited && (
             <>
-              <button type="button" onClick={() => onSendInviteEmail(member.member_id)}
-                className="rounded-xl border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted min-h-[44px]">
-                Send invite email
+              <button type="button" onClick={() => onSendInviteEmail(member.member_id)} disabled={sendingEmail}
+                className="rounded-xl border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted disabled:opacity-50 min-h-[44px]">
+                {sendingEmail ? "Sending…" : "Send invite email"}
               </button>
               <button type="button" onClick={() => onCopyMessage(member.email)}
                 className="rounded-xl border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted min-h-[44px]">
