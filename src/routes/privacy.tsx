@@ -29,7 +29,7 @@ function PrivacyPage() {
 
             <Section title="1. Who We Are">
               <p>
-                CVLingo is operated by Jebaco Global, a UK registered company. We are committed to protecting your personal data in accordance with the UK General Data Protection Regulation (UK GDPR) and the Data Protection Act 2018.
+                CVLingo is operated by Jebaco Global Ltd, a UK registered company. We are committed to protecting your personal data in accordance with the UK General Data Protection Regulation (UK GDPR) and the Data Protection Act 2018.
               </p>
               <div className="mt-2 space-y-1">
                 <p><span className="font-medium">Contact:</span>{" "}<ObfuscatedEmail className="text-primary hover:underline" /></p>
@@ -67,7 +67,7 @@ function PrivacyPage() {
                 <li>Generate your professional UK CV</li>
                 <li>Add you to our candidate pool if you choose to opt in</li>
                 <li>Connect you with potential employers who are looking for candidates like you</li>
-                <li>Tell the partner organisation that referred you that you have signed up and used the service (basic referral tracking — see "Sharing with a partner organisation" below)</li>
+                <li>If you reach CVLingo through a partner organisation's link, we show that organisation your first name and last initial, the date you joined, your CV language and whether you have built a CV, so their advisers can follow up with the people they referred (see 'Sharing with a partner organisation' below).</li>
                 <li>Improve our platform and services</li>
                 <li>Communicate with you about your CV and job opportunities</li>
               </ul>
@@ -75,11 +75,11 @@ function PrivacyPage() {
               <p className="mt-3 font-medium">We do NOT:</p>
               <ul className="mt-2 list-disc space-y-1 pl-5">
                 <li>Sell your data to third parties</li>
-                <li>Share your CV or cover letters with a partner organisation unless you explicitly chose to do this when you signed up</li>
+                <li>Share your CV or cover letters with a referring partner organisation unless you choose to share them (when you sign up, or later from your dashboard)</li>
                 <li>Use your data for advertising purposes</li>
-                <li>Transfer your data outside the UK without appropriate safeguards</li>
+                <li>Transfer your data outside the UK without a recognised safeguard in place</li>
               </ul>
-              <p className="mt-3">We keep an internal audit trail of partner case management activity — for example when a case is opened, closed, or reopened, and when partner staff edit a cover letter. This helps us maintain the integrity of the service.</p>
+              <p className="mt-3">We keep a record of partner case activity, for example when a case is assigned, closed or reopened, and when partner staff edit a cover letter. This helps us keep your information handled accountably.</p>
             </Section>
 
             <Section title="4. Legal Basis for Processing">
@@ -97,16 +97,14 @@ function PrivacyPage() {
             </Section>
 
             <Section title="6. Data Storage and Security">
-              <p>Your CV data is processed in real time to generate your CV. If you join our candidate pool, your data is stored securely on our servers.</p>
-              <p>We implement appropriate technical and organisational measures to protect your personal data against unauthorised access, alteration, disclosure or destruction.</p>
-              <p>Your data is stored on secure UK/EU servers and is never transferred to countries without adequate data protection laws.</p>
+              <p>Your account, CVs and cover letters are stored securely in our database, which is provided by Supabase. We use technical and organisational measures to protect your personal data against unauthorised access, alteration, disclosure or destruction. Some of our service providers (listed in section 12) may process data outside the UK, including in the United States. Where that happens, we rely on recognised safeguards, such as the UK International Data Transfer Agreement or Addendum, or the UK-US data bridge, to protect your data.</p>
             </Section>
 
             <Section title="7. How Long We Keep Your Data">
               <ul className="mt-2 list-disc space-y-2 pl-5">
-                <li><span className="font-medium">CV generation data:</span> processed in real time and not permanently stored unless you join the candidate pool</li>
-                <li><span className="font-medium">Candidate pool data:</span> retained for up to 2 years or until you request deletion</li>
-                <li><span className="font-medium">Partner organisation data:</span> retained for the duration of the partnership</li>
+                <li><span className="font-medium">Your account, CVs and cover letters:</span> kept until you ask us to delete them. You can ask at any time at{" "}<ObfuscatedEmail className="text-primary hover:underline" /> and we will delete them.</li>
+                <li><span className="font-medium">Candidate pool data:</span> kept for up to 2 years or until you ask us to delete it.</li>
+                <li><span className="font-medium">Records of partner case activity:</span> kept while the partnership with that organisation continues.</li>
               </ul>
             </Section>
 
@@ -134,10 +132,10 @@ function PrivacyPage() {
             </Section>
 
             <Section title="10. Sharing with a Partner Organisation">
-              <p>If you arrived at CVLingo via a partner link (from a charity, job centre, community organisation, or similar), we will tell the partner that you have signed up and used the service. This is basic referral tracking and is part of our legitimate interest in maintaining partner relationships.</p>
-              <p>We will only share your CV, cover letters, or contact details with the partner if you explicitly chose to do so when you created your account.</p>
-              <p>Partner staff can see activity on cases they manage — for example when you use the service, when your case status changes, and notes that staff have written. They cannot see your password or payment details (we hold none).</p>
-              <p>If you want to know exactly what data a specific partner can see, or if you want to withdraw your sharing consent, contact us at{" "}<ObfuscatedEmail className="text-primary hover:underline" />.</p>
+              <p>If you arrived at CVLingo through a partner link (from a charity, job centre, community organisation or similar), that organisation can see your first name and last initial, the date you joined, your CV language and whether you have built a CV. This is basic referral tracking, and it is part of our legitimate interest in supporting the people the organisation has referred. You can object at any time by contacting us.</p>
+              <p>We will only show the partner your CV and cover letters if you choose to share them, when you sign up or later from your dashboard. If you share, their advisers can view, download and edit your CV and cover letters to help you. Changes to cover letters are recorded. You can switch sharing off at any time on your dashboard and their access stops immediately. This is separate from the employer candidate pool.</p>
+              <p>Within a partner organisation, access is limited to the team members who need it: managers can see the organisation's referred clients, and other team members see only the clients assigned to them. We keep a record of case assignments, closures and cover letter edits.</p>
+              <p>If you want to know exactly what a particular partner can see, or to withdraw your sharing, contact us at{" "}<ObfuscatedEmail className="text-primary hover:underline" />.</p>
             </Section>
 
             <Section title="11. Cookies">
@@ -147,9 +145,11 @@ function PrivacyPage() {
             <Section title="12. Third Party Services">
               <p>We use the following third party services:</p>
               <ul className="mt-2 list-disc space-y-2 pl-5">
-                <li><span className="font-medium">Anthropic Claude API:</span> To generate CV and cover letter content. Your data is sent to Anthropic under a data processing agreement. Anthropic does not use it to train their models.</li>
-                <li><span className="font-medium">EmailJS:</span> To send email notifications (no personal data is stored by EmailJS)</li>
-                <li><span className="font-medium">Vercel:</span> For hosting and deployment</li>
+                <li><span className="font-medium">Supabase:</span> our database and sign-in service, where your account, CVs and cover letters are stored.</li>
+                <li><span className="font-medium">Anthropic (Claude API):</span> to generate CV and cover letter content. Your data is sent to Anthropic under a data processing agreement.</li>
+                <li><span className="font-medium">Vercel:</span> to host and deliver the website.</li>
+                <li><span className="font-medium">Resend:</span> to send emails such as sign-in codes and team invitations. They process the email address and the content of those emails.</li>
+                <li><span className="font-medium">EmailJS:</span> to send email notifications. The email address and message content pass through them.</li>
               </ul>
             </Section>
 

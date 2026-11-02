@@ -37,7 +37,9 @@ function TermsPage() {
               <p>The service allows users to:</p>
               <ul className="mt-2 list-disc space-y-1 pl-5">
                 <li>Build a professional UK-format CV in their native language</li>
+                <li>Create a cover letter in English and their own language</li>
                 <li>Download their CV as a PDF</li>
+                <li>Optionally share their CV and cover letters with the partner organisation that referred them</li>
                 <li>Optionally join a candidate pool visible to employers</li>
               </ul>
             </Section>
