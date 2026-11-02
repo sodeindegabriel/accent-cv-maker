@@ -52,7 +52,7 @@ function NamePromptDialog({ onSave, onLater }: { onSave: (name: string) => void;
   }
 
   return (
-    <DialogShell onClose={onLater} busy={saving}>
+    <DialogShell onClose={onLater} busy={saving} dirty={name.trim().length > 0}>
       <h2 className="font-semibold text-foreground mb-1">What is your name?</h2>
       <p className="text-sm text-muted-foreground mb-4">Your colleagues will see it when assigning clients.</p>
       <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-3">

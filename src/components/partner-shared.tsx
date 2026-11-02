@@ -404,7 +404,7 @@ export function NameDialog({ onSave, onLater }: { onSave: (name: string) => void
     setSaving(false); onSave(trimmed);
   }
   return (
-    <DialogShell onClose={onLater ?? onSave.bind(null, "")} busy={saving}>
+    <DialogShell onClose={onLater ?? onSave.bind(null, "")} busy={saving} dirty={value.trim().length > 0}>
       <h2 className="font-semibold text-foreground mb-1">What is your name?</h2>
       <p className="text-sm text-muted-foreground mb-4">Your colleagues will see it when assigning clients.</p>
       <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-3">
@@ -441,6 +441,20 @@ export function CoverLetterModal({ client, letters, loading, error, onClose }: {
   const [saveError, setSaveError] = useState<Record<number, string | null>>({});
   const [copied, setCopied] = useState<number | null>(null);
 
+  const isDirty = letters.some((letter, idx) => {
+    const edit = editState[idx];
+    if (!edit) return false;
+    return edit.english_text !== letter.english_text || edit.native_text !== letter.native_text;
+  });
+
+  // Warn before unloading the page while there are unsaved cover letter edits
+  useEffect(() => {
+    if (!isDirty) return;
+    function handler(e: BeforeUnloadEvent) { e.preventDefault(); e.returnValue = ""; }
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
+
   function getTab(idx: number): "english" | "native" { return activeTab[idx] ?? "english"; }
   function showNative(l: PartnerCoverLetter) { return l.language !== "English" && l.language !== "en"; }
   function isRtl(lang: string) { return RTL_LANGS.has(lang); }
@@ -469,7 +483,7 @@ export function CoverLetterModal({ client, letters, loading, error, onClose }: {
   }
 
   return (
-    <DialogShell onClose={onClose} maxWidth="max-w-2xl">
+    <DialogShell onClose={onClose} dirty={isDirty} maxWidth="max-w-2xl">
       <div className="-m-6 flex flex-col max-h-[90vh]">
         <div className="flex items-center justify-between border-b border-border px-6 py-4 shrink-0 pr-14">
           <h2 className="font-semibold text-foreground">{client.display_name} — Cover letters</h2>
@@ -570,7 +584,7 @@ export function CaseStatusDialog({ client, action, onClose, onDone }: {
   }
 
   return (
-    <DialogShell onClose={onClose} busy={saving} maxWidth="max-w-md">
+    <DialogShell onClose={onClose} busy={saving} dirty={action === "close" && note.trim().length > 0} maxWidth="max-w-md">
       <h2 className="font-semibold text-foreground mb-4">
         {action === "close" ? `Close case for ${client.display_name}` : `Reopen case for ${client.display_name}`}
       </h2>
